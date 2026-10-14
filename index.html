@@ -204,9 +204,15 @@
   #qTT0 { position:absolute; left:0; right:0; top:54px; text-align:center; font-size:14px; pointer-events:none; }
   #qTT0 span { background:#000a; padding:4px 12px; border-radius:20px; }
   /* thẻ kết quả bài vừa chấm: nằm giữa màn hình */
-  #qThe { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:calc(100% - 32px); max-width:460px; background:#0d1a44eb; border:1.5px solid var(--vien); border-radius:18px; padding:14px 16px; display:none; align-items:center; gap:12px; box-shadow:0 10px 40px #000a; }
-  #qThe .ten2 { font-size:18px !important; }
-  #qThe .d { font-size:36px !important; }
+  /* thẻ kết quả: luôn hiện trên nền camera tới khi chấm bài tiếp theo; vẫn quét được phía sau */
+  #qThe { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:calc(100% - 32px); max-width:460px; background:#0d1a44e0; border:1.5px solid var(--vien); border-radius:18px; padding:14px 16px; display:none; flex-direction:column; gap:10px; box-shadow:0 10px 40px #000a; }
+  #qThe .dong1 { display:flex; align-items:center; gap:12px; }
+  #qThe .ten2 { font-size:19px !important; }
+  #qThe .mo { font-size:14px; margin-top:2px; }
+  #qThe .d { font-size:40px !important; }
+  #qkCanh { display:none; padding:7px 10px; border-radius:10px; background:#3a1626; border:1px solid #7a2c44; color:#ffd0da; font-size:13px; font-weight:600; line-height:1.45; }
+  #qThe .nut3 { display:flex; gap:8px; }
+  #qThe .nut3 button { flex:1; padding:10px 6px; font-size:14px; }
   #lkLai, #lkOk, #qLon.da #lkXoa, #qLon.da #lkGan, #qLon.da #lkTiep { display:none; }
   #qLon.da #lkLai, #qLon.da #lkOk { display:block; }
   #lkDA { display:none; margin:0 12px 8px; padding:8px 10px; border-radius:12px; background:#0d1a44; border:1.5px solid var(--vien); max-height:34vh; overflow:auto; }
@@ -217,7 +223,7 @@
   .pda span i { font-style:normal; color:var(--mo); font-weight:500; margin-right:4px; font-size:12px; }
   .pda .x { color:#ff6b6b; }
   #qThe.hien { display:flex; }
-  #qThe .ten2 { font-weight:700; font-size:16px; } #qThe.loi .ten2 { color:var(--cam); } #qThe.loi #qkPhu { color:#ffb0c0; }
+  #qThe .ten2 { font-weight:700; font-size:16px; } #qThe.loi .ten2 { color:var(--cam); }
   #qThe .d { margin-left:auto; font-size:30px; font-weight:900; color:var(--vang); }
   #qChop { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; transition:opacity .25s; }
   #qLon { position:absolute; inset:0; background:#081029; display:none; flex-direction:column; z-index:3; }
@@ -271,7 +277,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.4</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -325,9 +331,13 @@
 <div id="manQuet">
   <div id="qKhung"><video id="qVideo" playsinline muted autoplay></video><canvas id="qLop"></canvas></div>
   <div id="qChop"></div>
-  <div id="qTren"><button id="qLui">‹ Xong</button><div class="ten" id="qTen"></div><button id="qDen" style="display:none">Đèn</button><span id="qDem" style="font-weight:700;white-space:nowrap"></span><button id="qCd" title="Cài đặt máy quét" style="padding:6px 9px"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button></div>
+  <div id="qTren"><button id="qLui">‹ Xong</button><div class="ten" id="qTen"></div><button id="qDen" style="display:none">Đèn</button><span id="qDem" style="font-weight:700;white-space:nowrap"></span><button id="qChup" title="Chấm bằng ảnh chụp có sẵn" style="padding:6px 10px">Ảnh</button><button id="qCd" title="Cài đặt máy quét" style="padding:6px 9px"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button></div>
   <div id="qTT0"><span id="qTT"></span></div>
-  <div id="qThe"><div style="min-width:0"><div class="ten2" id="qkTen"></div><div class="mo" id="qkPhu"></div></div><div class="d" id="qkDiem"></div><button id="qChup" class="nho">Chụp ảnh</button></div>
+  <div id="qThe">
+    <div class="dong1"><div style="min-width:0;flex:1"><div class="ten2" id="qkTen"></div><div class="mo" id="qkPhu"></div></div><div class="d" id="qkDiem"></div></div>
+    <div id="qkCanh"></div>
+    <div class="nut3" id="qkNut"><button id="qkXoa" class="nguy">Xoá</button><button id="qkGan">Gán học sinh</button><button id="qkXem" class="vang">Xem lại bài</button></div>
+  </div>
   <div id="qLon">
     <div class="tt"><div style="min-width:0"><div class="ten" id="lkTen"></div><div class="phu3" id="lkPhu"></div><div class="phu3" id="lkPhan"></div></div>
       <div class="diem"><span id="lkDiem"></span><small id="lkToiDa"></small></div></div>
@@ -344,9 +354,7 @@
   </div></div>
   <div id="qCaiDat" class="qHop"><div class="the">
     <h3 style="font-size:18px;margin-bottom:4px">Cài đặt máy quét</h3>
-    <div class="o"><label>Sau khi chấm xong một bài, chuyển sang bài tiếp</label>
-      <select id="qcdChuyen"><option value="tudong">Tự động (2,5 giây; rút phiếu ra là chuyển ngay)</option><option value="1">Sau 1 giây</option><option value="2">Sau 2 giây</option><option value="3">Sau 3 giây</option><option value="5">Sau 5 giây</option><option value="8">Sau 8 giây</option><option value="tay">Không tự chuyển – bấm “Chấm bài tiếp”</option></select></div>
-    <div class="o" style="margin-top:6px"><label>Kiểm tra ảnh mờ</label>
+    <div class="o"><label>Kiểm tra ảnh mờ</label>
       <select id="qcdMo"><option value="cao">Khắt khe – chỉ chấm khi ảnh thật nét</option><option value="vua">Vừa (khuyên dùng)</option><option value="thap">Dễ – chấp nhận ảnh hơi mờ</option><option value="tat">Tắt</option></select></div>
     <p class="mo" style="margin:4px 0 0;font-size:13px">Khi ảnh mờ, khung chuyển màu cam và máy chờ đến khi nét mới chấm. Ảnh lưu lại là khung hình nét nhất.</p>
     <button class="vang" id="qcdXong">Xong</button>
@@ -1310,7 +1318,7 @@ var QUET = (function () {
     if (lop.width !== w || lop.height !== h) { lop.width = w; lop.height = h; }
     var c = lop.getContext('2d'), v = vungThay(w, h), M = TPL.moc, i;
     c.clearRect(0, 0, w, h);
-    var the = $('qThe'), duoi = (the.classList.contains('hien') ? the.offsetHeight + 20 : 20) / v.s;
+    var duoi = 20 / v.s;                           // thẻ kết quả nằm giữa màn hình, không chiếm chỗ ở đáy
     var tren = 84 / v.s, ben = 26 / v.s;
     var rong = M[1].x - M[0].x, cao = M[3].y - M[0].y;
     var g = Math.min((v.w - 2 * ben) / rong, (v.h - tren - duoi) / cao);
@@ -1343,7 +1351,8 @@ var QUET = (function () {
   }
   function motKhung(w, h) {
     var bay = Date.now();
-    if (dangHoi) return;
+    // tạm dừng khi đang hỏi, đang xem lại bài hoặc đang chọn học sinh để gán
+    if (dangHoi || lonHien || $('qChon').classList.contains('hien')) return;
     // 1) dò mốc trên ảnh nhỏ
     var k = Math.max(1, Math.max(w, h) / 960), wn = Math.round(w / k), hn = Math.round(h / k);
     if (cvN.width !== wn || cvN.height !== hn) { cvN.width = wn; cvN.height = hn; }
@@ -1352,7 +1361,6 @@ var QUET = (function () {
     if (!m) {
       veKhung(null);
       if (bay - phieu.mat > 700) { phieu.dem = {}; phieu.tot = {}; phieu.tu = 0; phieu.moTu = 0; }
-      if (bay - phieu.mat > 600 && lonHien && CD.chuyen === 'tudong') anLon();          // đã rút phiếu ra: quay lại camera ngay
       if (bay - tgCham > 2500) tt(MOI);
       return;
     }
@@ -1493,7 +1501,7 @@ var QUET = (function () {
     DA[kq.id] = { ten: kq.ten, diem: kq.diem };
     cuoi = kq.id; BAI_CUOI = { kq: kq, anh: anh }; soBai++;
     if (TC.them) TC.them(kq, anh);
-    hienThe(kq); hienLon(kq, anh);
+    hienThe(kq);                                     // chỉ hiện thẻ trên nền camera, vẫn quét tiếp được
     var tot = !kq.loiMade && !!kq.ten && !canhBao(kq).length;
     bip(tot);
     tt(tot ? 'Đã chấm. Đưa phiếu tiếp theo vào' : 'Đã đọc phiếu – cần kiểm tra lại');
@@ -1551,9 +1559,13 @@ var QUET = (function () {
     var cb = canhBao(kq);
     the.classList.add('hien'); the.classList.toggle('loi', !kq.ten || kq.loiMade || cb.length > 0);
     $('qkTen').textContent = kq.ten || ('Không có SBD ' + sbd + ' trong danh sách');
-    $('qkPhu').textContent = cb.length ? '⚠ ' + cb[0] + (cb.length > 1 ? ' (+' + (cb.length - 1) + ')' : '') : 'SBD ' + sbd + (kq.lop ? ' · Lớp ' + kq.lop : '') + ' · Mã đề ' + (kq.made || '?');
+    $('qkPhu').textContent = 'SBD ' + sbd + ' · Lớp ' + (kq.lop || '?') + ' · Mã đề ' + (kq.made || '?');
     $('qkDiem').textContent = kq.diem == null ? '—' : CHAM.soVN(kq.diem);
+    $('qkCanh').innerHTML = cb.map(function (x) { return '<div>⚠ ' + x.replace(/</g, '&lt;') + '</div>'; }).join('');
+    $('qkCanh').style.display = cb.length ? 'block' : 'none';
+    $('qkNut').style.display = '';
   }
+  function anThe() { $('qThe').classList.remove('hien', 'loi'); }
   // Màn hình "bài vừa chấm": ảnh phiếu đã đánh dấu + họ tên, SBD, lớp, điểm; tự ẩn để chấm bài tiếp
   var lonHien = false, henAn = 0;
   function canhBao(kq) {
@@ -1568,11 +1580,7 @@ var QUET = (function () {
     var sbd = kq.sbd.replace(/_/g, '?'), cb = canhBao(kq);
     $('qLon').classList.add('hien'); lonHien = true;
     clearTimeout(henAn);
-    if (!giu && CD.chuyen !== 'tay') {
-      var giay = CD.chuyen === 'tudong' ? (cb.length ? 5 : 2.5) : Math.max(+CD.chuyen, cb.length ? 4 : 0);
-      henAn = setTimeout(anLon, giay * 1000);
-    }
-    $('lkTiep').textContent = CD.chuyen === 'tay' ? 'Chấm bài tiếp' : 'Chấm tiếp ngay';
+    $('lkTiep').textContent = '‹ Quay lại chấm';
     $('lkGan').style.display = $('lkXoa').style.display = giu ? 'none' : '';
     $('qLon').classList.toggle('loi', !kq.ten || kq.loiMade || cb.length > 0);
     $('lkTen').textContent = kq.ten || 'Không có SBD ' + sbd + ' trong danh sách';
@@ -1644,24 +1652,23 @@ var QUET = (function () {
     $('lkLai').onclick = chupLaiDA;
     $('lkOk').onclick = dongYDA;
     $('qCd').onclick = function () {
-      $('qcdChuyen').value = String(CD.chuyen); $('qcdMo').value = CD.mo;
+      $('qcdMo').value = CD.mo;
       $('qCaiDat').classList.add('hien');
     };
     $('qcdXong').onclick = function () {
-      CD.chuyen = $('qcdChuyen').value; CD.mo = $('qcdMo').value; luuCD();
+      CD.mo = $('qcdMo').value; luuCD();
       $('qCaiDat').classList.remove('hien');
     };
-    $('lkAnh').onclick = function () { clearTimeout(henAn); };              // chạm vào ảnh để giữ lại xem kĩ
-    $('lkXoa').onclick = function () {
-      clearTimeout(henAn);
+    // Xoá / gán học sinh / xem lại bài vừa chấm (nút trên thẻ kết quả và trên màn xem bài)
+    $('lkXoa').onclick = $('qkXoa').onclick = function () {
       if (!BAI_CUOI || !confirm('Xoá bài vừa chấm?')) return;
-      boBai(BAI_CUOI.kq); BAI_CUOI = null; anLon(); $('qThe').classList.remove('hien'); tt('Đã xoá. Đưa phiếu tiếp theo vào');
+      boBai(BAI_CUOI.kq); BAI_CUOI = null; anLon(); anThe(); tt('Đã xoá. Đưa phiếu tiếp theo vào');
     };
-    $('lkGan').onclick = function () {
-      clearTimeout(henAn);
+    $('lkGan').onclick = $('qkGan').onclick = function () {
       var b = BAI_CUOI; if (!b) return;
       chonHS(function (hs) { boBai(b.kq); ganHS(b.kq, hs); anLon(); xuLyBai(b.kq, b.anh); });
     };
+    $('qkXem').onclick = function () { if (BAI_CUOI) hienLon(BAI_CUOI.kq, BAI_CUOI.anh); };
   }
   function mo(tc) {
     gan();
@@ -1676,7 +1683,8 @@ var QUET = (function () {
     return moCamera().then(function () { dangQuet = true; tt(MOI); buoc(); })
       .catch(function (e) {
         tt('Không mở được camera (' + e.message + '). Dùng nút "Chụp ảnh".');
-        $('qThe').classList.add('hien'); $('qkTen').textContent = 'Chấm bằng ảnh chụp'; $('qkPhu').textContent = ''; $('qkDiem').textContent = '';
+        $('qThe').classList.add('hien'); $('qkTen').textContent = 'Chấm bằng ảnh chụp'; $('qkPhu').textContent = 'Bấm nút “Ảnh” ở góc trên để chọn ảnh phiếu'; $('qkDiem').textContent = '';
+        $('qkCanh').style.display = 'none'; $('qkNut').style.display = 'none';
       });
   }
   function dong(suaId) {
