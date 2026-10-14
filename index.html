@@ -277,7 +277,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.4</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.5</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -1618,7 +1618,8 @@ var QUET = (function () {
     $('lkAnh').src = anh || '';
   }
   function chupLaiDA() { DA_CHO = null; khoaVua = ''; phieu = { dem: {}, tot: {}, tu: 0, mat: 0, moTu: 0 }; anLon(); dangHoi = false; tt(MOI); }
-  function dongYDA() { var d = DA_CHO, f = TC.doc; DA_CHO = null; dangHoi = false; anLon(); dong(); if (f && d) f(d); }
+  // ghi đáp án vào bài thi TRƯỚC khi đóng máy quét, để trang Chỉnh sửa vẽ lại đã có đáp án mới
+  function dongYDA() { var d = DA_CHO, f = TC.doc; DA_CHO = null; dangHoi = false; anLon(); if (f && d) f(d); dong(); }
 
   function capNhatDem() { if ($('qDem')) $('qDem').textContent = soBai + ' bài' + (conCho ? ' · ' + conCho + ' chờ gửi' : ''); }
 
