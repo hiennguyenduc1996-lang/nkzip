@@ -235,7 +235,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v2.2</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v2.3</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -2396,21 +2396,22 @@ var QUET = (function () {
   function veCaiDat() {
     var c = $('#chinh');
     if (!QT && !CUC_BO) { c.innerHTML = '<h2>Cài đặt</h2><p class="mo">Cần đăng nhập bằng tài khoản quản trị.</p>'; return; }
-    var phan = function (gasUrl) {
-      var url = gasUrl || (window.NK_URL ? location.href.split('#')[0] : URL_APP);
-      return '<div class="the"><h3>Đường dẫn cho điện thoại</h3>' + (url ? '<p>Mở bằng trình duyệt điện thoại rồi đăng nhập. Một đường dẫn dùng cho mọi bài thi và mọi tài khoản.</p><p><code style="word-break:break-all">' + esc(url) + '</code></p><button id="cChep">Chép đường dẫn</button>' : '<p class="mo">Cần kết nối Apps Script trước.</p>') + '</div>' +
+    var phan = function (url) {
+      return '<div class="the"><h3>Đường dẫn cho điện thoại</h3>' + (url ? '<p>Mở bằng <b>Safari / Chrome</b> trên điện thoại, đăng nhập, rồi “Thêm vào Màn hình chính”. Một đường dẫn dùng cho mọi bài thi và mọi tài khoản.</p><p><code style="word-break:break-all;font-size:15px">' + esc(url) + '</code></p><button id="cChep" class="vang">Chép đường dẫn</button>' : '<p class="mo">Cần kết nối Apps Script trước.</p>') + '</div>' +
         '<div class="the"><h3>Phiếu trả lời</h3><p style="margin:0">' + (API.mayTinh() ? '<a href="/phieu.pdf" target="_blank">Mở phiếu NKZip (PDF, A4)</a> để in. ' : 'Phiếu NKZip (PDF) có trong ứng dụng NKZip trên máy tính, mục Cài đặt. ') + 'In đúng khổ A4, tỉ lệ 100%, mực đen rõ.</p></div>';
     };
     var ganChep = function (url) { if ($('#cChep')) $('#cChep').onclick = function () { navigator.clipboard.writeText(url).then(function () { bao('Đã chép đường dẫn'); }); }; };
-    if (!API.mayTinh()) { c.innerHTML = '<h2>Cài đặt</h2>' + phan(''); ganChep(window.NK_URL ? location.href.split('#')[0] : URL_APP); return; }
+    if (!API.mayTinh()) { var u0 = window.NK_URL ? location.href.split('#')[0].split('?')[0] : URL_APP; c.innerHTML = '<h2>Cài đặt</h2>' + phan(u0); ganChep(u0); return; }
     API.goi('docCauHinh').then(function (r) {
-      var url = r.gasUrl || '';
+      var url = r.gasUrl || '', diaChi = r.webUrl || url;
       c.innerHTML = '<h2>Cài đặt</h2>' +
         '<div class="the"><h3>Kết nối Apps Script (Google Drive + Sheet)</h3>' +
         '<p class="mo" style="margin-top:0">' + (url ? '<span style="color:var(--xanh)">●</span> Đang dùng dữ liệu trên Google. Điện thoại và máy tính dùng chung.' : '<span style="color:var(--cam)">●</span> Chưa kết nối: dữ liệu đang lưu tạm trên máy này (chế độ thử).') + '</p>' +
         '<div class="o"><label>Đường dẫn ứng dụng web (…/exec)</label><input id="cUrl" value="' + esc(url) + '" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%"></div>' +
-        '<div class="hang" style="margin-top:12px"><button class="vang" id="cLuu">Kiểm tra &amp; lưu</button>' + (url ? '<button class="nguy" id="cBo">Ngắt kết nối (về chế độ thử)</button>' : '') + '</div></div>' + phan(url);
-      ganChep(url);
+        '<div class="hang" style="margin-top:12px"><button class="vang" id="cLuu">Kiểm tra &amp; lưu</button>' + (url ? '<button class="nguy" id="cBo">Ngắt kết nối (về chế độ thử)</button>' : '') + '</div></div>';
+      c.innerHTML = c.innerHTML.replace('<h2>Cài đặt</h2>', '<h2>Cài đặt</h2>' + (url ? phan(diaChi) : ''));
+      if (!url) c.innerHTML += phan('');
+      ganChep(diaChi);
       var doi = function (u) {
         bao('Đang kiểm tra kết nối…', 30000);
         API.goi('ghiCauHinh', { gasUrl: u }).then(function () { bao(u ? 'Đã kết nối. Hãy đăng nhập.' : 'Đã chuyển về chế độ thử.'); API.dangXuat(); location.reload(); }).catch(loi);
