@@ -181,9 +181,17 @@
   /* đăng nhập */
   #dangNhap { position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:22px; z-index:20; background:radial-gradient(900px 600px at 80% 0,#1a2a66 0,transparent 60%),var(--nen); }
   #dangNhap.hien { display:flex; }
-  #dangNhap .the { width:100%; max-width:380px; margin:0; padding:26px 24px; }
+  #dangNhap .the { width:100%; max-width:400px; margin:0; padding:26px 24px; max-height:100%; overflow:auto; }
   #dangNhap input { width:100%; font-size:16px; padding:12px 14px; }
   #dangNhap button { width:100%; padding:13px; font-size:16px; margin-top:16px; }
+  .loiDN { color:var(--do); margin-top:10px; min-height:20px; }
+  .loiDN.ok { color:var(--xanh); }
+  .chuyenDN { text-align:center; margin-top:14px; color:var(--mo); }
+  .tacGia { margin-top:20px; padding-top:14px; border-top:1px solid var(--vien); font-size:12.5px; line-height:1.6; color:var(--mo); text-align:center; }
+  .tacGia b { color:var(--chu); }
+  #tenNg { cursor:pointer; } #tenNg:hover { color:var(--vang); }
+  .soCho { display:inline-block; min-width:18px; padding:0 5px; margin-left:5px; border-radius:10px; background:var(--do); color:#fff; font-size:11px; line-height:18px; text-align:center; }
+  #fMk input { width:100%; }
 
   /* màn quét */
   #manQuet { position:fixed; inset:0; background:#000; display:none; z-index:12; }
@@ -251,7 +259,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.0</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.1</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -272,13 +280,34 @@
 <div id="hop"><div id="hopND"></div></div>
 <div id="bao"></div>
 
-<div id="dangNhap"><form class="the" id="fDN">
+<div id="dangNhap"><div class="the">
   <div class="logo" style="font-size:24px;margin-bottom:6px"><i>NK</i><span>NK<b>Zip</b></span></div>
   <div class="mo" style="margin-bottom:18px">Chấm trắc nghiệm bằng camera điện thoại</div>
-  <div class="o"><label>Tài khoản</label><input id="dnTk" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
-  <div class="o" style="margin-top:12px"><label>Mật khẩu</label><input id="dnMk" type="password" autocomplete="current-password"></div>
-  <div id="dnLoi" style="color:var(--do);margin-top:10px;min-height:20px"></div>
-  <button class="vang" type="submit" id="dnNut">Đăng nhập</button>
+  <form id="fDN">
+    <div class="o"><label>Tài khoản</label><input id="dnTk" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+    <div class="o" style="margin-top:12px"><label>Mật khẩu</label><input id="dnMk" type="password" autocomplete="current-password"></div>
+    <div id="dnLoi" class="loiDN"></div>
+    <button class="vang" type="submit" id="dnNut">Đăng nhập</button>
+    <div class="chuyenDN">Chưa có tài khoản? <a href="#" id="denDK">Đăng kí</a></div>
+  </form>
+  <form id="fDK" style="display:none">
+    <div class="o"><label>Tài khoản (email hoặc tên, viết thường không dấu)</label><input id="dkTk" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+    <div class="o" style="margin-top:10px"><label>Họ và tên</label><input id="dkTen" autocomplete="name"></div>
+    <div class="o" style="margin-top:10px"><label>Mật khẩu (từ 6 kí tự)</label><input id="dkMk" type="password" autocomplete="new-password"></div>
+    <div class="o" style="margin-top:10px"><label>Nhập lại mật khẩu</label><input id="dkMk2" type="password" autocomplete="new-password"></div>
+    <div id="dkLoi" class="loiDN"></div>
+    <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
+    <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
+  </form>
+  <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
+</div></div>
+<div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
+  <h3 style="font-size:18px;margin-bottom:2px">Đổi mật khẩu</h3><div class="mo" id="mkTk" style="margin-bottom:6px"></div>
+  <div class="o"><label>Mật khẩu hiện tại</label><input id="mkCu" type="password" autocomplete="current-password"></div>
+  <div class="o"><label>Mật khẩu mới (từ 6 kí tự)</label><input id="mkMoi" type="password" autocomplete="new-password"></div>
+  <div class="o"><label>Nhập lại mật khẩu mới</label><input id="mkMoi2" type="password" autocomplete="new-password"></div>
+  <div id="mkLoi" class="loiDN"></div>
+  <button class="vang" type="submit" id="mkNut">Lưu mật khẩu mới</button><button type="button" id="mkDong">Đóng</button>
 </form></div>
 
 <div id="manQuet">
@@ -979,9 +1008,19 @@ var API = (function () {
       return r;
     });
   }
+  function dangKi(tk, mk, ten) {
+    return gui({ action: 'dangKi', tk: tk, mk: mk, ten: ten }).then(function (r) {
+      if (!r || !r.ok) throw new Error(r && r.loi || 'Không đăng kí được');
+      return r;
+    });
+  }
+  // đổi mật khẩu của chính mình; máy chủ trả mã phiên mới (phiên cũ hết hiệu lực)
+  function doiMatKhau(cu, moi) {
+    return goi('doiMatKhau', { mkCu: cu, mkMoi: moi }).then(function (r) { if (r.phien) ls('nkzip_phien', r.phien); return r; });
+  }
   function dangXuat() { ['nkzip_phien', 'nkzip_ten', 'nkzip_tk', 'nkzip_qt', 'nkzip_thay'].forEach(function (k) { ls(k, null); }); }
   return {
-    goi: goi, gui: gui, trongGas: trongGas, mayTinh: mayTinh, dangNhap: dangNhap, dangXuat: dangXuat,
+    goi: goi, gui: gui, trongGas: trongGas, mayTinh: mayTinh, dangNhap: dangNhap, dangXuat: dangXuat, dangKi: dangKi, doiMatKhau: doiMatKhau,
     coPhien: function () { return !!ls('nkzip_phien'); }, phien: function () { return ls('nkzip_phien'); },
     ten: function () { return ls('nkzip_ten'); }, toi: function () { return ls('nkzip_tk'); },
     quanTri: function (v) { if (v === undefined) return ls('nkzip_qt') === '1'; ls('nkzip_qt', v ? '1' : null); },
@@ -1631,6 +1670,48 @@ var QUET = (function () {
       chon = { ky: null, lop: null }; KQ = []; KQC = {}; khoiDong();
     }).catch(function (er) { $('#dnNut').textContent = 'Đăng nhập'; $('#dnLoi').textContent = er.message; });
   };
+  function hienForm(dk) {
+    $('#fDN').style.display = dk ? 'none' : ''; $('#fDK').style.display = dk ? '' : 'none';
+    $('#dnLoi').textContent = $('#dkLoi').textContent = ''; $('#dkLoi').className = 'loiDN';
+    setTimeout(function () { (dk ? $('#dkTk') : $('#dnTk')).focus(); }, 30);
+  }
+  $('#denDK').onclick = function (e) { e.preventDefault(); hienForm(true); };
+  $('#denDN').onclick = function (e) { e.preventDefault(); hienForm(false); };
+  $('#fDK').onsubmit = function (e) {
+    e.preventDefault();
+    var tk = $('#dkTk').value.trim().toLowerCase(), ten = $('#dkTen').value.trim(), mk = $('#dkMk').value, l = $('#dkLoi');
+    l.className = 'loiDN';
+    if (!tk || !ten || !mk) { l.textContent = 'Cần nhập đủ tài khoản, họ tên và mật khẩu.'; return; }
+    if (mk.length < 6) { l.textContent = 'Mật khẩu cần ít nhất 6 kí tự.'; return; }
+    if (mk !== $('#dkMk2').value) { l.textContent = 'Hai lần nhập mật khẩu không giống nhau.'; return; }
+    $('#dkNut').textContent = 'Đang gửi…';
+    API.dangKi(tk, mk, ten).then(function () {
+      $('#dkNut').textContent = 'Gửi đăng kí';
+      ['#dkMk', '#dkMk2'].forEach(function (x) { $(x).value = ''; });
+      l.className = 'loiDN ok'; l.textContent = 'Đã gửi đăng kí. Tài khoản sẽ dùng được sau khi quản trị viên duyệt.';
+      $('#dnTk').value = tk;
+    }).catch(function (er) { $('#dkNut').textContent = 'Gửi đăng kí'; l.textContent = er.message; });
+  };
+  // ---- đổi mật khẩu của chính mình ----
+  $('#tenNg').onclick = function () {
+    if (CUC_BO || !API.coPhien()) return;
+    $('#mkTk').textContent = 'Tài khoản: ' + API.toi();
+    ['#mkCu', '#mkMoi', '#mkMoi2'].forEach(function (x) { $(x).value = ''; }); $('#mkLoi').textContent = ''; $('#mkLoi').className = 'loiDN';
+    $('#hopMk').classList.add('hien'); setTimeout(function () { $('#mkCu').focus(); }, 30);
+  };
+  $('#mkDong').onclick = function () { $('#hopMk').classList.remove('hien'); };
+  $('#fMk').onsubmit = function (e) {
+    e.preventDefault();
+    var l = $('#mkLoi'), moi = $('#mkMoi').value;
+    l.className = 'loiDN';
+    if (moi.length < 6) { l.textContent = 'Mật khẩu mới cần ít nhất 6 kí tự.'; return; }
+    if (moi !== $('#mkMoi2').value) { l.textContent = 'Hai lần nhập mật khẩu mới không giống nhau.'; return; }
+    $('#mkNut').textContent = 'Đang lưu…';
+    API.doiMatKhau($('#mkCu').value, moi).then(function () {
+      $('#mkNut').textContent = 'Lưu mật khẩu mới'; $('#hopMk').classList.remove('hien'); bao('Đã đổi mật khẩu');
+      if (QT) taiTK().then(function () { if (tabBen === 'tk') veTaiKhoan(); });
+    }).catch(function (er) { $('#mkNut').textContent = 'Lưu mật khẩu mới'; l.textContent = er.message; });
+  };
   $('#nutThoat').onclick = function () { if (confirm('Đăng xuất khỏi tài khoản này?')) { API.dangXuat(); QT = false; TK = []; DL = { kyThi: [], lop: [] }; KQ = []; KQC = {}; tabBen = 'ky'; veKhung(); veBen(); veChinh(); moDangNhap(); } };
 
   // ================= tải dữ liệu (hiện bản đã lưu trên máy trước, rồi làm mới ngầm) =================
@@ -1684,12 +1765,14 @@ var QUET = (function () {
   }
   function veKhung() {
     var t = cacTab();
-    $('#tabBen').innerHTML = t.map(function (x) { return '<button data-t="' + x[0] + '">' + x[1] + '</button>'; }).join('');
-    $('#duoi').innerHTML = t.map(function (x) { return '<button data-t="' + x[0] + '">' + ic(x[2]) + x[1] + '</button>'; }).join('');
+    var cho = TK.filter(function (a) { return a.cho; }).length, so = function (x) { return x[0] === 'tk' && cho ? '<span class="soCho">' + cho + '</span>' : ''; };
+    $('#tabBen').innerHTML = t.map(function (x) { return '<button data-t="' + x[0] + '">' + x[1] + so(x) + '</button>'; }).join('');
+    $('#duoi').innerHTML = t.map(function (x) { return '<button data-t="' + x[0] + '">' + ic(x[2]) + x[1] + so(x) + '</button>'; }).join('');
     $$('#tabBen button, #duoi button').forEach(function (b) { b.onclick = function () { tabBen = b.getAttribute('data-t'); document.body.classList.remove('chiTiet'); SUA = null; veBen(); veChinh(); }; });
     $('#nutThoat').style.display = CUC_BO ? 'none' : '';
     $('#nutThoat').innerHTML = ic('thoat'); $('#nutTaiLai').innerHTML = ic('lammoi');
     $('#tenNg').textContent = CUC_BO ? 'Chế độ thử (chưa kết nối Google)' : API.ten() + (QT ? ' · quản trị' : '');
+    $('#tenNg').title = CUC_BO ? '' : 'Bấm để đổi mật khẩu';
   }
   function veChonTk() {
     var s = $('#chonTk');
@@ -2494,15 +2577,25 @@ var QUET = (function () {
   // ================= TÀI KHOẢN (chỉ quản trị) =================
   function taiTK() {
     if (!QT || CUC_BO) { TK = []; veChonTk(); return Promise.resolve(); }
-    return API.goi('dsTaiKhoan').then(function (r) { TK = r.taiKhoan || []; veChonTk(); }).catch(function () { TK = []; });
+    return API.goi('dsTaiKhoan').then(function (r) {
+      var choCu = TK.filter(function (a) { return a.cho; }).length;
+      TK = r.taiKhoan || []; veChonTk();
+      var cho = TK.filter(function (a) { return a.cho; }).length;
+      if (cho !== choCu) { veKhung(); veBen(); }
+      if (cho && cho > choCu) bao('Có ' + cho + ' tài khoản đăng kí đang chờ duyệt – xem ở thẻ Tài khoản', 7000);
+    }).catch(function () { TK = []; });
   }
   var hienMk = {};
   function veTaiKhoan() {
+    var cho = TK.filter(function (a) { return a.cho; });
     var h = '<h2>Tài khoản</h2><p class="mo">Mỗi tài khoản chỉ thấy bài thi và lớp của riêng mình. Tài khoản quản trị tạo được tài khoản khác, xem và đổi mật khẩu, và vào được mục Cài đặt.</p>' +
+      (cho.length ? '<div class="the" style="border-color:var(--vang2)"><h3>Chờ duyệt (' + cho.length + ')</h3><table class="ke"><tr><th>Tài khoản</th><th>Họ tên</th><th>Ngày đăng kí</th><th style="width:200px"></th></tr>' +
+        cho.map(function (a) { return '<tr><td><b>' + esc(a.tk) + '</b></td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleString('vi-VN') : '') + '</td><td><button class="vang nho" data-duyet="' + esc(a.tk) + '">Duyệt</button> <button class="nguy nho" data-tuchoi="' + esc(a.tk) + '">Từ chối</button></td></tr>'; }).join('') +
+        '</table></div>' : '') +
       '<div class="the"><h3>Thêm tài khoản</h3><div class="hang" style="align-items:flex-end"><div class="o"><label>Tài khoản (email hoặc tên, viết thường)</label><input id="tTk" autocomplete="off" spellcheck="false" style="width:230px"></div><div class="o"><label>Tên hiển thị</label><input id="tTen" autocomplete="off"></div>' +
       '<div class="o"><label>Mật khẩu (từ 6 kí tự)</label><input id="tMk" autocomplete="new-password"></div><label class="hang" style="gap:6px;cursor:pointer"><input type="checkbox" id="tQt"> Quản trị</label><button class="vang" id="tLuu">Tạo tài khoản</button></div></div>' +
-      '<div class="the"><h3>Danh sách (' + TK.length + ')</h3><div style="overflow:auto"><table class="ke"><tr><th>Tài khoản</th><th>Tên hiển thị</th><th>Ngày tạo</th><th>Mật khẩu</th><th>Quyền</th><th style="width:240px"></th></tr>' +
-      TK.map(function (a) {
+      '<div class="the"><h3>Danh sách (' + (TK.length - cho.length) + ')</h3><div style="overflow:auto"><table class="ke"><tr><th>Tài khoản</th><th>Tên hiển thị</th><th>Ngày tạo</th><th>Mật khẩu</th><th>Quyền</th><th style="width:240px"></th></tr>' +
+      TK.filter(function (a) { return !a.cho; }).map(function (a) {
         var mk = a.mk ? (hienMk[a.tk] ? esc(a.mk) : '••••••••') : '<span class="mo">(chưa lưu, hãy đặt lại)</span>';
         return '<tr><td><b>' + esc(a.tk) + '</b>' + (a.tk === API.toi() ? ' <span class="nhan">bạn</span>' : '') + '</td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleDateString('vi-VN') : '') + '</td>' +
           '<td style="font-family:Consolas,monospace">' + mk + (a.mk ? ' <button class="nho" data-hien="' + esc(a.tk) + '">' + (hienMk[a.tk] ? 'Ẩn' : 'Hiện') + '</button>' : '') + '</td>' +
@@ -2518,6 +2611,8 @@ var QUET = (function () {
       if (tim(y.tk)) return bao('Tài khoản ' + y.tk + ' đã có. Dùng nút “Đổi mật khẩu” trong danh sách.');
       luu(y, 'Đã tạo tài khoản ' + y.tk);
     };
+    $$('#chinh [data-duyet]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-duyet'); bao('Đang duyệt…', 20000); API.goi('duyetTaiKhoan', { tk: t, dongY: true }).then(function () { bao('Đã duyệt tài khoản ' + t); return taiTK(); }).then(function () { veKhung(); veBen(); veTaiKhoan(); }).catch(loi); }; });
+    $$('#chinh [data-tuchoi]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-tuchoi'); if (!confirm('Từ chối và xoá yêu cầu đăng kí của “' + t + '”?')) return; API.goi('duyetTaiKhoan', { tk: t, dongY: false }).then(function () { bao('Đã từ chối ' + t); return taiTK(); }).then(function () { veKhung(); veBen(); veTaiKhoan(); }).catch(loi); }; });
     $$('#chinh [data-hien]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-hien'); hienMk[t] = !hienMk[t]; veTaiKhoan(); }; });
     $$('#chinh [data-mk]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-mk'), m = prompt('Mật khẩu mới cho ' + t + ' (từ 6 kí tự):'); if (m) luu({ tk: t, mk: m }, 'Đã đổi mật khẩu ' + t + '. Các máy đang đăng nhập tài khoản này sẽ phải đăng nhập lại.'); }; });
     $$('#chinh [data-ten]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-ten'), m = prompt('Tên hiển thị mới:', (tim(t) || {}).ten || ''); if (m) luu({ tk: t, ten: m.trim() }, 'Đã đổi tên'); }; });
