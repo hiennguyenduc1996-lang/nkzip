@@ -259,7 +259,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.1</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.2</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -683,12 +683,12 @@ var OMR = (function () {
     var top = 0, it = -1, i;
     for (i = 0; i < fs.length; i++) if (fs[i] > top) { top = fs[i]; it = i; }
     if (top < ng.thap) return { i: -1, nghi: top > ng.thap * 0.75 };
-    var dem = 0, nghi = top < ng.cao;
+    var dem = 0, nghi = top < ng.cao, cac = [];
     for (i = 0; i < fs.length; i++) {
-      if (fs[i] >= ng.cao || (fs[i] >= ng.thap && fs[i] >= 0.72 * top)) dem++;
+      if (fs[i] >= ng.cao || (fs[i] >= ng.thap && fs[i] >= 0.72 * top)) { dem++; cac.push(i); }
       else if (i !== it && fs[i] >= ng.thap * 0.8) nghi = true;
     }
-    return { i: dem === 1 ? it : -2, nghi: nghi };
+    return { i: dem === 1 ? it : -2, nghi: nghi, cac: cac };
   }
 
   // Ngưỡng theo tờ phiếu: trừ mức nền của ô trống, lấy mức "ô tô điển hình" làm chuẩn.
@@ -717,18 +717,23 @@ var OMR = (function () {
     for (i = 0; i < ds.length; i++) fs[i] = doO(G, H, ds[i][0], ds[i][1], r, den);
     var ng = nguong(fs);
     // 2) quyết định từng nhóm
-    var kq = [];
+    var kq = [], cac = [];
     for (i = 0; i < nh.length; i++) {
       var f = [];
       for (j = 0; j < nh[i][3]; j++) f.push(fs[nh[i][2] + j] - ng.nen);
       var c = chon(f, ng);
       if (c.nghi) nghi.push(nh[i][0] + nh[i][1]);
-      kq.push(c.i);
+      kq.push(c.i); cac.push(c.cac);
     }
-    var o = { p1m: [], p2m: [], p3m: [], sbdm: [], madem: [] }, q = 0;
-    for (i = 0; i < tpl.p1.length; i++) o.p1m.push(kq[q++]);
-    for (i = 0; i < tpl.p2.length; i++) o.p2m.push(kq[q++]);
-    for (i = 0; i < tpl.p3.length; i++) { var cot = []; for (j = 0; j < tpl.p3[i].length; j++) cot.push(kq[q++]); o.p3m.push(cot); }
+    // p1n/p2n/p3n: các ô đã tô của từng nhóm (dùng để đánh dấu cả hai ô khi tô hai đáp án)
+    var o = { p1m: [], p2m: [], p3m: [], sbdm: [], madem: [], p1n: [], p2n: [], p3n: [] }, q = 0;
+    for (i = 0; i < tpl.p1.length; i++) { o.p1n.push(cac[q]); o.p1m.push(kq[q++]); }
+    for (i = 0; i < tpl.p2.length; i++) { o.p2n.push(cac[q]); o.p2m.push(kq[q++]); }
+    for (i = 0; i < tpl.p3.length; i++) {
+      var cot = [], cotn = [];
+      for (j = 0; j < tpl.p3[i].length; j++) { cotn.push(cac[q]); cot.push(kq[q++]); }
+      o.p3m.push(cot); o.p3n.push(cotn);
+    }
     for (i = 0; i < tpl.sbd.length; i++) o.sbdm.push(kq[q++]);
     for (i = 0; i < tpl.made.length; i++) o.madem.push(kq[q++]);
 
@@ -1352,35 +1357,56 @@ var QUET = (function () {
     var px = 44, id = OMR.nan(G, H, TPL, px), cv = document.createElement('canvas');
     cv.width = id.width; cv.height = id.height;
     var c = cv.getContext('2d'); c.putImageData(id, 0, 0);
-    var k0 = TPL.khung, R = TPL.r * px * 1.25, XANH = '#12b259', DO = '#ff2a2a', i, j;
-    function vong(o, mau) { c.beginPath(); c.arc((o[0] - k0[0]) * px, (o[1] - k0[1]) * px, R, 0, 6.2832); c.lineWidth = 3; c.strokeStyle = mau; c.stroke(); }
-    // đáp án đúng của câu làm sai: tô kín ô bằng màu xanh cho dễ thấy
-    function dapAn(o) {
-      c.beginPath(); c.arc((o[0] - k0[0]) * px, (o[1] - k0[1]) * px, R * 0.82, 0, 6.2832);
-      c.fillStyle = 'rgba(18,178,89,.78)'; c.fill(); c.lineWidth = 2; c.strokeStyle = '#0a7a3c'; c.stroke();
+    var k0 = TPL.khung, R = TPL.r * px * 1.25, XANH = '#12b259', DO = '#ff2a2a', CAM = '#ff9500', i, j;
+    function tam(o) { return [(o[0] - k0[0]) * px, (o[1] - k0[1]) * px]; }
+    function vong(o, mau) { var p = tam(o); c.beginPath(); c.arc(p[0], p[1], R, 0, 6.2832); c.lineWidth = 3; c.strokeStyle = mau; c.stroke(); }
+    // ô tô sai: viền đỏ + gạch chéo X
+    function sai(o) {
+      vong(o, DO);
+      var p = tam(o), d = R * 0.78;
+      c.beginPath(); c.moveTo(p[0] - d, p[1] - d); c.lineTo(p[0] + d, p[1] + d); c.moveTo(p[0] + d, p[1] - d); c.lineTo(p[0] - d, p[1] + d);
+      c.lineWidth = 3.5; c.strokeStyle = DO; c.stroke();
     }
+    // đáp án đúng của câu làm sai (xanh) hoặc câu bỏ trống (cam): tô kín ô cho dễ thấy
+    function dapAn(o, trong) {
+      var p = tam(o);
+      c.beginPath(); c.arc(p[0], p[1], R * 0.82, 0, 6.2832);
+      c.fillStyle = trong ? 'rgba(255,149,0,.8)' : 'rgba(18,178,89,.78)'; c.fill();
+      c.lineWidth = 2; c.strokeStyle = trong ? '#c46a00' : '#0a7a3c'; c.stroke();
+    }
+    // các ô đã tô của một nhóm (tô 2 ô thì trả về cả 2)
+    function daTo(m, n) { return m >= 0 ? [m] : m === -2 && n ? n : []; }
     if (kq && !kq.loi) {
-      var de = KY.de[kq.made], L = 'ABCDE', a1 = CHAM.k1(de), a2 = CHAM.k2(de), a3 = CHAM.k3(de);
+      var de = KY.de[kq.made], L = 'ABCDE', a1 = CHAM.k1(de), a2 = CHAM.k2(de), a3 = CHAM.k3(de), to;
       for (i = 0; i < TPL.p1.length; i++) {
         if (kq.ct1[i] === undefined || kq.ct1[i] < 0) continue;
         var v = doc.p1m[i];
-        if (kq.ct1[i] === 1) vong(TPL.p1[i][v], XANH);
-        else { for (j = 0; j < a1[i].length; j++) dapAn(TPL.p1[i][L.indexOf(a1[i][j])]); if (v >= 0) vong(TPL.p1[i][v], DO); }
+        if (kq.ct1[i] === 1) { vong(TPL.p1[i][v], XANH); continue; }
+        for (j = 0; j < a1[i].length; j++) dapAn(TPL.p1[i][L.indexOf(a1[i][j])], v === -1);
+        to = daTo(v, doc.p1n && doc.p1n[i]);
+        for (j = 0; j < to.length; j++) sai(TPL.p1[i][to[j]]);
       }
       for (i = 0; i < TPL.p2.length; i++) {
         if (kq.ct2[i] === undefined || kq.ct2[i] < 0) continue;
         v = doc.p2m[i];
-        if (kq.ct2[i] === 1) vong(TPL.p2[i][v], XANH);
-        else { for (j = 0; j < a2[i].length; j++) dapAn(TPL.p2[i]['DS'.indexOf(a2[i][j])]); if (v >= 0) vong(TPL.p2[i][v], DO); }
+        if (kq.ct2[i] === 1) { vong(TPL.p2[i][v], XANH); continue; }
+        for (j = 0; j < a2[i].length; j++) dapAn(TPL.p2[i]['DS'.indexOf(a2[i][j])], v === -1);
+        to = daTo(v, doc.p2n && doc.p2n[i]);
+        for (j = 0; j < to.length; j++) sai(TPL.p2[i][to[j]]);
       }
       for (i = 0; i < TPL.p3.length; i++) {
         if (kq.ct3[i] === undefined || kq.ct3[i] < 0) continue;
-        for (j = 0; j < 4; j++) { v = doc.p3m[i][j]; if (v >= 0) vong(TPL.p3[i][j][v], kq.ct3[i] ? XANH : DO); }
-        if (!kq.ct3[i]) {
+        var boTrong = true;
+        for (j = 0; j < 4; j++) {
+          v = doc.p3m[i][j]; to = daTo(v, doc.p3n && doc.p3n[i] && doc.p3n[i][j]);
+          if (v !== -1) boTrong = false;
+          for (var t = 0; t < to.length; t++) { if (kq.ct3[i]) vong(TPL.p3[i][j][to[t]], XANH); else sai(TPL.p3[i][j][to[t]]); }
+        }
+        if (!kq.ct3[i]) {          // ghi đáp án đúng phía trên câu: xanh nếu làm sai, cam nếu bỏ trống
           var o0 = TPL.p3[i][0][0], chu = a3[i].split('|')[0], co = Math.round(px * 0.46);
           c.font = 'bold ' + co + 'px sans-serif';
           var rong = c.measureText(chu).width + 14, x = (o0[0] - k0[0] - 0.25) * px, y = (o0[1] - k0[1]) * px - px * 1.72;
-          c.fillStyle = XANH; c.fillRect(x, y, rong, co + 8);
+          c.fillStyle = boTrong ? CAM : XANH; c.fillRect(x, y, rong, co + 8);
           c.fillStyle = '#fff'; c.fillText(chu, x + 7, y + co);
         }
       }
