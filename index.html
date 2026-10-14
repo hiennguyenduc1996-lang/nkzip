@@ -171,6 +171,7 @@
   .dieuHuong { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
   .dieuHuong button { width:42px; height:38px; padding:0; font-size:18px; }
   .dieuHuong span { flex:1; text-align:center; color:var(--mo); }
+  .canhXem { margin:8px 0 4px; padding:8px 12px; border-radius:12px; background:#3a1626; border:1.5px solid #7a2c44; color:#ffd0da; font-weight:600; font-size:13.5px; line-height:1.55; }
   .tdPhan { margin:14px 0 6px; font-size:12px; letter-spacing:.6px; text-transform:uppercase; color:var(--vang); display:flex; gap:8px; }
   .tdPhan small { color:var(--mo); text-transform:none; letter-spacing:0; margin-left:auto; }
 
@@ -196,7 +197,7 @@
   #qTT0 span { background:#000a; padding:4px 12px; border-radius:20px; }
   #qThe { position:absolute; left:8px; right:8px; bottom:8px; background:#0d1a44f2; border:1.5px solid var(--vien); border-radius:16px; padding:10px 14px; display:none; align-items:center; gap:12px; }
   #qThe.hien { display:flex; }
-  #qThe .ten2 { font-weight:700; font-size:16px; } #qThe.loi .ten2 { color:var(--cam); }
+  #qThe .ten2 { font-weight:700; font-size:16px; } #qThe.loi .ten2 { color:var(--cam); } #qThe.loi #qkPhu { color:#ffb0c0; }
   #qThe .d { margin-left:auto; font-size:30px; font-weight:900; color:var(--vang); }
   #qChop { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; transition:opacity .25s; }
   #qLon { position:absolute; inset:0; background:#081029; display:none; flex-direction:column; z-index:3; }
@@ -207,7 +208,7 @@
   #qLon .diem { margin-left:auto; font-size:52px; font-weight:900; line-height:1; color:var(--vang); white-space:nowrap; text-align:right; }
   #qLon .diem small { display:block; font-size:12px; font-weight:600; color:var(--mo); }
   #qLon.loi .ten { color:var(--cam); }
-  #lkCanh { color:var(--cam); font-size:14px; padding:0 14px 6px; }
+  #lkCanh { margin:0 12px 8px; padding:8px 12px; border-radius:12px; background:#3a1626; border:1.5px solid #7a2c44; color:#ffd0da; font-size:15px; font-weight:600; line-height:1.5; }
   #lkKhung { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:0 8px; }
   #lkAnh { max-width:100%; max-height:100%; border-radius:8px; background:#222; }
   #qLon .nut2 { display:flex; gap:8px; padding:8px 10px 12px; }
@@ -250,7 +251,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v2.6</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.0</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -903,7 +904,33 @@ var CHAM = (function () {
 
   function soVN(x) { return String(x).replace('.', ','); }
 
-  return { cham: cham, timDe: timDe, timHS: timHS, diemToiDa: diemToiDa, diemMacDinh: diemMacDinh, bangNhau: bangNhau, soVN: soVN, tron: tron, k1: k1, k2: k2, k3: k3 };
+  // Những điều cần báo về một bài: { sbd: '' | 'thiếu' | 'hai', made: '' | 'thiếu' | 'hai' | 'sai', trong: [...], kep: [...] }
+  // trong / kep: tên các câu bỏ trống / tô từ 2 ô trở lên (chỉ tính các câu có đáp án).
+  function kiemTra(bai, ky, made) {
+    var ra = { sbd: '', made: '', trong: [], kep: [] }, s = String(bai.sbd || ''), m = String(made != null ? made : (bai.made || '')), i;
+    if (s.indexOf('*') >= 0) ra.sbd = 'hai'; else if (!/^\d+$/.test(s)) ra.sbd = 'thiếu';
+    if (m.indexOf('*') >= 0) ra.made = 'hai'; else if (!m || m.indexOf('_') >= 0) ra.made = 'thiếu'; else if (ky && !(ky.de || {})[m] && Object.keys(ky.de || {}).length > 1) ra.made = 'sai';
+    var de = ky && ky.de ? (ky.de[m] || ky.de[Object.keys(ky.de)[0]]) : null;
+    if (!de) return ra;
+    var a1 = k1(de), a2 = k2(de), a3 = k3(de), p1 = bai.p1 || '', p2 = bai.p2 || '', p3 = bai.p3 || [];
+    for (i = 0; i < a1.length; i++) if (a1[i]) { var c = p1[i]; if (c === '*') ra.kep.push('I.' + (i + 1)); else if (!c || c === '-') ra.trong.push('I.' + (i + 1)); }
+    for (i = 0; i < a2.length; i++) if (a2[i]) { var nh = 'II.' + ((i >> 2) + 1) + 'abcd'[i & 3], d = p2[i]; if (d === '*') ra.kep.push(nh); else if (!d || d === '-') ra.trong.push(nh); }
+    for (i = 0; i < a3.length; i++) if (a3[i]) { var t = String(p3[i] || ''); if (t.indexOf('*') >= 0) ra.kep.push('III.' + (i + 1)); else if (!t.trim()) ra.trong.push('III.' + (i + 1)); }
+    return ra;
+  }
+  // Câu thông báo ngắn gọn từ kết quả kiemTra (+ học sinh có trong danh sách hay không)
+  function loiBao(kt, coTen) {
+    var ds = [], ke = function (a) { return a.length > 8 ? a.slice(0, 8).join(', ') + '…' : a.join(', '); };
+    if (kt.sbd === 'hai') ds.push('Số báo danh tô 2 ô trong một cột');
+    else if (kt.sbd === 'thiếu') ds.push('Số báo danh tô thiếu');
+    else if (coTen === false) ds.push('Số báo danh không có trong danh sách lớp');
+    if (kt.made === 'hai') ds.push('Mã đề tô 2 ô'); else if (kt.made === 'thiếu') ds.push('Mã đề tô thiếu'); else if (kt.made === 'sai') ds.push('Mã đề không có trong đáp án');
+    if (kt.kep.length) ds.push('Tô 2 đáp án ' + kt.kep.length + ' câu: ' + ke(kt.kep));
+    if (kt.trong.length) ds.push('Bỏ trống ' + kt.trong.length + ' câu: ' + ke(kt.trong));
+    return ds;
+  }
+
+  return { cham: cham, timDe: timDe, timHS: timHS, diemToiDa: diemToiDa, diemMacDinh: diemMacDinh, bangNhau: bangNhau, kiemTra: kiemTra, loiBao: loiBao, soVN: soVN, tron: tron, k1: k1, k2: k2, k3: k3 };
 })();
 if (typeof module !== 'undefined') module.exports = CHAM;
 
@@ -1166,19 +1193,12 @@ var QUET = (function () {
   window.addEventListener('online', dayHangCho);
 
   // ---------- camera ----------
-  var video, lop, luong = null, dangQuet = false, ranh = null, am = null, denBat = false;
+  var video, lop, luong = null, dangQuet = false, ranh = null, denBat = false;
   var cvN = document.createElement('canvas'), cxN = cvN.getContext('2d', { willReadFrequently: true });
   var cvL = document.createElement('canvas'), cxL = cvL.getContext('2d', { willReadFrequently: true });
 
-  function bip(tot) {
-    try {
-      am = am || new (window.AudioContext || window.webkitAudioContext)();
-      var o = am.createOscillator(), g = am.createGain();
-      o.frequency.value = tot ? 1320 : 330; g.gain.value = 0.15;
-      o.connect(g); g.connect(am.destination); o.start(); o.stop(am.currentTime + (tot ? 0.09 : 0.25));
-    } catch (e) { /* không có âm thanh cũng không sao */ }
-    if (navigator.vibrate) navigator.vibrate(tot ? 40 : [60, 60, 60]);
-  }
+  // không phát tiếng, không rung, không chớp: chỉ hiện thông báo trên màn hình
+  function bip() {}
   function moCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.reject(new Error('Trình duyệt không cho dùng camera'));
     return navigator.mediaDevices.getUserMedia({
@@ -1341,7 +1361,8 @@ var QUET = (function () {
         made: c.loi ? (doc.made || '') : c.made, loiMade: !!c.loi,
         diem: c.loi ? null : c.diem, d1: c.d1 || 0, d2: c.d2 || 0, d3: c.d3 || 0, toiDa: c.toiDa || 0,
         dung1: c.dung1 || 0, so1: c.so1 || 0, dung3: c.dung3 || 0, so3: c.so3 || 0,
-        p1: doc.p1, p2: doc.p2, p3: doc.p3, nghi: doc.nghi || [], luc: new Date().toISOString(), anh: ''
+        p1: doc.p1, p2: doc.p2, p3: doc.p3, nghi: doc.nghi || [], luc: new Date().toISOString(), anh: '',
+        sbdDoc: doc.sbd, madeDoc: doc.made          // giữ nguyên chuỗi máy đọc (có '_' / '*') để báo lỗi tô
       }
     };
   }
@@ -1352,7 +1373,6 @@ var QUET = (function () {
       return;
     }
     var r = taoKQ(doc, doc.sbd), anh = anhNan(doc, G, H, r.c);
-    $('qChop').style.opacity = 0.6; setTimeout(function () { $('qChop').style.opacity = 0; }, 90);
     xuLyBai(r.kq, anh);
   }
 
@@ -1372,7 +1392,7 @@ var QUET = (function () {
     cuoi = kq.id; BAI_CUOI = { kq: kq, anh: anh }; soBai++;
     if (TC.them) TC.them(kq, anh);
     hienThe(kq); hienLon(kq, anh);
-    var tot = !kq.loiMade && !!kq.ten;
+    var tot = !kq.loiMade && !!kq.ten && !canhBao(kq).length;
     bip(tot);
     tt(tot ? 'Đã chấm. Đưa phiếu tiếp theo vào' : 'Đã đọc phiếu – cần kiểm tra lại');
     capNhatDem();
@@ -1426,34 +1446,40 @@ var QUET = (function () {
 
   function hienThe(kq) {
     var the = $('qThe'), sbd = kq.sbd.replace(/_/g, '?');
-    the.classList.add('hien'); the.classList.toggle('loi', !kq.ten || kq.loiMade);
+    var cb = canhBao(kq);
+    the.classList.add('hien'); the.classList.toggle('loi', !kq.ten || kq.loiMade || cb.length > 0);
     $('qkTen').textContent = kq.ten || ('Không có SBD ' + sbd + ' trong danh sách');
-    $('qkPhu').textContent = 'SBD ' + sbd + (kq.lop ? ' · Lớp ' + kq.lop : '') + ' · Mã đề ' + (kq.made || '?');
+    $('qkPhu').textContent = cb.length ? '⚠ ' + cb[0] + (cb.length > 1 ? ' (+' + (cb.length - 1) + ')' : '') : 'SBD ' + sbd + (kq.lop ? ' · Lớp ' + kq.lop : '') + ' · Mã đề ' + (kq.made || '?');
     $('qkDiem').textContent = kq.diem == null ? '—' : CHAM.soVN(kq.diem);
   }
   // Màn hình "bài vừa chấm": ảnh phiếu đã đánh dấu + họ tên, SBD, lớp, điểm; tự ẩn để chấm bài tiếp
   var lonHien = false, henAn = 0;
+  function canhBao(kq) {
+    var kt = CHAM.kiemTra({ sbd: kq.sbdDoc || kq.sbd, p1: kq.p1, p2: kq.p2, p3: kq.p3 }, KY, kq.loiMade ? (kq.madeDoc || kq.made || '') : kq.made);
+    if (!kt.sbd && kq.sbd && kq.sbdDoc && kq.sbd !== kq.sbdDoc) kt.sbd = '';       // đã gán lại học sinh bằng tay
+    var ds = CHAM.loiBao(kt, !!kq.ten);
+    if (kq.loiMade && !kt.made) ds.push('Chưa xác định được mã đề');
+    if (kq.nghi && kq.nghi.length) ds.push('Ô tô chưa rõ: ' + kq.nghi.slice(0, 6).join(', ') + (kq.nghi.length > 6 ? '…' : ''));
+    return ds;
+  }
   function hienLon(kq, anh, giu) {
-    var sbd = kq.sbd.replace(/_/g, '?');
+    var sbd = kq.sbd.replace(/_/g, '?'), cb = canhBao(kq);
     $('qLon').classList.add('hien'); lonHien = true;
     clearTimeout(henAn);
     if (!giu && CD.chuyen !== 'tay') {
-      var giay = CD.chuyen === 'tudong' ? (!kq.ten || kq.loiMade ? 4.5 : 2.5) : +CD.chuyen;
+      var giay = CD.chuyen === 'tudong' ? (cb.length ? 5 : 2.5) : Math.max(+CD.chuyen, cb.length ? 4 : 0);
       henAn = setTimeout(anLon, giay * 1000);
     }
     $('lkTiep').textContent = CD.chuyen === 'tay' ? 'Chấm bài tiếp' : 'Chấm tiếp ngay';
     $('lkGan').style.display = $('lkXoa').style.display = giu ? 'none' : '';
-    $('qLon').classList.toggle('loi', !kq.ten || kq.loiMade);
+    $('qLon').classList.toggle('loi', !kq.ten || kq.loiMade || cb.length > 0);
     $('lkTen').textContent = kq.ten || 'Không có SBD ' + sbd + ' trong danh sách';
     $('lkPhu').textContent = 'SBD ' + sbd + ' · Lớp ' + (kq.lop || '?') + ' · Mã đề ' + (kq.made || '?');
     $('lkPhan').textContent = kq.loiMade ? '' : 'Phần I: ' + CHAM.soVN(kq.d1) + ' · II: ' + CHAM.soVN(kq.d2) + ' · III: ' + CHAM.soVN(kq.d3);
     $('lkDiem').textContent = kq.diem == null ? '—' : CHAM.soVN(kq.diem);
     $('lkToiDa').textContent = kq.diem == null ? '' : 'trên ' + CHAM.soVN(kq.toiDa);
-    var canh = [];
-    if (kq.loiMade) canh.push('Chưa xác định được mã đề');
-    if (!kq.ten) canh.push('Kiểm tra lại số báo danh');
-    if (kq.nghi.length) canh.push('Ô tô chưa rõ: ' + kq.nghi.slice(0, 6).join(', ') + (kq.nghi.length > 6 ? '…' : ''));
-    $('lkCanh').textContent = canh.join(' · ');
+    $('lkCanh').innerHTML = cb.map(function (x) { return '<div>⚠ ' + x.replace(/</g, '&lt;') + '</div>'; }).join('');
+    $('lkCanh').style.display = cb.length ? '' : 'none';
     $('lkAnh').src = anh || '';
   }
   function anLon() { clearTimeout(henAn); $('qLon').classList.remove('hien'); lonHien = false; }
@@ -1869,8 +1895,11 @@ var QUET = (function () {
     ds.forEach(function (r) {
       var co2 = '';
       if (r.chuaGui) co2 += '<span class="nhan">đang gửi…</span> ';
-      if (!r.ten) co2 += '<span class="nhan do">chưa rõ học sinh</span> ';
+      var kt = CHAM.kiemTra({ sbd: r.sbd, p1: r.p1, p2: r.p2, p3: r.p3 }, k, r.made);
+      if (!r.ten) co2 += '<span class="nhan do">' + (kt.sbd === 'hai' ? 'SBD tô 2 ô' : kt.sbd === 'thiếu' ? 'SBD tô thiếu' : 'SBD không có trong lớp') + '</span> ';
       if (r.loiMade) co2 += '<span class="nhan do">chưa rõ mã đề</span> ';
+      if (kt.kep.length) co2 += '<span class="nhan do" title="' + esc(kt.kep.join(', ')) + '">' + kt.kep.length + ' câu tô 2 ô</span> ';
+      if (kt.trong.length) co2 += '<span class="nhan" title="' + esc(kt.trong.join(', ')) + '">' + kt.trong.length + ' câu bỏ trống</span> ';
       if (r.nghi && r.nghi.length) co2 += '<span class="nhan" title="' + esc(r.nghi.join(', ')) + '">' + r.nghi.length + ' ô chưa rõ</span>';
       h += '<tr class="bam" data-id="' + esc(r.id) + '"><td>' + esc(r.sbd) + '</td><td>' + esc(r.ten) + '</td><td>' + esc(r.lop) + '</td><td>' + esc(r.made) +
         '</td><td class="p">' + vn(r.d1) + '</td><td class="p">' + vn(r.d2) + '</td><td class="p">' + vn(r.d3) + '</td><td class="p diem">' + vn(r.diem) +
@@ -1970,6 +1999,7 @@ var QUET = (function () {
     h += moi ? '<h3 style="margin:0 0 6px">Thêm bài bằng tay</h3>' : '<div class="dieuHuong"><button id="sTruoc" title="Học sinh trước (←)">‹</button><span>' + (XEM.vt + 1) + ' / ' + XEM.n + '</span><button id="sSau" title="Học sinh sau (→)">›</button><button id="sDong" title="Đóng (Esc)">✕</button></div>';
     h += '<div style="font-size:19px;font-weight:900">' + esc(hs ? hs.ten : (r.sbd ? 'Không có SBD ' + r.sbd + ' trong danh sách' : 'Chưa nhập số báo danh')) + '</div><div class="mo">' + (hs ? 'Lớp ' + esc(hs.lop) : '') + '</div>' +
       '<div class="o2 hep" style="margin:8px 0 4px"><div class="so"><small>Điểm</small><b class="v">' + (c.loi ? '—' : vn(c.diem)) + '</b></div><div class="so"><small>Phần I</small><b>' + vn(c.d1 || 0) + '</b></div><div class="so"><small>Phần II</small><b>' + vn(c.d2 || 0) + '</b></div><div class="so"><small>Phần III</small><b>' + vn(c.d3 || 0) + '</b></div></div>' +
+      (function () { var cb = CHAM.loiBao(CHAM.kiemTra(r, k, r.made), !!hs); return cb.length ? '<div class="canhXem">' + cb.map(function (x) { return '<div>⚠ ' + esc(x) + '</div>'; }).join('') + '</div>' : ''; })() +
       (XEM.goc.nghi && XEM.goc.nghi.length ? '<div><span class="nhan">Ô máy đọc chưa rõ: ' + esc(XEM.goc.nghi.join(', ')) + '</span></div>' : '') +
       '<div class="hang" style="margin-top:8px"><div class="o" style="flex:1"><label>Số báo danh</label><input id="sSbd" value="' + esc(r.sbd) + '" inputmode="numeric" style="width:100%"></div>' +
       '<div class="o" style="flex:1"><label>Mã đề</label><select id="sMade" style="width:100%">' + Object.keys(k.de).map(function (m) { return '<option' + (m === r.made ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '</select></div></div>';
