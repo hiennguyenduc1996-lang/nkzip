@@ -160,7 +160,7 @@
   .ct.tn td.sai.tl3 { background:#ffd8a8; color:#000; }
   /* in trắng đen */
   .ctGiay.bw .ct.tn th, .ctGiay.bw .ct.tn td, .ctGiay.bw .ct.tn tfoot td { background:#fff !important; color:#000 !important; }
-  .ctGiay.bw .ct.tn td.sai { text-decoration:underline; } .ctGiay.bw .ct.tn th.cauD b { color:#000; } .ctGiay.bw .ctDau span b { color:#000; }
+.ctGiay.bw .ct.tn th.cauD b { color:#000; } .ctGiay.bw .ctDau span b { color:#000; }
   .ct.tn th.daCau { font-style:italic; }
   .ct.tn th.daTD { font-size:11px; }
   .ct.tn td.ho { text-align:left; border-right:0; white-space:nowrap; } .ct.tn td.ten { text-align:left; border-left:0; white-space:nowrap; }
@@ -1036,6 +1036,21 @@ var CHAM = (function () {
     for (i = 0; i < a3.length; i++) if (a3[i]) { var t = String(p3[i] || ''); if (t.indexOf('*') >= 0) ra.kep.push('III.' + (i + 1)); else if (!t.trim()) ra.trong.push('III.' + (i + 1)); }
     return ra;
   }
+  // Các ô máy đọc chưa chắc (mã từ OMR: 'I.18', 'II.1a', 'III.3/1', 'SBD.3', 'Mã đề.2', 'ảnh mờ') → câu dễ hiểu.
+  // Chỉ giữ những ô ảnh hưởng tới điểm hoặc tên: câu có đáp án, SBD, mã đề.
+  function moTaNghi(nghi, ky, made) {
+    var de = ky && ky.de ? (ky.de[made] || ky.de[Object.keys(ky.de)[0]]) : null, a1 = k1(de), a2 = k2(de), a3 = k3(de), ra = [];
+    (nghi || []).forEach(function (s) {
+      var m;
+      if ((m = /^I\.(\d+)$/.exec(s))) { if (!de || a1[m[1] - 1]) ra.push('Phần I câu ' + m[1]); }
+      else if ((m = /^II\.(\d+)([abcd])$/.exec(s))) { if (!de || a2[(m[1] - 1) * 4 + 'abcd'.indexOf(m[2])]) ra.push('Phần II câu ' + m[1] + m[2]); }
+      else if ((m = /^III\.(\d+)\/(\d+)$/.exec(s))) { if (!de || a3[m[1] - 1]) ra.push('Phần III câu ' + m[1] + ' (chữ số thứ ' + m[2] + ')'); }
+      else if ((m = /^SBD\.(\d+)$/.exec(s))) ra.push('SBD cột ' + m[1]);
+      else if ((m = /^Mã đề\.(\d+)$/.exec(s))) ra.push('Mã đề cột ' + m[1]);
+      else ra.push(s);
+    });
+    return ra.filter(function (x, i) { return ra.indexOf(x) === i; });
+  }
   // Câu thông báo ngắn gọn từ kết quả kiemTra (+ học sinh có trong danh sách hay không)
   function loiBao(kt, coTen) {
     var ds = [], ke = function (a) { return a.length > 8 ? a.slice(0, 8).join(', ') + '…' : a.join(', '); };
@@ -1048,7 +1063,7 @@ var CHAM = (function () {
     return ds;
   }
 
-  return { cham: cham, timDe: timDe, timHS: timHS, gonSBD: gonSBD, diemToiDa: diemToiDa, diemGoc: diemGoc, heSo: heSo, chiaDeu: chiaDeu, MON: MON, diemMacDinh: diemMacDinh, bangNhau: bangNhau, kiemTra: kiemTra, loiBao: loiBao, soVN: soVN, tron: tron, k1: k1, k2: k2, k3: k3 };
+  return { cham: cham, timDe: timDe, timHS: timHS, gonSBD: gonSBD, moTaNghi: moTaNghi, diemToiDa: diemToiDa, diemGoc: diemGoc, heSo: heSo, chiaDeu: chiaDeu, MON: MON, diemMacDinh: diemMacDinh, bangNhau: bangNhau, kiemTra: kiemTra, loiBao: loiBao, soVN: soVN, tron: tron, k1: k1, k2: k2, k3: k3 };
 })();
 if (typeof module !== 'undefined') module.exports = CHAM;
 
@@ -1445,7 +1460,7 @@ var QUET = (function () {
     // 3) chỉ nhận khi hai lần đọc cho cùng kết quả (ba lần nếu còn ô lưng chừng); giữ khung hình nét nhất để lưu ảnh
     var n = phieu.dem[doc.khoa] = (phieu.dem[doc.khoa] || 0) + 1, tot = phieu.tot[doc.khoa];
     if (!tot || net < tot.net) phieu.tot[doc.khoa] = tot = { net: net, G: G, H: t.H, doc: doc };
-    var can = khatKhe || (doc.nghi.length && bay - phieu.tu < 1500) ? 3 : 2;
+    var can = khatKhe || (doc.nghi.length && bay - phieu.tu < 3000) ? 3 : 2;
     if (n < can) { tt('Đang đọc…'); return; }
     if (mo) tot.doc.nghi.push('ảnh mờ');
     khoaVua = doc.khoa; phieu.dem = {}; phieu.tot = {}; phieu.tu = 0; phieu.moTu = 0; tgCham = bay;
@@ -1636,7 +1651,8 @@ var QUET = (function () {
     if (!kt.sbd && kq.sbd && kq.sbdDoc && kq.sbd !== kq.sbdDoc) kt.sbd = '';       // đã gán lại học sinh bằng tay
     var ds = CHAM.loiBao(kt, !!kq.ten);
     if (kq.loiMade && !kt.made) ds.push('Chưa xác định được mã đề');
-    if (kq.nghi && kq.nghi.length) ds.push('Ô tô chưa rõ: ' + kq.nghi.slice(0, 6).join(', ') + (kq.nghi.length > 6 ? '…' : ''));
+    var ng = CHAM.moTaNghi(kq.nghi, KY, kq.made);
+    if (ng.length) ds.push('Máy đọc chưa chắc, nên xem lại: ' + ng.slice(0, 5).join('; ') + (ng.length > 5 ? '…' : ''));
     return ds;
   }
   function hienLon(kq, anh, giu) {
@@ -2162,7 +2178,8 @@ var QUET = (function () {
       if (r.loiMade) co2 += '<span class="nhan do">chưa rõ mã đề</span> ';
       if (kt.kep.length) co2 += '<span class="nhan do" title="' + esc(kt.kep.join(', ')) + '">' + kt.kep.length + ' câu tô 2 ô</span> ';
       if (kt.trong.length) co2 += '<span class="nhan" title="' + esc(kt.trong.join(', ')) + '">' + kt.trong.length + ' câu bỏ trống</span> ';
-      if (r.nghi && r.nghi.length) co2 += '<span class="nhan" title="' + esc(r.nghi.join(', ')) + '">' + r.nghi.length + ' ô chưa rõ</span>';
+      var ng = CHAM.moTaNghi(r.nghi, k, r.made);
+      if (ng.length) co2 += '<span class="nhan" title="' + esc(ng.join('; ')) + '">' + ng.length + ' chỗ cần xem lại</span>';
       h += '<tr class="bam" data-id="' + esc(r.id) + '"><td>' + esc(r.sbd) + '</td><td>' + esc(r.ten) + '</td><td>' + esc(r.lop) + '</td><td>' + esc(r.made) +
         '</td><td class="p diem">' + vn(r.diem) + '</td><td class="p">' + vn(r.d1) + '</td><td class="p">' + vn(r.d2) + '</td><td class="p">' + vn(r.d3) +
         '</td><td>' + co2 + '</td></tr>';
@@ -2281,7 +2298,7 @@ var QUET = (function () {
       '<button id="sGan" class="nho" style="flex:none">Gán học sinh</button></div>' +
       '<div class="o2 hep" style="margin:8px 0 4px"><div class="so"><small>Điểm</small><b class="v">' + (c.loi ? '—' : vn(c.diem)) + '</b></div><div class="so"><small>Phần I</small><b>' + vn(c.d1 || 0) + '</b></div><div class="so"><small>Phần II</small><b>' + vn(c.d2 || 0) + '</b></div><div class="so"><small>Phần III</small><b>' + vn(c.d3 || 0) + '</b></div></div>' +
       (function () { var cb = CHAM.loiBao(CHAM.kiemTra(r, k, r.made), !!hs); return cb.length ? '<div class="canhXem">' + cb.map(function (x) { return '<div>⚠ ' + esc(x) + '</div>'; }).join('') + '</div>' : ''; })() +
-      (XEM.goc.nghi && XEM.goc.nghi.length ? '<div><span class="nhan">Ô máy đọc chưa rõ: ' + esc(XEM.goc.nghi.join(', ')) + '</span></div>' : '') +
+      (function () { var ng = CHAM.moTaNghi(XEM.goc.nghi, k, r.made); return ng.length ? '<div><span class="nhan">Máy đọc chưa chắc, nên xem lại: ' + esc(ng.join('; ')) + '</span></div>' : ''; })() +
       '<div class="hang" style="margin-top:8px"><div class="o" style="flex:1"><label>Số báo danh</label><input id="sSbd" value="' + esc(r.sbd) + '" inputmode="numeric" style="width:100%"></div>' +
       '<div class="o" style="flex:1"><label>Mã đề</label><select id="sMade" style="width:100%">' + Object.keys(k.de).map(function (m) { return '<option' + (m === r.made ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '</select></div></div>';
     // Phần I
