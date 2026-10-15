@@ -744,7 +744,8 @@ var OMR = (function () {
     var top = 0, it = -1, nhi = 0, i;
     for (i = 0; i < fs.length; i++) if (fs[i] > top) { nhi = top; top = fs[i]; it = i; } else if (fs[i] > nhi) nhi = fs[i];
     if (top < ng.thap) {
-      if (motO && top >= 0.6 * ng.thap && top >= 2.5 * Math.max(nhi, 0.03)) return { i: it, nghi: true, cac: [it] };
+      // ô nhạt nhưng nổi bật hẳn so với các ô còn lại trong cùng câu/cột: vẫn nhận (đánh dấu để xem lại)
+      if (motO && top >= (motO === 2 ? 0.75 : 0.6) * ng.thap && top >= 2.5 * Math.max(nhi, 0.03)) return { i: it, nghi: true, cac: [it] };
       return { i: -1, nghi: top > ng.thap * 0.9, cac: [] };
     }
     var giua = (ng.thap + ng.cao) / 2, dem = 0, nghi = top < giua, cac = [];
@@ -756,13 +757,14 @@ var OMR = (function () {
   }
 
   // Ngưỡng theo tờ phiếu: trừ mức nền của ô trống, lấy mức "ô tô điển hình" làm chuẩn.
-  function nguong(tat) {
+  // Fdu: mức "ô tô điển hình" dự phòng khi vùng có quá ít ô được tô.
+  function nguong(tat, Fdu) {
     var v = Array.prototype.slice.call(tat).sort(function (a, b) { return a - b; }), n = v.length;
-    var nen = v[n >> 1];                         // đa số ô là ô trống
+    var nen = v[Math.floor(n * 0.3)];            // ô trống (Phần II tô đủ thì một nửa số ô là ô tô: lấy phân vị 30%)
     if (nen > 0.2) nen = 0.2;
     var to = [];
     for (var i = 0; i < n; i++) if (v[i] - nen > 0.22) to.push(v[i] - nen);
-    var F = to.length >= 4 ? to[to.length >> 1] : 0.75;
+    var F = to.length >= 4 ? to[to.length >> 1] : (Fdu || 0.75);
     return { nen: nen, cao: Math.min(0.5, Math.max(0.24, 0.6 * F)), thap: Math.min(0.3, Math.max(0.17, 0.4 * F)), F: F };
   }
 
@@ -780,12 +782,17 @@ var OMR = (function () {
     var fs = new Float32Array(ds.length);
     for (i = 0; i < ds.length; i++) fs[i] = doO(G, H, ds[i][0], ds[i][1], r, den);
     var ng = nguong(fs);
+    // Ngưỡng riêng cho từng vùng (Phần I, II, III, SBD + mã đề): học sinh thường tô các phần đậm nhạt khác nhau,
+    // một ngưỡng chung theo vùng tô đậm sẽ bỏ sót các ô tô nhạt ở vùng khác.
+    var vung = function (loai) { return loai === 'SBD.' || loai === 'Mã đề.' ? 'ID' : loai; }, NGV = {}, gt = {};
+    for (i = 0; i < nh.length; i++) { var vv = vung(nh[i][0]); gt[vv] = gt[vv] || []; for (j = 0; j < nh[i][3]; j++) gt[vv].push(fs[nh[i][2] + j]); }
+    for (var tv in gt) NGV[tv] = nguong(gt[tv], ng.F);
     // 2) quyết định từng nhóm
     var kq = [], cac = [];
     for (i = 0; i < nh.length; i++) {
-      var f = [];
-      for (j = 0; j < nh[i][3]; j++) f.push(fs[nh[i][2] + j] - ng.nen);
-      var c = chon(f, ng, nh[i][0] === 'SBD.' || nh[i][0] === 'Mã đề.');
+      var f = [], ngv = NGV[vung(nh[i][0])];
+      for (j = 0; j < nh[i][3]; j++) f.push(fs[nh[i][2] + j] - ngv.nen);
+      var c = chon(f, ngv, nh[i][0] === 'SBD.' || nh[i][0] === 'Mã đề.' ? 1 : nh[i][0] === 'III.' ? 0 : 2);
       if (c.nghi) nghi.push(nh[i][0] + nh[i][1]);
       kq.push(c.i); cac.push(c.cac);
     }
