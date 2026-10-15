@@ -6,6 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
+<script>window.NK_BAN = '1.1.5';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -43,6 +44,8 @@
   .logo { display:flex; align-items:center; gap:10px; font-weight:900; font-size:19px; letter-spacing:.3px; white-space:nowrap; }
   .logo i { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font-style:normal; font-size:14px; font-weight:900; color:var(--vang); background:linear-gradient(180deg,#18306f,#0a1538); border:1.5px solid var(--vang2); }
   .logo b { color:var(--vang); }
+  .banTT { margin-top:8px; text-align:center; font-size:11.5px; color:var(--mo); line-height:1.4; }
+  .banTT .banMoi.ok { color:var(--xanh); } .banTT .banMoi.moi { color:var(--cam); font-weight:700; }
   .chip { font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; background:#1a2c68; color:var(--mo); }
   .doan { display:flex; gap:4px; padding:4px; border:1.5px solid var(--vien); border-radius:14px; background:rgba(10,22,56,.7); max-width:100%; overflow:auto; }
   .doan button { border:0; background:none; padding:7px 16px; border-radius:10px; color:var(--mo); white-space:nowrap; }
@@ -325,7 +328,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.1 · bản 1.1.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -354,6 +357,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
+  <div class="banTT" style="margin-top:10px">NKZip v1.1 · bản 1.1.5 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -394,6 +398,7 @@
     <div class="o"><label>Kiểm tra ảnh mờ</label>
       <select id="qcdMo"><option value="cao">Khắt khe – chỉ chấm khi ảnh thật nét</option><option value="vua">Vừa (khuyên dùng)</option><option value="thap">Dễ – chấp nhận ảnh hơi mờ</option><option value="tat">Tắt</option></select></div>
     <p class="mo" style="margin:4px 0 0;font-size:13px">Khi ảnh mờ, khung chuyển màu cam và máy chờ đến khi nét mới chấm. Ảnh lưu lại là khung hình nét nhất.</p>
+    <p class="mo" style="margin:2px 0 0;font-size:12px">Bản dựng: <b>1.1.5</b></p>
     <button class="vang" id="qcdXong">Xong</button>
   </div></div>
   <div id="qChon" class="qHop"><div class="the">
@@ -2989,8 +2994,11 @@ var QUET = (function () {
   function kiemCapNhat() {
     if (!API.mayTinh() || window.API_GIA) return;
     API.gui({ action: 'capNhat' }).then(function (r) {
-      if (!r || !r.ok) return;
-      if (r.trangThai === 'dangtai' || !r.trangThai) return setTimeout(kiemCapNhat, r.trangThai ? 5000 : 30000);
+      if (!r || !r.ok) return hienBan('');
+      if (r.trangThai === 'moinhat') return hienBan('ok');
+      if (r.trangThai === 'loi') return hienBan('');
+      if (r.trangThai === 'dangtai' || r.trangThai === 'san') hienBan('moi', r.ban);
+      if (r.trangThai === 'dangtai' || !r.trangThai) return setTimeout(kiemCapNhat, r.trangThai ? 5000 : 15000);
       if (r.trangThai !== 'san' || daBaoCN) return;
       daBaoCN = true;
       var o = document.createElement('div');
@@ -3009,6 +3017,33 @@ var QUET = (function () {
     }).catch(function () { /* máy chủ cũ không hỗ trợ */ });
   }
   setTimeout(kiemCapNhat, 4000);
+
+  // Dòng phiên bản (cuối danh sách bài thi và màn đăng nhập): cho biết đang dùng bản mới nhất chưa
+  function hienBan(kieu, ban) {
+    $$('.banMoi').forEach(function (s) {
+      s.className = 'banMoi' + (kieu ? ' ' + kieu : '');
+      s.textContent = kieu === 'ok' ? '· ✓ đã là bản mới nhất' : kieu === 'moi' ? '· có bản mới ' + ban + (window.NK_URL ? ', đang tải lại…' : ' – đóng app hoặc bấm Cập nhật ngay') : '';
+    });
+  }
+  if (!API.mayTinh() && !window.NK_URL || window.API_GIA) hienBan('');
+
+  // Trang trên điện thoại (GitHub Pages): tự tải lại khi đã có bản dựng mới, để không chấm bằng bản cũ còn lưu đệm.
+  function kiemBanWeb() {
+    if (!window.NK_URL || !window.NK_BAN || document.hidden) return;
+    fetch(location.pathname + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+      var m = /window\.NK_BAN = '([^']+)'/.exec(t);
+      if (!m || m[1].indexOf('{{') === 0) return hienBan('');
+      if (m[1] === window.NK_BAN) return hienBan('ok');
+      hienBan('moi', m[1]);
+      if ($('#manQuet').classList.contains('hien') || $('#hop').classList.contains('hien') || SUA) return;   // đang chấm / đang sửa: để lần sau
+      try { if (sessionStorage.getItem('nkzip_taiLai') === m[1]) return; sessionStorage.setItem('nkzip_taiLai', m[1]); } catch (e) { /* bỏ qua */ }
+      bao('Đã có bản mới (' + m[1] + '), đang tải lại…', 5000);
+      setTimeout(function () { location.replace(location.pathname + '?v=' + encodeURIComponent(m[1])); }, 800);
+    }).catch(function () { hienBan(''); });     // mất mạng: thử lần sau
+  }
+  setTimeout(kiemBanWeb, 3000);
+  setInterval(kiemBanWeb, 180000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) kiemBanWeb(); });
 
   function khoiDong() {
     QT = API.quanTri(); veKhung();
