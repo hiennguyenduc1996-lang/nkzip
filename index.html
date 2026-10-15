@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.1.8';</script>
+<script>window.NK_BAN = '1.1.9';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -319,7 +319,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.1.8</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.1.9</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -330,7 +330,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.1.8 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.1.9 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -359,7 +359,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.1.8 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.1.9 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -400,7 +400,7 @@
     <div class="o"><label>Kiểm tra ảnh mờ</label>
       <select id="qcdMo"><option value="cao">Khắt khe – chỉ chấm khi ảnh thật nét</option><option value="vua">Vừa (khuyên dùng)</option><option value="thap">Dễ – chấp nhận ảnh hơi mờ</option><option value="tat">Tắt</option></select></div>
     <p class="mo" style="margin:4px 0 0;font-size:13px">Khi ảnh mờ, khung chuyển màu cam và máy chờ đến khi nét mới chấm. Ảnh lưu lại là khung hình nét nhất.</p>
-    <p class="mo" style="margin:2px 0 0;font-size:12px">Bản dựng: <b>1.1.8</b></p>
+    <p class="mo" style="margin:2px 0 0;font-size:12px">Bản dựng: <b>1.1.9</b></p>
     <button class="vang" id="qcdXong">Xong</button>
   </div></div>
   <div id="qChon" class="qHop"><div class="the">
@@ -3086,6 +3086,15 @@ var QUET = (function () {
       if (cho && cho > choCu) bao('Có ' + cho + ' tài khoản đăng kí đang chờ duyệt – xem ở thẻ Tài khoản', 7000);
     }).catch(function () { TK = []; });
   }
+  // Quản trị: hỏi lại danh sách tài khoản mỗi phút và khi quay lại cửa sổ, để thấy ngay yêu cầu đăng kí mới
+  function kiemDangKi() {
+    if (!QT || CUC_BO || document.hidden || !API.coPhien()) return;
+    var dangGo = document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+    var truoc = JSON.stringify(TK);
+    taiTK().then(function () { if (tabBen === 'tk' && !dangGo && JSON.stringify(TK) !== truoc) veChinh(); });
+  }
+  setInterval(kiemDangKi, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) kiemDangKi(); });
   var hienMk = {};
   function veTaiKhoan() {
     var cho = TK.filter(function (a) { return a.cho; });
