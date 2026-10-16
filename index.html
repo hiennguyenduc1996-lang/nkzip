@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.2.4';</script>
+<script>window.NK_BAN = '1.2.5';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -167,7 +167,8 @@
   /* thẻ KTDK: tạo nhanh 5 bài thi */
   .ktLuoi { display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:14px; }
   .ktMon { margin:0; display:flex; flex-direction:column; gap:8px; }
-  .ktMon h3 { margin:0; } .ktMon h3 small { font-size:12px; font-weight:500; }
+  .ktMon h3 { margin:0; display:flex; align-items:center; gap:8px; } .ktMon h3 small { font-size:12px; font-weight:500; }
+  .ktMon .ktMau { font-size:12.5px; padding:4px 8px; }
   .ktMon textarea { width:100%; min-height:190px; resize:vertical; font:13px/1.45 Consolas,monospace; background:#0a1638; color:var(--chu); border:1.5px solid var(--vien); border-radius:12px; padding:10px; box-sizing:border-box; }
   .ktTom { font-size:13px; line-height:1.5; } .ktTom .ok { color:var(--xanh); } .ktTom .loi { color:#ff8a8a; }
   /* thống kê xếp hạng các lớp */
@@ -187,10 +188,11 @@
   .ctGiay.trangKT { padding:0; border-radius:0; min-width:0; overflow:hidden; box-sizing:border-box; }
   .trangKT .ctDau { margin-bottom:4px; } .trangKT .ctDau h3 { font-size:1.35em; } .trangKT .ctDau span { font-size:1.05em; }
   .trangKT .ct.tn { table-layout:fixed; width:100%; font-size:1em; }
-  .trangKT .ct.tn th, .trangKT .ct.tn td { min-width:0; padding:0 1px; overflow:hidden; white-space:nowrap; line-height:1.15; }
+  .trangKT .ct.tn th, .trangKT .ct.tn td { min-width:0; padding:0 1px; overflow:hidden; white-space:nowrap; line-height:1.15; font-size:1em; }
   .trangKT .ct.tn th.dem, .trangKT .ct.tn th.tl { font-size:.85em; }
+  .trangKT .ct.tn th.daTD { font-size:.8em; }
   .trangKT .ct.tn th.so { font-size:.9em; letter-spacing:-.3px; }
-  .trangKT .ct.tn thead th { white-space:normal; line-height:1.05; word-break:break-word; }
+  .trangKT .ct.tn thead th { white-space:normal; line-height:1.05; }
   .trangKT .ct.tn th.cauD { font-size:.7em; } .trangKT .ct.tn th.cauD b { font-size:2em; }
   .trangKT .ct.tn td.ho { padding-left:3px; text-overflow:ellipsis; }
   .trangKT .ct.tn td.khongTinh { background:#e8e8e8; }
@@ -395,7 +397,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.2.4</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.2.5</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -406,7 +408,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.2.4 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.2.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -435,7 +437,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.2.4 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.2.5 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -482,7 +484,7 @@
     <div class="o" style="margin-top:6px"><label>Hẹn giờ chụp (giây, 0 = chụp ngay)</label>
       <input id="qcdHen" type="number" min="0" max="10" step="1" inputmode="numeric" style="width:100%"></div>
     <p class="mo" style="margin:4px 0 0;font-size:13px">Ví dụ 3: thấy đủ các ô vuông đen thì máy đếm ngược 3 giây (để chỉnh phiếu cho thẳng, đủ sáng) rồi mới chụp và chấm. Mỗi tờ chỉ chụp một lần; đưa tờ khác vào thì đếm lại.</p>
-    <p class="mo" style="margin:2px 0 0;font-size:12px">Bản dựng: <b>1.2.4</b></p>
+    <p class="mo" style="margin:2px 0 0;font-size:12px">Bản dựng: <b>1.2.5</b></p>
     <button class="vang" id="qcdXong">Xong</button>
   </div></div>
   <div id="qChon" class="qHop"><div class="the">
@@ -2309,7 +2311,7 @@ var QUET = (function () {
   $('#nutTaiLai').onclick = function () { bao('Đang đồng bộ…', 20000); taiDL().then(function () { return taiKQ(); }).then(function () { veBen(); veChinh(); bao('Đã đồng bộ'); }); };
   $('#nutMoi').onclick = function () {
     if (tabBen === 'ky') {
-      var k = { id: 'k' + ma(), ten: '', mon: '', mau: 'nkzip', so: { p1: 18, p2: 4, p3: 6 }, diem: CHAM.diemMacDinh('nkzip', false), de: {}, tao: new Date().toISOString() };
+      var k = { id: 'k' + ma(), ten: '', mon: '', mau: 'nk1846', so: { p1: 18, p2: 4, p3: 6 }, diem: CHAM.diemMacDinh('nk1846', false), de: {}, tao: new Date().toISOString() };
       DL.kyThi.push(k); chon.ky = k.id; tabKy = 'da'; KQ = []; SUA = null;
       API.goi('luuKyThi', { dl: k }).catch(loi);
     } else {
@@ -2319,6 +2321,8 @@ var QUET = (function () {
     }
     ls(khoaDem(), DL); document.body.classList.add('chiTiet'); veBen(); veChinh();
   };
+  // thứ tự mẫu phiếu khi chọn: 18-4-6 trước, rồi 50 câu, cuối cùng phiếu NKZip
+  function thuTuMau() { return ['nk1846', 'zip50', 'nkzip'].filter(function (m) { return MAU[m]; }).concat(Object.keys(MAU).filter(function (m) { return ['nk1846', 'zip50', 'nkzip'].indexOf(m) < 0; })); }
   function tenK(k) { return k.ten || 'Bài thi chưa đặt tên'; }
   // Xoá toàn bộ bài thi của tài khoản đang làm việc (vd. dọn dữ liệu cuối năm học): hỏi xác nhận 2 lần
   function xoaHetKy() {
@@ -3178,7 +3182,7 @@ var QUET = (function () {
   // Một trang (một lớp) của bảng KTDK: khung đúng khổ A4 ngang (trừ lề), bảng giãn hết bề ngang – các cột câu chia đều phần còn lại,
   // chiều cao hàng và cỡ chữ tính theo số câu, số học sinh để cả lớp nằm vừa một trang.
   var KHO_W = 1075, KHO_H = 735;                   // 285 × 198 mm ở 96 dpi (A4 ngang, lề 6 mm)
-  function trangKTDK(k, cot, bai, lop, mau, tang, phu) {
+  function trangKTDK(k, cot, bai, lop, mau, tang, phu, coChu) {
     var chiTN = cot.every(function (c) { return c.loai === 'cau' && c.phan === 1; });
     var kq = bai.map(function (r) { return { r: r, t: cot.map(function (c) { return c.loai === 'cau' ? c.tinh(r) : null; }), ch: CHAM.cham(r, k, r.made) }; });
     var soSai = function (j) { return kq.filter(function (x) { return x.t[j] && !x.t[j].dung; }).length; };
@@ -3186,20 +3190,46 @@ var QUET = (function () {
     var co = bai.filter(function (r) { return r.diem != null; }), d = co.map(function (r) { return r.diem; });
     var duoi = (phu || '') + ' LỚP ' + String(lop).toUpperCase() + ' NĂM HỌC ' + namHoc();
     var tieuDe = chiTN ? 'BẢNG THỐNG KÊ CHI TIẾT CÂU SAI ĐỀ ' + tenK(k).toUpperCase() + ' TỪNG HỌC SINH' + duoi : 'THỐNG KÊ ĐIỂM ' + tenK(k).toUpperCase() + duoi;
-    // bề rộng cột: phần thông tin bên trái cố định, các cột câu (và cột điểm câu) chia đều phần còn lại
-    var trai = [26, 38, 26, 118, 52, 52].concat(chiTN ? [] : [36, 36, 36]), wTrai = trai.reduce(function (a, b) { return a + b; }, 0);
-    var nCot = cot.reduce(function (a, c) { return a + (c.loai === 'cau' ? 1 : 1.3); }, 0), wCau = (KHO_W - wTrai) / Math.max(1, nCot);
-    if (wCau < 17) {                                 // nhiều câu: thu hẹp phần bên trái trước khi thu nhỏ cả trang
-      var bot = Math.min(wTrai - 300, (17 - wCau) * nCot);
-      trai = trai.map(function (w) { return w * (wTrai - bot) / wTrai; }); wTrai -= bot; wCau = (KHO_W - wTrai) / Math.max(1, nCot);
+    // Bề rộng cột theo chữ thật (đo ở cỡ 10px rồi nhân theo cỡ chữ): cột thông tin bên trái vừa đủ nội dung dài nhất,
+    // các cột câu chia đều phần còn lại. Chọn cỡ chữ LỚN NHẤT (≤ 13px) mà mọi ô đều vừa – không chữ nào bị che.
+    // đo bằng chính chữ hiển thị (cùng phông với bảng in), có bộ nhớ đệm; nhân 1,08 để dư chút cho lúc in
+    var sp = trangKTDK.sp;
+    if (!sp || !document.body.contains(sp)) {
+      sp = trangKTDK.sp = document.createElement('span');
+      sp.style.cssText = 'position:absolute;left:-40000px;top:0;visibility:hidden;white-space:nowrap;font:700 10px "Times New Roman",Times,serif';
+      document.body.appendChild(sp); trangKTDK.dem = {};
     }
-    var fs = Math.max(7.5, Math.min(13, wCau * 0.5));                    // cỡ chữ theo bề rộng cột câu
+    var rong = function (s) {
+      s = String(s == null ? '' : s);
+      if (trangKTDK.dem[s] == null) { sp.textContent = s; trangKTDK.dem[s] = sp.getBoundingClientRect().width * 1.08; }
+      return trangKTDK.dem[s];
+    };
+    var maxR = function (a) { return a.reduce(function (m, s) { return Math.max(m, rong(s)); }, 0); };
+    var ten2 = kq.map(function (x) { return tachTen(x.r.ten || '(chưa rõ)'); });
+    var traiCo = [maxR([kq.length, 'STT']), maxR(['SBD'].concat(bai.map(function (r) { return r.sbd; }))), maxR(['MÃ'].concat(bai.map(function (r) { return r.made; }))),
+      maxR(ten2.map(function (t) { return t[0]; })), maxR(ten2.map(function (t) { return t[1]; })), maxR(['10,00', 'ĐIỂM'])]
+      .concat(chiTN ? [] : [maxR(['10,00', 'PHẦN'])].concat([maxR(['10,00', 'PHẦN']), maxR(['10,00', 'PHẦN'])]));
+    // ba nhóm cột, mỗi nhóm rộng bằng nhau: câu Phần I + ý Đúng/Sai (1 kí tự) · cột điểm câu · câu Phần III (số dài)
+    var nhomCot = function (c) { return c.loai !== 'cau' ? 'd' : c.phan === 3 ? '3' : '1'; }, can = { '1': 0, d: maxR(['0,25', '1,5']), '3': 0 }, soN = { '1': 0, d: 0, '3': 0 };
+    cot.forEach(function (c, j) {
+      var g = nhomCot(c); soN[g]++;
+      if (c.loai === 'cau') can[g] = Math.max(can[g], maxR([c.nhan, String(kq.length)].concat(kq.map(function (x) { var o = x.t[j]; return o && !o.dung ? o.ghi : ''; }))));
+    });
+    var dem = 4, fs = 13;                             // dem: khoảng đệm + viền mỗi ô (px)
+    var canTong = function (f) {
+      return traiCo.reduce(function (a, w) { return a + w * f / 10 + dem; }, 0) + ['1', 'd', '3'].reduce(function (a, g) { return a + soN[g] * (can[g] * f / 10 + dem); }, 0);
+    };
+    while (fs > 6 && canTong(fs) > KHO_W) fs -= 0.25;
+    // phần dư chia đều cho mọi cột câu (các cột trong cùng nhóm vẫn rộng bằng nhau)
+    var trai = traiCo.map(function (w) { return w * fs / 10 + dem; }), soCotCau = soN['1'] + soN.d + soN['3'], thua = Math.max(0, KHO_W - canTong(fs)) / Math.max(1, soCotCau);
+    var rongNhom = { '1': can['1'] * fs / 10 + dem + thua, d: can.d * fs / 10 + dem + thua, '3': can['3'] * fs / 10 + dem + thua };
+    fs *= (coChu || 1);                              // lưới an toàn: dungTrang còn thấy ô bị che thì chỉ thu nhỏ CHỮ (giữ bề rộng cột)
     var tdH = 30 + fs * 1.5, dauH = fs * 2.4 + 2 * (fs * 1.45 + 4), cuoiH = fs * 1.6 * 2 + 10;
     var rh = Math.max(11, Math.min(26, (KHO_H - tdH - dauH - cuoiH) / Math.max(1, kq.length)));
     if (tang) rh = Math.min(46, rh + tang);         // lần dựng thứ hai: giãn hàng cho vừa khít chiều cao trang
-    var fsH = Math.min(fs + 0.5, rh * 0.68);                              // cỡ chữ trong hàng học sinh
+    var fsH = Math.min(fs, rh * 0.72);                // cỡ chữ trong hàng học sinh (hàng thấp thì nhỏ lại cho khỏi đè dòng)
     var cg = '<colgroup>' + trai.map(function (w) { return '<col style="width:' + w.toFixed(1) + 'px">'; }).join('') +
-      cot.map(function (c) { return '<col style="width:' + (wCau * (c.loai === 'cau' ? 1 : 1.3)).toFixed(1) + 'px">'; }).join('') + '</colgroup>';
+      cot.map(function (c) { return '<col style="width:' + rongNhom[nhomCot(c)].toFixed(1) + 'px">'; }).join('') + '</colgroup>';
     var h = '<div class="ctGiay trangKT' + (mau ? '' : ' bw') + '" style="width:' + KHO_W + 'px;height:' + KHO_H + 'px;font-size:' + fs.toFixed(1) + 'px">' +
       '<div class="ctDau"><span>LỚP <b>' + esc(lop) + '</b></span><h3>' + esc(tieuDe) + '</h3></div>';
     var r1 = '<tr><th rowspan="3">STT</th><th rowspan="3">SBD</th><th rowspan="3">MÃ<br>ĐỀ</th><th rowspan="3" colspan="2">HỌ VÀ TÊN</th><th rowspan="2">ĐIỂM</th>' +
@@ -3253,9 +3283,18 @@ var QUET = (function () {
   function dungTrang(k, cot, ds, lop, phu) {
     var do_ = document.createElement('div'); do_.style.cssText = 'position:absolute;left:-40000px;top:0;visibility:hidden'; document.body.appendChild(do_);
     var caoND = function () { var g0 = $('.ctGiay', do_); return $('.ctDau', g0).offsetHeight + $('table', g0).offsetHeight + 8; };
-    do_.innerHTML = trangKTDK(k, cot, ds, lop, mauCT, 0, phu);
-    var du = KHO_H - caoND();
-    if (du > 8) do_.innerHTML = trangKTDK(k, cot, ds, lop, mauCT, du / Math.max(1, ds.length), phu);
+    // có ô nào chữ / số bị che (rộng hơn ô) không
+    var biChe = function () { return $$('td, th', do_).some(function (o) { return o.scrollWidth > o.clientWidth + 1; }); };
+    var co = 1, tang = 0, lan;
+    for (lan = 0; lan < 10; lan++) {               // thu nhỏ chữ dần tới khi không ô nào bị che
+      do_.innerHTML = trangKTDK(k, cot, ds, lop, mauCT, tang, phu, co);
+      if (!tang) {
+        var du = KHO_H - caoND();
+        if (du > 8) { tang = du / Math.max(1, ds.length); do_.innerHTML = trangKTDK(k, cot, ds, lop, mauCT, tang, phu, co); }
+      }
+      if (!biChe()) break;
+      co *= 0.92; tang = 0;
+    }
     var bang = $('table', do_), z = Math.min(1, KHO_W / Math.max(KHO_W, bang.scrollWidth), KHO_H / Math.max(KHO_H, caoND()));
     var h = '<div class="trang"' + (z < 1 ? ' style="zoom:' + z.toFixed(3) + '"' : '') + '>' + do_.innerHTML + '</div>';
     do_.remove();
@@ -3709,7 +3748,7 @@ var QUET = (function () {
     h = '<div class="the"><h3>Thông tin bài thi</h3><div class="hang">' +
       '<div class="o" style="flex:2;min-width:200px"><label>Tên bài thi</label><input id="eTen" value="' + esc(SUA.ten) + '"></div>' +
       '<div class="o"><label>Môn</label><input id="eMon" value="' + esc(SUA.mon || '') + '" style="width:120px"></div>' +
-      '<div class="o"><label>Mẫu phiếu</label><select id="eMau">' + Object.keys(MAU).map(function (m) { return '<option value="' + m + '"' + (m === SUA.mau ? ' selected' : '') + '>' + esc(MAU[m].ten) + '</option>'; }).join('') + '</select></div></div>' +
+      '<div class="o"><label>Mẫu phiếu</label><select id="eMau">' + thuTuMau().map(function (m) { return '<option value="' + m + '"' + (m === SUA.mau ? ' selected' : '') + '>' + esc(MAU[m].ten) + '</option>'; }).join('') + '</select></div></div>' +
       '<div class="hang" style="margin-top:12px;align-items:flex-end"><div class="o"><label>Số câu Phần I</label><input id="eS1" type="number" min="0" max="' + g.p1 + '" value="' + s.p1 + '" style="width:92px"></div>' +
       (coP2 ? '<div class="o"><label>Số câu Phần II</label><input id="eS2" type="number" min="0" max="' + g.p2 + '" value="' + s.p2 + '" style="width:92px"></div><div class="o"><label>Số câu Phần III</label><input id="eS3" type="number" min="0" max="' + g.p3 + '" value="' + s.p3 + '" style="width:92px"></div>' : '') +
       '<div class="o"><label>Điểm/câu Phần I</label><input id="eD1" type="number" step="any" value="' + SUA.diem.p1 + '" style="width:100px"></div>' +
@@ -3914,21 +3953,25 @@ var QUET = (function () {
     for (var b = 1; b <= 40; b++) { var a = 10 * b / goc; if (Math.abs(a - Math.round(a)) < 1e-9) return b === 1 ? String(Math.round(a)) : Math.round(a) + '/' + b; }
     return String(Math.round(10 / goc * 10000) / 10000).replace('.', ',');
   }
+  // phiếu của môn: Anh luôn phiếu 50 câu; các môn khác chọn phiếu 18-4-6 (mặc định) hoặc phiếu NKZip
+  function mauMon(mk) { return mk.mon === 'anh' ? 'zip50' : (KT_NHAP.mau && KT_NHAP.mau[mk.ma] === 'nkzip' ? 'nkzip' : 'nk1846'); }
   function taoKyKT(mk, cac, lan) {
-    var M = CHAM.MON[mk.mon], mau = mk.mon === 'anh' ? 'zip50' : 'nk1846', T = MAU[mau];
+    var M = CHAM.MON[mk.mon], mau = mauMon(mk), T = MAU[mau], soMa3 = T.made.length > 1;
     var so = { p1: 0, p2: 0, p3: 0 };
     cac.forEach(function (x) { so.p1 = Math.max(so.p1, x.de.p1.length); so.p2 = Math.max(so.p2, Math.ceil(x.de.p2.length / 4)); so.p3 = Math.max(so.p3, x.de.p3.length); });
     var k = { id: 'k' + ma(), ten: mk.hoa + ' KTDK LẦN ' + lan, mon: mk.ten, mau: mau, so: so, de: {}, tenMa: {}, tao: new Date().toISOString(),
       diem: so.p2 || so.p3 ? { p1: M.diem.p1, p2: M.diem.p2, p3: M.diem.p3 } : { p1: CHAM.chiaDeu(so.p1), p2: 1, p3: 0 } };
-    cac.forEach(function (x, i) { var n = T.madeNhan[i]; k.de[n] = chuanDe(k, x.de); k.tenMa[n] = x.ma; });
+    // phiếu có ô mã đề A–D: mã nhỏ nhất vào ô A…; phiếu NKZip có ô mã đề 3 chữ số: giữ nguyên mã (401, 402…)
+    cac.forEach(function (x, i) { var n = soMa3 ? x.ma : T.madeNhan[i]; k.de[n] = chuanDe(k, x.de); if (!soMa3) k.tenMa[n] = x.ma; });
     Object.keys(k.de).forEach(function (n) { k.de[n] = gonDe(k, k.de[n]); });
     k.heSo = heSo10(CHAM.diemGoc(k, k.de[Object.keys(k.de)[0]]));
     return k;
   }
   function kiemKT(mk, cac) {                        // tóm tắt + lỗi của một khung
     if (!cac.length) return { loi: '', tom: '' };
-    var mau = mk.mon === 'anh' ? 'zip50' : 'nk1846', T = MAU[mau], G = gioiHan({ mau: mau }), loi = [];
-    if (cac.length > T.madeNhan.length) loi.push('Phiếu ' + T.ten + ' chỉ có ' + T.madeNhan.length + ' ô mã đề (' + T.madeNhan.join(', ') + '), đang có ' + cac.length + ' mã đề');
+    var mau = mauMon(mk), T = MAU[mau], G = gioiHan({ mau: mau }), loi = [], soMa3 = T.made.length > 1;
+    if (soMa3) { var sai3 = cac.filter(function (x) { return x.ma.length !== T.made.length; }); if (sai3.length) loi.push('Phiếu NKZip cần mã đề ' + T.made.length + ' chữ số (đang có ' + sai3.map(function (x) { return x.ma; }).join(', ') + ')'); }
+    else if (cac.length > T.madeNhan.length) loi.push('Phiếu ' + T.ten + ' chỉ có ' + T.madeNhan.length + ' ô mã đề (' + T.madeNhan.join(', ') + '), đang có ' + cac.length + ' mã đề');
     var so = { p1: 0, p2: 0, p3: 0 };
     cac.forEach(function (x) {
       so.p1 = Math.max(so.p1, x.de.p1.length); so.p2 = Math.max(so.p2, Math.ceil(x.de.p2.length / 4)); so.p3 = Math.max(so.p3, x.de.p3.length);
@@ -3942,17 +3985,18 @@ var QUET = (function () {
     var k = loi.length ? null : taoKyKT(mk, cac, 1), tong = k ? CHAM.diemToiDa(k, k.de[Object.keys(k.de)[0]]) : null;
     return {
       loi: loi.join(' · '),
-      tom: cac.length + ' mã đề: ' + cac.map(function (x, i) { return x.ma + ' → ' + (T.madeNhan[i] || '?'); }).join(', ') + ' · Phần I ' + so.p1 + ' câu' + (so.p2 ? ' · Phần II ' + so.p2 + ' câu' : '') + (so.p3 ? ' · Phần III ' + so.p3 + ' câu' : '') +
+      tom: cac.length + ' mã đề: ' + cac.map(function (x, i) { return soMa3 ? x.ma : x.ma + ' → ' + (T.madeNhan[i] || '?'); }).join(', ') + ' · Phần I ' + so.p1 + ' câu' + (so.p2 ? ' · Phần II ' + so.p2 + ' câu' : '') + (so.p3 ? ' · Phần III ' + so.p3 + ' câu' : '') +
         (k ? ' · tổng ' + vn(tong) + ' điểm' + (k.heSo ? ' (hệ số ' + k.heSo + ')' : '') : '')
     };
   }
   function veTaoKTDK() {
     var h = '<h2>Tạo nhanh bài thi KTDK</h2><div class="mo" style="margin-bottom:12px">Nhập lần kiểm tra, dán bảng đáp án của từng môn vào khung tương ứng (Ctrl+V) rồi bấm <b>Tạo bài thi</b>. Môn để trống thì không tạo. ' +
-      'Mã đề nhỏ nhất gán vào ô A trên phiếu, mã tiếp theo vào ô B…</div>' +
+      'Phiếu 18 - 4 - 6: mã đề nhỏ nhất gán vào ô A trên phiếu, mã tiếp theo vào ô B…; phiếu NKZip giữ nguyên mã đề 3 chữ số.</div>' +
       '<div class="the"><div class="hang" style="align-items:flex-end"><div class="o"><label>Lần kiểm tra</label><input id="ktLan" type="number" min="1" value="' + esc(KT_NHAP.lan) + '" placeholder="vd 10" style="width:120px"></div>' +
       '<span class="mo" id="ktTen" style="flex:1"></span><button class="vang" id="ktTao">Tạo bài thi</button></div></div><div class="ktLuoi">';
     MON_KT.forEach(function (mk) {
-      h += '<div class="the ktMon"><h3>' + esc(mk.ten) + ' <small class="mo">' + (mk.mon === 'anh' ? 'phiếu 50 câu' : 'phiếu 18 - 4 - 6') + '</small></h3>' +
+      h += '<div class="the ktMon"><h3>' + esc(mk.ten) + ' ' + (mk.mon === 'anh' ? '<small class="mo">phiếu 50 câu</small>' :
+        '<select class="ktMau" data-mau="' + mk.ma + '"><option value="nk1846">Phiếu 18 - 4 - 6</option><option value="nkzip"' + (mauMon(mk) === 'nkzip' ? ' selected' : '') + '>Phiếu NKZip</option></select>') + '</h3>' +
         '<textarea data-mon="' + mk.ma + '" placeholder="Dán bảng đáp án ' + esc(mk.ten) + ' vào đây (MÃ ĐỀ 401 - PHẦN I …)">' + esc(KT_NHAP.chu[mk.ma] || '') + '</textarea><div class="ktTom" data-tom="' + mk.ma + '"></div></div>';
     });
     $('#chinh').innerHTML = h + '</div>';
@@ -3964,6 +4008,7 @@ var QUET = (function () {
         o.innerHTML = (KT_NHAP.chu[mk.ma] || '').trim() ? (r.tom ? '<div class="ok">✓ ' + esc(r.tom) + '</div>' : '<div class="loi">⚠ Không đọc được mã đề nào (cần dòng “MÃ ĐỀ 401 …”)</div>') + (r.loi ? '<div class="loi">⚠ ' + esc(r.loi) + '</div>' : '') : '';
       });
     };
+    $$('#chinh select[data-mau]').forEach(function (s) { s.onchange = function () { KT_NHAP.mau = KT_NHAP.mau || {}; KT_NHAP.mau[s.getAttribute('data-mau')] = s.value; ls('nkzip_ktdk', KT_NHAP); capNhat(); }; });
     $('#ktLan').oninput = function () { KT_NHAP.lan = this.value.trim(); ls('nkzip_ktdk', KT_NHAP); capNhat(); };
     $$('#chinh textarea[data-mon]').forEach(function (t) { t.oninput = function () { KT_NHAP.chu[t.getAttribute('data-mon')] = t.value; ls('nkzip_ktdk', KT_NHAP); capNhat(); }; });
     capNhat();
@@ -3973,7 +4018,7 @@ var QUET = (function () {
       var tao = [], loiM = [];
       MON_KT.forEach(function (mk) {
         var cac = docDapAnDan(KT_NHAP.chu[mk.ma]); if (!cac.length) return;
-        var r = kiemKT(mk, cac); if (r.loi && /chỉ có|vượt quá/.test(r.loi)) { loiM.push(mk.ten + ': ' + r.loi); return; }
+        var r = kiemKT(mk, cac); if (r.loi && /chỉ có|vượt quá|chữ số/.test(r.loi)) { loiM.push(mk.ten + ': ' + r.loi); return; }
         tao.push(taoKyKT(mk, cac, lan));
       });
       if (loiM.length) return alert('Chưa tạo được:\n' + loiM.join('\n'));
@@ -3986,7 +4031,7 @@ var QUET = (function () {
       bao('Đang tạo ' + tao.length + ' bài thi…', 20000);
       Promise.all(tao.map(function (k) { return API.goi('luuKyThi', { dl: k }); })).then(function () {
         bao('Đã tạo ' + tao.length + ' bài thi trong thẻ Bài thi', 5000);
-        KT_NHAP = { lan: '', chu: {} }; ls('nkzip_ktdk', KT_NHAP);
+        KT_NHAP = { lan: '', chu: {}, mau: KT_NHAP.mau || {} }; ls('nkzip_ktdk', KT_NHAP);
         tabBen = 'ky'; chon.ky = tao[0].id; tabKy = 'da'; SUA = null; veBen(); veChinh();
       }).catch(loi);
     };
