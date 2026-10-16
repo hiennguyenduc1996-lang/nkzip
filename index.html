@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.2';</script>
+<script>window.NK_BAN = '1.2.1';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -205,8 +205,14 @@
   .tkGhi .td { color:var(--vang); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
   .tkGhi .docSai { color:var(--do); font-weight:700; } .tkGhi .daDung { color:var(--xanh); font-weight:700; }
   .tkGhi button.goiY { text-align:left; margin-top:4px; border-color:#7a5c1c; }
-  .gtLuoi { display:flex; gap:10px; margin-top:10px; overflow-x:auto; padding-bottom:4px; }
-  .gtCot { flex:0 0 132px; display:flex; flex-direction:column; gap:5px; }
+  .gtBoc { display:grid; grid-template-columns:auto minmax(0,1fr); gap:14px; height:calc(100vh - 300px); min-height:480px; margin-top:4px; }
+  .gtBoc > * { min-height:0; min-width:0; }
+  .gtLuoi { display:flex; gap:7px; overflow:auto; align-items:flex-start; max-width:36vw; padding:0 4px 4px 0; }
+  .gtPhai .tkKhung { height:100%; min-height:0; margin:0; grid-template-columns:minmax(0,1fr) 370px; }
+  .gtPhai > .the { margin:0; }
+  .gtCot { flex:0 0 106px; display:flex; flex-direction:column; gap:5px; }
+  .gtDa { position:sticky; top:0; z-index:1; }
+  .gtDa b.nho { font-size:13px; }
   .gtDa { text-align:center; padding:7px 6px; border-radius:12px; background:#0f3a2a; border:1.5px solid var(--xanh); }
   .gtDa b { display:block; font-size:18px; color:var(--xanh); margin:1px 0; }
   .gtDa small { color:var(--mo); font-size:11.5px; }
@@ -346,7 +352,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.2</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.2.1</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -357,7 +363,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.2 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.2.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -386,7 +392,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.2 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.2.1 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -433,7 +439,7 @@
     <div class="o" style="margin-top:6px"><label>Hẹn giờ chụp (giây, 0 = chụp ngay)</label>
       <input id="qcdHen" type="number" min="0" max="10" step="1" inputmode="numeric" style="width:100%"></div>
     <p class="mo" style="margin:4px 0 0;font-size:13px">Ví dụ 3: thấy đủ các ô vuông đen thì máy đếm ngược 3 giây (để chỉnh phiếu cho thẳng, đủ sáng) rồi mới chụp và chấm. Mỗi tờ chỉ chụp một lần; đưa tờ khác vào thì đếm lại.</p>
-    <p class="mo" style="margin:2px 0 0;font-size:12px">Bản dựng: <b>1.2</b></p>
+    <p class="mo" style="margin:2px 0 0;font-size:12px">Bản dựng: <b>1.2.1</b></p>
     <button class="vang" id="qcdXong">Xong</button>
   </div></div>
   <div id="qChon" class="qHop"><div class="the">
@@ -3061,28 +3067,43 @@ var QUET = (function () {
   }
   // ----- TKCS: mỗi chế độ là một danh sách bài cần xem. Bên trái ảnh bài làm, bên phải ghi chú + gợi ý + Bỏ qua + sửa bài;
   //       nút ‹ › (hoặc phím ← →) đi qua các bài trong danh sách. "Bỏ qua" lưu lên máy chủ (bài thôi nằm trong danh sách đó).
-  var cheTK = 'nghi', gtTK = '', gtMa = '', gtCau = -1, chiMoTK = true, vtTK = 0, boQuaTam = {}, TRONG_GT = '(bỏ trống)';
-  // Bảng lọc Phần III (theo mã đề): mỗi cột một câu – hàng trên là đáp án đúng, bên dưới là các câu trả lời SAI
-  // học sinh đã tô ở chính câu đó (kèm số bài). Bấm một câu trả lời sai để xem lần lượt các bài.
+  var cheTK = 'nghi', gtTK = '', gtCau = -1, chiMoTK = true, vtTK = 0, boQuaTam = {}, TRONG_GT = '(bỏ trống)';
+  // Bảng lọc Phần III (gộp mọi mã đề): mỗi cột một câu – ô xanh trên cùng là đáp án đúng (mỗi mã đề một đáp án nếu khác nhau),
+  // bên dưới là các câu trả lời SAI học sinh đã tô ở chính câu đó (so với đáp án của mã đề của học sinh), kèm số bài.
+  // Mặc định xếp theo giá trị từ lớn đến nhỏ; bấm một câu trả lời sai để xem lần lượt các bài ở khung bên phải.
+  var xepGT = 'gt';
+  function soGT(v) { var x = parseFloat(String(v).replace(',', '.')); return isNaN(x) ? null : x; }
   function bangGT(k) {
-    gtMa = chonMa(k, gtMa);
-    if (!gtMa) return '';
-    var a3 = CHAM.k3(k.de[gtMa]), bai = KQ.filter(function (r) { return r.made === gtMa && !r.chuaGui; }), cot = '';
-    a3.forEach(function (da, i) {
-      if (!da) return;
-      var dem = {}, dung = 0;
+    var mas = Object.keys(k.de).sort(), n = 0, cot = '', i;
+    mas.forEach(function (m) { n = Math.max(n, CHAM.k3(k.de[m]).length); });
+    var bai = KQ.filter(function (r) { return !r.chuaGui && k.de[r.made]; });
+    for (i = 0; i < n; i++) {
+      var da = {}, dem = {}, dung = 0;
+      mas.forEach(function (m) { var x = CHAM.k3(k.de[m])[i]; if (x) da[m] = x; });
+      if (!Object.keys(da).length) continue;
       bai.forEach(function (r) {
+        var d = da[r.made]; if (!d) return;
         var v = chuanGT((r.p3 || [])[i]);
-        if (v && CHAM.bangNhau(v, da)) { dung++; return; }
+        if (v && CHAM.bangNhau(v, d)) { dung++; return; }
         v = v || TRONG_GT; dem[v] = (dem[v] || 0) + 1;
       });
-      var sai = Object.keys(dem).sort(function (x, y) { return (x === TRONG_GT) - (y === TRONG_GT) || dem[y] - dem[x] || x.localeCompare(y, 'vi', { numeric: true }); });
-      cot += '<div class="gtCot"><div class="gtDa"><small>Câu ' + (i + 1) + '</small><b>' + esc(da.replace(/\|/g, ' / ')) + '</b><small>' + dung + ' bài đúng</small></div>' +
-        (sai.length ? sai.map(function (v) {
-          return '<button class="gtSai' + (v === TRONG_GT ? ' trong' : '') + (gtCau === i && gtTK === v ? ' chon' : '') + '" data-gt="' + i + '|' + esc(v) + '" title="Xem các bài tô ' + esc(v) + '"><span>' + esc(v) + '</span><i>' + dem[v] + '</i></button>';
-        }).join('') : '<div class="mo" style="font-size:12px;text-align:center">không ai sai</div>') + '</div>';
-    });
-    return '<div style="width:100%">' + oChonMa(k, gtMa, 'gtMa') + '<div class="gtLuoi">' + (cot || '<div class="mo">Mã đề này không có Phần III.</div>') + '</div></div>';
+      var sai = Object.keys(dem).sort(function (x, y) {
+        if ((x === TRONG_GT) !== (y === TRONG_GT)) return x === TRONG_GT ? 1 : -1;
+        if (xepGT === 'so' && dem[y] !== dem[x]) return dem[y] - dem[x];
+        var a = soGT(x), b = soGT(y);
+        if (a !== null && b !== null && a !== b) return b - a;
+        if ((a === null) !== (b === null)) return a === null ? 1 : -1;
+        return x.localeCompare(y, 'vi', { numeric: true });
+      });
+      var cacDa = Object.keys(da).map(function (m) { return da[m]; }), mot = cacDa.every(function (x) { return x === cacDa[0]; });
+      var tren = mot ? '<b>' + esc(cacDa[0].replace(/\|/g, ' / ')) + '</b>' :
+        Object.keys(da).map(function (m) { return '<b class="nho">' + esc(m) + ': ' + esc(da[m].replace(/\|/g, ' / ')) + '</b>'; }).join('');
+      cot += '<div class="gtCot"><div class="gtDa"><small>Câu ' + (i + 1) + '</small>' + tren + '<small>' + dung + ' bài đúng</small></div>' +
+        (sai.length ? (function (ii) { return sai.map(function (v) {
+          return '<button class="gtSai' + (v === TRONG_GT ? ' trong' : '') + (gtCau === ii && gtTK === v ? ' chon' : '') + '" data-gt="' + ii + '|' + esc(v) + '" title="Xem các bài tô ' + esc(v) + '"><span>' + esc(v) + '</span><i>' + dem[v] + '</i></button>';
+        }).join(''); })(i) : '<div class="mo" style="font-size:12px;text-align:center">không ai sai</div>') + '</div>';
+    }
+    return cot || '<div class="mo">Bài thi này không có Phần III.</div>';
   }
   var CHE_TK = [['nghi', 'Nghi máy quét nhầm'], ['thieu', 'Tô thiếu / sai SBD'], ['trung', 'Trùng SBD'], ['sot', 'Tô sót đáp án'], ['gt', 'Lọc theo đáp án Phần III']];
   function daBoQua(r, che) { return !!(r.boQua && r.boQua[che]) || !!boQuaTam[che + '|' + r.id]; }
@@ -3141,9 +3162,9 @@ var QUET = (function () {
         if (t.length) ds.push({ r: r, ghi: ['Bỏ trống ' + t.length + ' câu: ' + t.map(function (c) { return esc(c.nhan) + (c.mo ? ' <span class="nhan">có vết tô mờ</span>' : ''); }).join(', ')] });
       } else if (che === 'gt') {
         // một câu Phần III của một mã đề + một câu trả lời sai đã chọn trong bảng
-        if (!gtTK || r.made !== gtMa || gtCau < 0) return;
+        if (!gtTK || gtCau < 0) return;
         var a3 = CHAM.k3(k.de[r.made]), v = chuanGT((r.p3 || [])[gtCau]);
-        if ((v || TRONG_GT) !== gtTK) return;
+        if (!a3[gtCau] || (v || TRONG_GT) !== gtTK || (v && CHAM.bangNhau(v, a3[gtCau]))) return;    // chỉ bài làm SAI câu này
         ds.push({ r: r, ghi: ['<b>Mã ' + esc(r.made) + ' · Phần III câu ' + (gtCau + 1) + '</b>: học sinh tô <span class="docSai">' + esc(v || '(bỏ trống)') + '</span> · đáp án đúng <span class="daDung">' + esc((a3[gtCau] || '').replace(/\|/g, ' / ')) + '</span>'] });
       }
     });
@@ -3172,15 +3193,19 @@ var QUET = (function () {
     if (cheTK === 'thieu') h += '<span class="mo" style="font-size:13px">Bài chưa gán được học sinh: SBD tô thiếu, tô 2 ô trong một cột hoặc không có trong danh sách lớp. Gợi ý là học sinh chưa có bài, khớp nhiều chữ số SBD nhất.</span>';
     if (cheTK === 'trung') h += '<span class="mo" style="font-size:13px">Các bài có cùng SBD (vd. hai máy cùng chấm, hoặc học sinh tô nhầm SBD của bạn khác). Giống hệt nhau thì xoá bớt một bài; khác nhau thì gán lại đúng học sinh.</span>';
     if (cheTK === 'sot') h += '<label class="mo" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="tkChiMo"' + (chiMoTK ? ' checked' : '') + '> Chỉ câu máy thấy có vết tô mờ (bỏ chọn để xem mọi câu bỏ trống)</label>';
-    if (cheTK === 'gt') h += bangGT(k);
+    if (cheTK === 'gt') h += '<span class="mo" style="font-size:13px">Gộp mọi mã đề. Mỗi cột một câu: ô xanh là đáp án đúng, bên dưới là các câu trả lời sai và số bài. Bấm một ô đỏ để xem bài ở khung bên phải.</span>' +
+      '<div class="o" style="margin-left:auto"><label>Xếp câu trả lời sai</label><select id="gtXep"><option value="gt"' + (xepGT === 'gt' ? ' selected' : '') + '>Theo giá trị (lớn → nhỏ)</option><option value="so"' + (xepGT === 'so' ? ' selected' : '') + '>Theo số bài (nhiều → ít)</option></select></div>';
     h += '</div></div>';
-    if (cheTK === 'gt' && !gtTK) h += '<div class="the mo">Bấm vào một câu trả lời sai (ô đỏ) ở bảng trên để xem những học sinh đã tô câu trả lời đó.</div>';
-    else if (!ds.length) h += '<div class="the mo">' + (cheTK === 'nghi' ? 'Không có bài nào nghi do máy đọc sai. 👍' : 'Không có bài nào trong danh sách này. 👍') + '</div>';
-    else h += '<div class="tkKhung" id="tkKhung"></div>';
+    var khung = !ds.length ? '<div class="the mo">' + (cheTK === 'gt' ? (gtTK ? 'Không còn bài nào.' : 'Bấm vào một câu trả lời sai (ô đỏ) để xem những học sinh đã tô câu trả lời đó.') :
+      cheTK === 'nghi' ? 'Không có bài nào nghi do máy đọc sai. 👍' : 'Không có bài nào trong danh sách này. 👍') + '</div>' : '<div class="tkKhung" id="tkKhung"></div>';
+    // lọc Phần III: bảng câu trả lời bên trái, bài làm + gợi ý sửa ngay bên phải (không phải cuộn xuống)
+    var cuonGT = $('#noiDung .gtLuoi') ? [$('#noiDung .gtLuoi').scrollTop, $('#noiDung .gtLuoi').scrollLeft] : null;
+    h += cheTK === 'gt' ? '<div class="gtBoc"><div class="gtLuoi">' + bangGT(k) + '</div><div class="gtPhai">' + khung + '</div></div>' : khung;
     $('#noiDung').innerHTML = h;
+    if (cuonGT && $('#noiDung .gtLuoi')) { $('#noiDung .gtLuoi').scrollTop = cuonGT[0]; $('#noiDung .gtLuoi').scrollLeft = cuonGT[1]; }
+    if ($('#gtXep')) $('#gtXep').onchange = function () { xepGT = this.value; veChinh(); };
     $$('#noiDung [data-che]').forEach(function (b) { b.onclick = function () { cheTK = b.getAttribute('data-che'); vtTK = 0; XEM = null; veChinh(); }; });
     if ($('#tkChiMo')) $('#tkChiMo').onchange = function () { chiMoTK = this.checked; vtTK = 0; veChinh(); };
-    ganChonMa('gtMa', function (m) { gtMa = m; gtCau = -1; gtTK = ''; vtTK = 0; XEM = null; veChinh(); });
     $$('#noiDung [data-gt]').forEach(function (b) {
       b.onclick = function () {
         var p = b.getAttribute('data-gt').split('|'), i = +p[0], v = p.slice(1).join('|');
