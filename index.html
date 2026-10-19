@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.3.0';</script>
+<script>window.NK_BAN = '1.3.1';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -404,7 +404,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.0</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.1</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -415,7 +415,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.0 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -444,7 +444,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.3.0 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.3.1 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1423,7 +1423,21 @@ var VE = (function () {
     }
     if (vt) {
       for (i = 0; i < TPL.sbd.length; i++) if (vt.sbd[i] >= 0) b.vong(TPL.sbd[i][vt.sbd[i]], LAM);
-      for (i = 0; i < TPL.made.length; i++) if (vt.made[i] >= 0) b.vong(TPL.made[i][vt.made[i]], LAM);
+      // mã đề: so từng cột ô học sinh đã tô (vt.made) với mã đề hiện tại; cột khác thì xoá ô cũ, tô lại như học sinh tô
+      var nhanMa = TPL.madeNhan || [], mdMoi = String(kq.made || ''), daDoi = false;
+      if (mdMoi.length === TPL.made.length && !kq.loiMade) {
+        for (i = 0; i < TPL.made.length; i++) {
+          v = nhanMa.indexOf(mdMoi[i]);
+          if (v < 0 || vt.made[i] === v) continue;
+          if (vt.made[i] >= 0) b.xoa(TPL.made[i][vt.made[i]]);
+          b.to(TPL.made[i][v]); daDoi = true;
+        }
+      }
+      if (daDoi) {
+        for (i = 0; i < TPL.made.length; i++) { v = nhanMa.indexOf(mdMoi[i]); if (v >= 0) b.vong(TPL.made[i][v], LAM); }
+        var pm = b.tam(TPL.made[TPL.made.length - 1][0]);
+        b.nhan('sửa', pm[0] + b.R * 1.5, pm[1] - px * 1.1, CAM, Math.round(px * 0.34));
+      } else for (i = 0; i < TPL.made.length; i++) if (vt.made[i] >= 0) b.vong(TPL.made[i][vt.made[i]], LAM);
     }
   }
 
@@ -1688,9 +1702,13 @@ var QUET = (function () {
   // Hàng chờ gửi: bài CHỈ bị xoá khỏi máy khi máy chủ xác nhận đã lưu. Gửi hỏng thì giữ lại rồi gửi lại:
   //  - rớt mạng / máy chủ quá tải: chờ 5 → 10 → 20 → 40 → 60 giây (thêm ngẫu nhiên để các máy không cùng gửi một lúc);
   //  - máy chủ từ chối (vd. bài thi thuộc tài khoản khác): giữ bài, ghi lý do, 2 phút sau thử lại, vẫn gửi tiếp các bài khác.
-  // Gửi GỘP tối đa 4 bài một lượt (máy chủ mở file, khoá, ghi một lần cho cả nhóm). Máy chủ bản cũ chưa có
-  // 'luuNhieuBai' thì tự quay về gửi từng bài.
-  var dangGui = false, choXong = [], conCho = 0, DS_CHO = [], HOAN = {}, henGui = 0, GOP = 4, khongGop = false;
+  // Gửi 2 bước cho nhanh: (1) ĐIỂM trước – tối đa 25 bài một lượt, không kèm ảnh, nên bảng điểm lên web gần như ngay;
+  // (2) ẢNH sau – tối đa 8 tấm một lượt, máy chủ tải lên Drive song song và chỉ gắn ảnh vào bài (không ghi đè dữ liệu).
+  // Mỗi máy chạy tối đa 3 lượt cùng lúc. Bài ở bước 2 có m.buoc = 'anh', m.idMay = mã bài trên máy chủ.
+  // Máy chủ bản cũ: chưa tách bước (r.ban != 2) thì bước 2 gửi lại cả bài kèm ảnh; chưa có 'luuNhieuBai' thì gửi từng bài.
+  var choXong = [], conCho = 0, conDL = 0, DS_CHO = [], HOAN = {}, henGui = 0, khongGop = false, khongTach = false;
+  var DANG = {}, chay = 0, dangDoc = false, docLai = false, SONG = 3, GOP_DL = 25, GOP_ANH = 8;
+  function sao(o) { return JSON.parse(JSON.stringify(o)); }
   function baoXong() { var c = choXong; choXong = []; c.forEach(function (f) { f(); }); }
   function hoan(m, e, tuChoi) {
     var h = HOAN[m.id] || { lan: 0 }, mang = !tuChoi && (e instanceof TypeError || !e || !e.message);
@@ -1699,51 +1717,81 @@ var QUET = (function () {
     h.sau = Date.now() + (tuChoi ? 120000 : Math.min(60000, 5000 * Math.pow(2, h.lan - 1)) * (0.75 + Math.random() * 0.5));
     HOAN[m.id] = h;
   }
-  function daLuu(m, r) {                              // máy chủ đã lưu bài m: xoá khỏi hàng chờ
+  function doiMa(m, id) {                             // máy khác đã chấm cùng SBD (bài khác): máy chủ lưu thành bài riêng với mã mới
+    if (!id || id === m.kq.id) return;
+    if (DA[m.kq.id]) { DA[id] = DA[m.kq.id]; delete DA[m.kq.id]; }
+    if (BAI_CUOI && BAI_CUOI.kq.id === m.kq.id) BAI_CUOI.kq.id = id;
+  }
+  // máy chủ đã lưu bài m ở bước hiện tại: xong hẳn thì xoá khỏi hàng chờ, còn ảnh thì chuyển sang bước 2
+  function daLuu(m, r, laAnh) {
     delete HOAN[m.id];
-    return HC.xoa(m.id).then(function () {
-      // máy khác đã chấm cùng SBD (bài khác): máy chủ lưu thành bài riêng với mã mới, không ghi đè
-      if (r.id && r.id !== m.kq.id) {
-        if (DA[m.kq.id]) { DA[r.id] = DA[m.kq.id]; delete DA[m.kq.id]; }
-        if (BAI_CUOI && BAI_CUOI.kq.id === m.kq.id) BAI_CUOI.kq.id = r.id;
-      }
-      if (TC.daGui) TC.daGui(m.kq, r.anh, r.id || m.kq.id);
-    });
+    if (laAnh || khongGop || r.trung === 'giong' || !m.anh) {
+      if (!laAnh || khongGop) { doiMa(m, r.id); if (TC.daGui) TC.daGui(m.kq, r.anh, r.id || m.kq.id); }
+      return HC.xoa(m.id);
+    }
+    doiMa(m, r.id);
+    if (TC.daGui) TC.daGui(m.kq, '', r.id || m.kq.id);
+    m.buoc = 'anh'; m.idMay = r.id || m.kq.id;
+    return HC.them(m);
+  }
+  function san(m, bay) { return !DANG[m.id] && (!HOAN[m.id] || HOAN[m.id].sau <= bay); }
+  function chonLo(ds, bay) {
+    var lo = ds.filter(function (m) { return !m.buoc && san(m, bay); }), laAnh = false;
+    if (!lo.length) { lo = ds.filter(function (m) { return m.buoc === 'anh' && san(m, bay); }); laAnh = true; }
+    lo = lo.slice(0, khongGop ? 1 : laAnh ? GOP_ANH : GOP_DL);
+    lo.forEach(function (m) { DANG[m.id] = 1; });
+    return lo.length ? { ds: lo, anh: laAnh } : null;
   }
   function dayHangCho() {
-    if (dangGui) return;
-    dangGui = true; clearTimeout(henGui);
+    if (dangDoc) { docLai = true; return; }
+    dangDoc = true; clearTimeout(henGui);
     HC.tat().then(function (ds) {
-      ds = ds || []; DS_CHO = ds; conCho = ds.length; capNhatDem();
-      if (!ds.length) { dangGui = false; baoXong(); return; }
-      var bay = Date.now(), san = ds.filter(function (x) { return !HOAN[x.id] || HOAN[x.id].sau <= bay; });
-      if (!san.length) {                               // mọi bài đều đang đợi tới lượt gửi lại
-        dangGui = false; baoXong();
-        var som = Math.min.apply(null, ds.map(function (x) { return HOAN[x.id] ? HOAN[x.id].sau : bay; }));
-        henGui = setTimeout(dayHangCho, Math.max(1000, som - bay));
-        return;
+      dangDoc = false;
+      ds = ds || []; DS_CHO = ds; conCho = ds.length; conDL = ds.filter(function (m) { return !m.buoc; }).length; capNhatDem();
+      var bay = Date.now(), lo;
+      while (chay < SONG && (lo = chonLo(ds, bay))) guiLo(lo.ds, lo.anh);
+      if (!chay) {
+        baoXong();
+        if (ds.length) {                               // mọi bài còn lại đều đang đợi tới lượt gửi lại
+          var som = Math.min.apply(null, ds.map(function (x) { return HOAN[x.id] ? HOAN[x.id].sau : bay; }));
+          henGui = setTimeout(dayHangCho, Math.max(1000, som - bay));
+        }
       }
-      var lo = khongGop ? san.slice(0, 1) : san.slice(0, GOP);
-      var goi = khongGop ? API.goi('luuKetQua', { dl: lo[0].kq, anh: lo[0].anh, anhSach: lo[0].sach || '' }).then(function (r) { return [r]; })
-        : API.goi('luuNhieuBai', { ds: lo.map(function (m) { return { dl: m.kq, anh: m.anh }; }) }).then(function (r) { return r.kq || []; });
-      return goi.then(function (kq) {
-        var viec = [], tuChoi = 0;
-        lo.forEach(function (m, i) {
-          var r = kq[i];
-          if (r && r.ok) viec.push(daLuu(m, r));
-          else { hoan(m, new Error(r && r.loi || 'Máy chủ không lưu được bài'), true); tuChoi++; }
-        });
-        if (tuChoi) tt('Chưa lưu được ' + tuChoi + ' bài – bài vẫn giữ trên máy, sẽ gửi lại');
-        return Promise.all(viec).then(function () { dangGui = false; dayHangCho(); });
-      }, function (e) {
-        if (!khongGop && e && /Không rõ yêu cầu/.test(e.message || '')) { khongGop = true; dangGui = false; dayHangCho(); return; }   // máy chủ bản cũ
-        var tuChoi = !!(e && e.message && !(e instanceof TypeError) && !e.quaTai && e.ma !== 'dangnhap');
-        lo.forEach(function (m) { hoan(m, e, tuChoi); });
-        dangGui = false; capNhatDem();
-        if (tuChoi) { tt('Chưa lưu được bài (' + HOAN[lo[0].id].loi + ') – bài vẫn giữ trên máy, sẽ gửi lại'); dayHangCho(); return; }
-        baoXong(); henGui = setTimeout(dayHangCho, Math.max(1000, HOAN[lo[0].id].sau - Date.now()));   // mạng / quá tải: đợi rồi gửi lại
+      if (docLai) { docLai = false; dayHangCho(); }
+    }).catch(function () { dangDoc = false; if (!chay) baoXong(); henGui = setTimeout(dayHangCho, 8000); });
+  }
+  function guiLo(lo, laAnh) {
+    chay++;
+    var maMay = function (m) { return m.idMay || m.kq.id; }, goi;
+    if (khongGop) {
+      var m0 = lo[0], d0 = sao(m0.kq); d0.id = maMay(m0); if (m0.buoc) d0.ghiDe = true;
+      goi = API.goi('luuKetQua', { dl: d0, anh: m0.anh, anhSach: '' }).then(function (r) { return [r]; });
+    } else if (!laAnh) {
+      goi = API.goi('luuNhieuBai', { ds: lo.map(function (m) { return { dl: m.kq }; }) }).then(function (r) { if (r.ban !== 2) khongTach = true; return r.kq || []; });
+    } else {
+      goi = API.goi('luuNhieuBai', {
+        ds: lo.map(function (m) {
+          if (khongTach) { var d = sao(m.kq); d.id = maMay(m); d.ghiDe = true; return { dl: d, anh: m.anh }; }
+          return { dl: { id: maMay(m), kyThi: m.kq.kyThi, tenKy: m.kq.tenKy, chiAnh: true }, anh: m.anh };
+        })
+      }).then(function (r) { return r.kq || []; });
+    }
+    var xong = function () { lo.forEach(function (m) { delete DANG[m.id]; }); chay--; dayHangCho(); };
+    goi.then(function (kq) {
+      var viec = [], tuChoi = 0;
+      lo.forEach(function (m, i) {
+        var r = kq[i];
+        if (r && r.ok) viec.push(daLuu(m, r, laAnh).catch(function () {}));
+        else { hoan(m, new Error(r && r.loi || 'Máy chủ không lưu được bài'), true); tuChoi++; }
       });
-    }).catch(function () { dangGui = false; baoXong(); henGui = setTimeout(dayHangCho, 8000); });
+      if (tuChoi) tt('Chưa lưu được ' + tuChoi + ' bài – bài vẫn giữ trên máy, sẽ gửi lại');
+      return Promise.all(viec);
+    }, function (e) {
+      if (!khongGop && e && /Không rõ yêu cầu/.test(e.message || '')) { khongGop = true; return; }   // máy chủ bản cũ
+      var tuChoi = !!(e && e.message && !(e instanceof TypeError) && !e.quaTai && e.ma !== 'dangnhap');
+      lo.forEach(function (m) { hoan(m, e, tuChoi); });
+      if (tuChoi) tt('Chưa lưu được bài (' + HOAN[lo[0].id].loi + ') – bài vẫn giữ trên máy, sẽ gửi lại');
+    }).then(xong, xong);
   }
   // Bài thi bị xoá: bỏ các bài của bài thi đó còn nằm trong hàng chờ gửi
   function boKy(kyThi) {
@@ -2106,8 +2154,8 @@ var QUET = (function () {
   // Đối chiếu trên thanh trên cùng: "40 bài · ⏳ 3 chưa lên web" (cam) / "40 bài · ✓ đã lên web đủ" (xanh). Bấm vào để xem danh sách.
   function capNhatDem() {
     var e = $('qDem'); if (!e) return;
-    e.className = conCho ? 'cho' : soBai ? 'du' : '';
-    e.textContent = soBai + ' bài' + (conCho ? ' · ⏳ ' + conCho + ' chưa lên web' : soBai ? ' · ✓ đã lên web đủ' : '');
+    e.className = conDL ? 'cho' : soBai || conCho ? 'du' : '';
+    e.textContent = soBai + ' bài' + (conDL ? ' · ⏳ ' + conDL + ' chưa lên web' : soBai ? ' · ✓ đã lên web đủ' : '') + (conCho - conDL > 0 ? ' · 🖼 ' + (conCho - conDL) + ' ảnh đang gửi' : '');
     if ($('qCho') && $('qCho').classList.contains('hien')) veCho();
   }
   function escQ(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -2123,9 +2171,9 @@ var QUET = (function () {
     var ds = DS_CHO.map(function (m) {
       var h = HOAN[m.id], kq = m.kq || {};
       return '<div class="choDong"><b>' + escQ(kq.ten || 'SBD ' + (kq.sbd || '?')) + '</b><span>' +
-        (h ? escQ(h.loi) + ' · gửi lại sau ' + Math.max(0, Math.round((h.sau - bay) / 1000)) + ' giây' : 'đang gửi…') + '</span></div>';
+        (m.buoc === 'anh' ? 'điểm đã lên web · ' : '') + (h ? escQ(h.loi) + ' · gửi lại sau ' + Math.max(0, Math.round((h.sau - bay) / 1000)) + ' giây' : m.buoc === 'anh' ? 'đang gửi ảnh…' : 'đang gửi…') + '</span></div>';
     }).join('');
-    o.innerHTML = '<div class="the"><h3 style="font-size:18px">' + (conCho ? '⏳ Còn ' + conCho + ' bài chưa lên web' : '✓ Đã lên web đủ') + '</h3>' +
+    o.innerHTML = '<div class="the"><h3 style="font-size:18px">' + (conDL ? '⏳ Còn ' + conDL + ' bài chưa lên web' : conCho ? '✓ Điểm đã lên web đủ · 🖼 còn ' + conCho + ' ảnh đang gửi' : '✓ Đã lên web đủ') + '</h3>' +
       '<p class="mo" style="margin:0">' + (conCho ? 'Các bài này vẫn nằm trên máy và đang tự gửi lại. Giữ trang mở, có mạng để gửi xong' + (choThoat ? '; nếu thoát, lần sau mở NKZip trên máy này sẽ gửi tiếp.' : '.') : 'Mọi bài đã chấm trên máy này đều đã lưu lên web.') + '</p>' +
       (ds ? '<div class="choDs">' + ds + '</div>' : '') +
       (conCho ? '<button class="vang" id="qcGuiLai">Gửi lại ngay</button>' : '') +
@@ -2796,14 +2844,21 @@ var QUET = (function () {
         anh.onload = function () {
           if (!XEM || XEM.goc !== goc) return;          // đã chuyển sang bài khác
           im.width = anh.naturalWidth; im.height = anh.naturalHeight;
-          var c = im.getContext('2d'), T = MAU[ky().mau];
-          c.drawImage(anh, 0, 0);
-          if (!xemGoc) VE.danhDau(c, T, ky(), goc, im.width / (T.khung[2] - T.khung[0]));
+          XEM.cv = im; XEM.anh = anh;
+          veAnhXem();
           dat();
         };
         anh.src = a;
       } else { im.onload = dat; if (XEM.z > 1) dat(); }
     }
+  }
+  // Vẽ ảnh theo bài ĐANG SỬA (XEM.r): mỗi lần bấm sửa một câu / đổi mã đề, ảnh bỏ dấu cũ và chấm lại ngay
+  function veAnhXem() {
+    if (!XEM || !XEM.cv || !XEM.anh) return;
+    var c = XEM.cv.getContext('2d'), k = ky(), T = MAU[k.mau], r = sao(XEM.r);
+    r.loiMade = !k.de[r.made];
+    c.drawImage(XEM.anh, 0, 0);
+    if (!xemGoc) VE.danhDau(c, T, k, r, XEM.cv.width / (T.khung[2] - T.khung[0]));
   }
   function nutBong(nhan, co, kieu, dl) { return '<button class="bong' + (co ? ' ' + kieu : '') + '" ' + dl + '>' + nhan + '</button>'; }
   function veXemBen() {
@@ -2851,8 +2906,10 @@ var QUET = (function () {
     if ($('#sDong')) $('#sDong').onclick = dongHop;
     if (XEM.tc && XEM.tc.ganDau) XEM.tc.ganDau(ben);
     if (!moi) { $('#sTruoc').onclick = function () { chuyen(-1); }; $('#sSau').onclick = function () { chuyen(1); }; $('#sXoa').onclick = xoaBai; }
+    // ô nhập: cập nhật bài ngay khi gõ (oninput) để bấm Lưu một lần là đủ; vẽ lại khi rời ô (onchange)
+    $('#sSbd').oninput = function () { r.sbd = this.value.trim(); };
     $('#sSbd').onchange = function () { r.sbd = this.value.trim(); veXemBen(); };
-    $('#sGan').onclick = function () { chonHocSinh(function (s) { r.sbd = String(s.sbd); veXemBen(); bao('Đã gán ' + s.ten + '. Bấm “Lưu thay đổi” để lưu.', 4000); }); };
+    $('#sGan').onclick = function () { chonHocSinh(function (s) { r.sbd = String(s.sbd); luuBai(); }); };      // gán xong là tự lưu
     $('#sMade').onchange = function () { r.made = this.value; veXemBen(); };
     $$('#xemBen .bong').forEach(function (b) {
       b.onclick = function () {
@@ -2863,8 +2920,11 @@ var QUET = (function () {
         veXemBen();
       };
     });
-    $$('#xemBen input[data-p="3"]').forEach(function (o) { o.onchange = function () { r.p3[+o.getAttribute('data-i')] = o.value.trim().replace(/\./g, ','); veXemBen(); }; });
-    $('#sLuu').onclick = luuBai;
+    $$('#xemBen input[data-p="3"]').forEach(function (o) { o.oninput = function () { r.p3[+o.getAttribute('data-i')] = o.value.trim().replace(/\./g, ','); }; o.onchange = function () { o.oninput(); veXemBen(); }; });
+    // Lưu chạy ngay lúc nhấn: nếu đợi 'click' thì ô nhập đang gõ bị rời (onchange vẽ lại khung) làm mất cú bấm → phải bấm 2 lần
+    $('#sLuu').onpointerdown = function (e) { if (e.button) return; e.preventDefault(); luuBai(); };
+    $('#sLuu').onclick = function (e) { if (!e.detail) luuBai(); };     // bấm bằng bàn phím
+    veAnhXem();
   }
   // Chọn học sinh trong các lớp (tìm theo tên, SBD, lớp) để gán cho bài làm
   function chonHocSinh(xong) {
@@ -3947,7 +4007,7 @@ var QUET = (function () {
       for (i = 0; i < s.p3; i++) h += '<div class="cau"><span>' + (i + 1) + '</span><input data-p="3" data-i="' + i + '" value="' + esc(de.p3[i]) + '" placeholder="vd 0,95" style="width:140px;padding:6px 9px"></div>';
       h += '</div>';
     }
-    h += '<div class="hang" style="margin-top:16px"><span class="mo" id="eNhac">Mọi thay đổi được tự động lưu</span><button class="nguy" id="eXoaKy" style="margin-left:auto">Xoá bài thi</button></div></div>';
+    h += '<div class="hang" style="margin-top:16px"><span class="mo" id="eNhac">Mọi thay đổi được tự động lưu</span></div></div>';
     $('#noiDung').innerHTML = h;
 
     function tong() {
@@ -4005,7 +4065,6 @@ var QUET = (function () {
       };
     });
     $$('#noiDung input[data-p="3"]').forEach(function (o) { o.oninput = function () { de.p3[+o.getAttribute('data-i')] = o.value.trim().replace(/\./g, ','); tong(); henLuu(); }; });
-    $('#eXoaKy').onclick = function () { xoaKy(k.id); };
     $('#eQuet').onclick = function () {
       docTT();
       if (API.trongGas() && moTabQuet({ cheDo: 'dapan', ky: SUA, lop: [] })) return;
