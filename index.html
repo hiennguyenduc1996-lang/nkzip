@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.3.3';</script>
+<script>window.NK_BAN = '1.3.4';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -404,7 +404,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.3</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.4</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -415,7 +415,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.3 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.4 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -444,7 +444,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.3.3 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.3.4 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -961,6 +961,10 @@ var OMR = (function () {
     var NGV = {}, gt = {};
     for (i = 0; i < nh.length; i++) { var vv = vung(nh[i][0]); gt[vv] = gt[vv] || []; for (j = 0; j < nh[i][3]; j++) gt[vv].push(fs[nh[i][2] + j]); }
     for (var tv in gt) NGV[tv] = nguong(gt[tv], ng.F);
+    // Phần III: ô trống hay dính vết bút / chữ viết tràn từ ô ghi số phía trên (phiếu thật đo được tới ~0,2),
+    // ô tô thật ≥ ~0,4 → ngưỡng thấp đặt ở GIỮA ô trống và ô tô điển hình của chính tờ phiếu (50% mức tô).
+    var g3 = NGV['III.'];
+    if (g3) { g3.thap = Math.max(g3.thap, 0.5 * g3.F); g3.cao = Math.max(g3.cao, 1.25 * g3.thap); }
     return { nh: nh, fs: fs, NGV: NGV, F: ng.F };
   }
   // 2) quyết định từng nhóm. he: hệ số nhân ngưỡng (1 = bình thường; < 1 nhạy hơn với ô tô nhạt, > 1 khắt khe hơn)
@@ -968,7 +972,9 @@ var OMR = (function () {
     he = he || 1;
     var nh = M.nh, fs = M.fs, kq = [], cac = [], ngh = [], i, j;
     for (i = 0; i < nh.length; i++) {
-      var f = [], g = M.NGV[vung(nh[i][0])], ngv = he === 1 ? g : { nen: g.nen, cao: g.cao * he, thap: g.thap * he, F: g.F };
+      // Phần III không dùng mức "nhạy hơn" (he < 1): ở đó vết bẩn dễ bị nhận nhầm thành ô tô
+      var heV = nh[i][0] === 'III.' ? Math.max(1, he) : he;
+      var f = [], g = M.NGV[vung(nh[i][0])], ngv = heV === 1 ? g : { nen: g.nen, cao: g.cao * heV, thap: g.thap * heV, F: g.F };
       for (j = 0; j < nh[i][3]; j++) f.push(fs[nh[i][2] + j] - ngv.nen);
       var c = chon(f, ngv, nh[i][0] === 'SBD.' || nh[i][0] === 'Mã đề.' ? 1 : nh[i][0] === 'III.' ? 0 : nh[i][0] === 'I.' ? 3 : 2);
       kq.push(c.i); cac.push(c.cac); ngh.push(!!c.nghi);
@@ -994,7 +1000,9 @@ var OMR = (function () {
       if (khoa.length === 1) chonK = khoa[0];
       else {
         var don = khoa.filter(function (x) { return x[0] === 'o'; });
-        if (khoa.length === 2 && dem['-'] && don.length === 1) chonK = dem[don[0]] >= Math.ceil(N * 0.3) ? don[0] : '-';
+        // Phần III phải quá nửa số lần đọc thấy ô mới nhận (tránh vết bẩn); phần khác 30% (không bỏ sót ô tô nhạt)
+        var du = goc._M.nh[g][0] === 'III.' ? function (n) { return n > N / 2; } : function (n) { return n >= Math.ceil(N * 0.3); };
+        if (khoa.length === 2 && dem['-'] && don.length === 1) chonK = du(dem[don[0]]) ? don[0] : '-';
         else {
           var kGoc = goc._kq[g] >= 0 ? 'o' + goc._kq[g] : goc._kq[g] === -1 ? '-' : '*' + goc._cac[g].join(',');
           chonK = kGoc;
