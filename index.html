@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.3.6';</script>
+<script>window.NK_BAN = '1.3.7';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -404,7 +404,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.6</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.7</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -415,7 +415,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.7 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -444,7 +444,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.3.6 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.3.7 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1733,10 +1733,11 @@ var QUET = (function () {
   //  - máy chủ từ chối (vd. bài thi thuộc tài khoản khác): giữ bài, ghi lý do, 2 phút sau thử lại, vẫn gửi tiếp các bài khác.
   // Gửi 2 bước cho nhanh: (1) ĐIỂM trước – tối đa 25 bài một lượt, không kèm ảnh, nên bảng điểm lên web gần như ngay;
   // (2) ẢNH sau – tối đa 8 tấm một lượt, máy chủ tải lên Drive song song và chỉ gắn ảnh vào bài (không ghi đè dữ liệu).
-  // Mỗi máy chạy tối đa 3 lượt cùng lúc. Bài ở bước 2 có m.buoc = 'anh', m.idMay = mã bài trên máy chủ.
+  // Hai làn riêng: làn ĐIỂM (tối đa 2 lượt cùng lúc) luôn còn chỗ nên bài vừa chấm lên web ngay, không phải xếp sau ảnh;
+  // làn ẢNH tối đa 2 lượt chạy ngầm. Bài ở bước 2 có m.buoc = 'anh', m.idMay = mã bài trên máy chủ.
   // Máy chủ bản cũ: chưa tách bước (r.ban != 2) thì bước 2 gửi lại cả bài kèm ảnh; chưa có 'luuNhieuBai' thì gửi từng bài.
   var choXong = [], conCho = 0, conDL = 0, DS_CHO = [], HOAN = {}, henGui = 0, khongGop = false, khongTach = false;
-  var DANG = {}, chay = 0, dangDoc = false, docLai = false, SONG = 3, GOP_DL = 25, GOP_ANH = 8;
+  var DANG = {}, chay = 0, chayDL = 0, chayAnh = 0, dangDoc = false, docLai = false, SONG_DL = 2, SONG_ANH = 2, GOP_DL = 25, GOP_ANH = 8;
   function sao(o) { return JSON.parse(JSON.stringify(o)); }
   function baoXong() { var c = choXong; choXong = []; c.forEach(function (f) { f(); }); }
   function hoan(m, e, tuChoi) {
@@ -1764,9 +1765,8 @@ var QUET = (function () {
     return HC.them(m);
   }
   function san(m, bay) { return !DANG[m.id] && (!HOAN[m.id] || HOAN[m.id].sau <= bay); }
-  function chonLo(ds, bay) {
-    var lo = ds.filter(function (m) { return !m.buoc && san(m, bay); }), laAnh = false;
-    if (!lo.length) { lo = ds.filter(function (m) { return m.buoc === 'anh' && san(m, bay); }); laAnh = true; }
+  function chonLo(ds, bay, laAnh) {
+    var lo = ds.filter(function (m) { return (laAnh ? m.buoc === 'anh' : !m.buoc) && san(m, bay); });
     lo = lo.slice(0, khongGop ? 1 : laAnh ? GOP_ANH : GOP_DL);
     lo.forEach(function (m) { DANG[m.id] = 1; });
     return lo.length ? { ds: lo, anh: laAnh } : null;
@@ -1778,7 +1778,11 @@ var QUET = (function () {
       dangDoc = false;
       ds = ds || []; DS_CHO = ds; conCho = ds.length; conDL = ds.filter(function (m) { return !m.buoc; }).length; capNhatDem();
       var bay = Date.now(), lo;
-      while (chay < SONG && (lo = chonLo(ds, bay))) guiLo(lo.ds, lo.anh);
+      if (khongGop) { while (chay < 1 && (lo = chonLo(ds, bay, false) || chonLo(ds, bay, true))) guiLo(lo.ds, lo.anh); }   // máy chủ rất cũ: từng bài một
+      else {
+        while (chayDL < SONG_DL && (lo = chonLo(ds, bay, false))) guiLo(lo.ds, false);
+        while (chayAnh < SONG_ANH && (lo = chonLo(ds, bay, true))) guiLo(lo.ds, true);
+      }
       if (!chay) {
         baoXong();
         if (ds.length) {                               // mọi bài còn lại đều đang đợi tới lượt gửi lại
@@ -1790,7 +1794,7 @@ var QUET = (function () {
     }).catch(function () { dangDoc = false; if (!chay) baoXong(); henGui = setTimeout(dayHangCho, 8000); });
   }
   function guiLo(lo, laAnh) {
-    chay++;
+    chay++; if (laAnh) chayAnh++; else chayDL++;
     var maMay = function (m) { return m.idMay || m.kq.id; }, goi;
     if (khongGop) {
       var m0 = lo[0], d0 = sao(m0.kq); d0.id = maMay(m0); if (m0.buoc) d0.ghiDe = true;
@@ -1805,7 +1809,7 @@ var QUET = (function () {
         })
       }).then(function (r) { return r.kq || []; });
     }
-    var xong = function () { lo.forEach(function (m) { delete DANG[m.id]; }); chay--; dayHangCho(); };
+    var xong = function () { lo.forEach(function (m) { delete DANG[m.id]; }); chay--; if (laAnh) chayAnh--; else chayDL--; dayHangCho(); };
     goi.then(function (kq) {
       var viec = [], tuChoi = 0;
       lo.forEach(function (m, i) {
