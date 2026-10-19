@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.2.6';</script>
+<script>window.NK_BAN = '1.3.0';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -238,6 +238,7 @@
   .tkGhi { margin:0 0 10px; padding:10px 12px; border-radius:12px; background:#2a2208; border:1.5px solid #7a5c1c; font-size:13.5px; line-height:1.55; display:flex; flex-direction:column; gap:4px; }
   .tkGhi .td { color:var(--vang); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
   .tkGhi .docSai { color:var(--do); font-weight:700; } .tkGhi .daDung { color:var(--xanh); font-weight:700; }
+  .tkGhi img.anhSoSanh { display:block; width:100%; max-height:150px; object-fit:cover; object-position:top; margin-top:4px; border-radius:8px; border:1px solid #7a5c1c; background:#fff; }
   .tkGhi button.goiY { text-align:left; margin-top:4px; border-color:#7a5c1c; }
   /* bảng mã đề tương ứng (dán từ Excel) */
   #khungTU { outline:none; } #khungTU:focus-within, #khungTU:focus { border-color:var(--vang); }
@@ -403,7 +404,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.2.6</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.0</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -414,7 +415,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.2.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.0 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -443,7 +444,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.2.6 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.3.0 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -458,7 +459,7 @@
 <div id="manQuet">
   <div id="qKhung"><video id="qVideo" playsinline muted autoplay></video><canvas id="qLop"></canvas></div>
   <div id="qChop"></div>
-  <div id="qTren"><button id="qLui">‹ Xong</button><div class="ten" id="qTen"></div><button id="qDen" style="display:none">Đèn</button><span id="qDem" style="font-weight:700;white-space:nowrap"></span><button id="qChup" title="Chấm bằng ảnh chụp có sẵn" style="padding:6px 10px">Ảnh</button><button id="qCd" title="Cài đặt máy quét" style="padding:6px 9px"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button></div>
+  <div id="qTren"><button id="qLui">‹ Xong</button><div class="ten" id="qTen"></div><button id="qDen" style="display:none">Đèn</button><span id="qDem" style="font-weight:700;white-space:nowrap"></span><button id="qChup" title="Chấm bằng ảnh chụp có sẵn" style="padding:6px 10px">Ảnh</button></div>
   <div id="qTT0"><span id="qTT"></span></div>
   <div id="qThe">
     <div class="dong1"><div style="min-width:0;flex:1"><div class="ten2" id="qkTen"></div><div class="mo" id="qkPhu"></div></div><div class="d" id="qkDiem"></div></div>
@@ -476,22 +477,8 @@
   </div>
   <div id="qHoi" class="qHop"><div class="the">
     <h3 id="qhTieuDe" style="font-size:18px"></h3><p id="qhNoi" class="mo"></p>
-    <button class="vang" id="qhGhiDe">Ghi đè bài cũ</button><button id="qhCaHai">Giữ cả hai</button>
+    <button class="vang" id="qhCaHai">Giữ cả hai</button><button id="qhGhiDe">Ghi đè bài cũ</button>
     <button id="qhGan">Gán cho học sinh khác</button><button id="qhXem">Xem lại bài vừa quét</button><button class="nguy" id="qhXoa">Bỏ bài vừa quét</button>
-  </div></div>
-  <div id="qCaiDat" class="qHop"><div class="the">
-    <h3 style="font-size:18px;margin-bottom:4px">Cài đặt máy quét</h3>
-    <div class="o"><label>Kiểm tra ảnh mờ</label>
-      <select id="qcdMo"><option value="cao">Khắt khe – chỉ chấm khi ảnh thật nét</option><option value="vua">Vừa (khuyên dùng)</option><option value="thap">Dễ – chấp nhận ảnh hơi mờ</option><option value="tat">Tắt</option></select></div>
-    <p class="mo" style="margin:4px 0 0;font-size:13px">Khi ảnh mờ, khung chuyển màu cam và máy chờ đến khi nét mới chấm. Ảnh lưu lại là khung hình nét nhất.</p>
-    <div class="o" style="margin-top:6px"><label>Cách đọc phiếu</label>
-      <select id="qcdDoc"><option value="thuong">Thường – đọc 2 lần giống nhau là chấm</option><option value="toiuu">Tự động tối ưu – đọc nhiều cách, không bỏ sót ô tô nhạt</option></select></div>
-    <p class="mo" style="margin:4px 0 0;font-size:13px">Tự động tối ưu: máy đọc 3 khung hình, mỗi khung với 5 mức độ nhạy khác nhau rồi lấy kết quả nhiều lần đọc giống nhau nhất. Ô tô nhạt, tô lem vẫn được nhận nếu đủ số lần đọc thấy; câu các lần đọc không thống nhất được ghi lại để rà trong thẻ TKCS. Chậm hơn khoảng nửa giây mỗi bài.</p>
-    <div class="o" style="margin-top:6px"><label>Hẹn giờ chụp (giây, 0 = chụp ngay)</label>
-      <input id="qcdHen" type="number" min="0" max="10" step="1" inputmode="numeric" style="width:100%"></div>
-    <p class="mo" style="margin:4px 0 0;font-size:13px">Ví dụ 3: thấy đủ các ô vuông đen thì máy đếm ngược 3 giây (để chỉnh phiếu cho thẳng, đủ sáng) rồi mới chụp và chấm. Mỗi tờ chỉ chụp một lần; đưa tờ khác vào thì đếm lại.</p>
-    <p class="mo" style="margin:2px 0 0;font-size:12px">Bản dựng: <b>1.2.6</b></p>
-    <button class="vang" id="qcdXong">Xong</button>
   </div></div>
   <div id="qChon" class="qHop"><div class="the">
     <div class="hang"><h3 style="margin:0;flex:1">Gán bài cho học sinh</h3><button class="nho" id="qcDong">Đóng</button></div>
@@ -806,6 +793,48 @@ var OMR = (function () {
     return ds[ds.length >> 1];
   }
 
+  // ---------- có vật che phiếu (bàn tay, ngón tay, bóng đen) / phiếu quá tối? ----------
+  // Đo các điểm giấy trắng nằm GIỮA hai ô tròn liền nhau (Phần I, II theo hàng; Phần III, SBD, mã đề theo cột).
+  // Bình thường các điểm này đều sáng như giấy; vật che làm một mảng điểm tối hẳn đi.
+  // Trả về { giay: độ sáng giấy (0–255), tiLeToi: tỉ lệ điểm tối, soToi }.
+  function kiemChe(G, H, tpl) {
+    var w = G.w, h = G.h, d = G.d;
+    var diem = tpl._diemGiay || (tpl._diemGiay = diemGiay(tpl));     // tính một lần cho mỗi mẫu phiếu
+    var gt = diem.map(function (p) {
+      var q = ap(H, p[0], p[1]), x0 = Math.round(q[0]), y0 = Math.round(q[1]), s = 0, n = 0;
+      for (var y = y0 - 1; y <= y0 + 1; y++) for (var x = x0 - 1; x <= x0 + 1; x++) if (x >= 0 && y >= 0 && x < w && y < h) { s += d[y * w + x]; n++; }
+      return n ? s / n : 0;
+    });
+    var xep = gt.slice().sort(function (a, b) { return a - b; }), giay = xep[Math.floor(xep.length * 0.8)] || 0;
+    var soToi = gt.filter(function (v) { return v < giay * 0.72; }).length;
+    OMR._diemChe = diem.map(function (p, i) { return [p[0], p[1], gt[i] < giay * 0.72]; });   // để gỡ lỗi
+    return { giay: giay, tiLeToi: gt.length ? soToi / gt.length : 0, soToi: soToi, soDiem: gt.length };
+  }
+  function diemGiay(tpl) {
+    var ung = [], o = [], i, j;
+    // ứng viên: giữa hai ô liền nhau trong một nhóm, và giữa hai câu liền nhau (cùng lựa chọn)
+    function giua(a, b) { ung.push([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]); }
+    function hang(os) { for (var t = 1; t < os.length; t++) giua(os[t - 1], os[t]); }
+    function doc_(ds) { for (var t = 1; t < ds.length; t++) for (var u = 0; u < Math.min(ds[t].length, ds[t - 1].length); u++) giua(ds[t - 1][u], ds[t][u]); }
+    for (i = 0; i < tpl.p1.length; i++) hang(tpl.p1[i]);
+    for (i = 0; i < tpl.p2.length; i++) hang(tpl.p2[i]);
+    doc_(tpl.p1); doc_(tpl.p2);
+    for (i = 0; i < tpl.p3.length; i++) for (j = 0; j < tpl.p3[i].length; j++) hang(tpl.p3[i][j]);
+    for (i = 0; i < tpl.sbd.length; i++) hang(tpl.sbd[i]);
+    for (i = 0; i < tpl.made.length; i++) hang(tpl.made[i]);
+    // chỉ giữ điểm cách xa mọi ô tròn (≥ 1,4 bán kính): điểm sát nhau rơi trúng viền ô thì luôn tối
+    [tpl.p1, tpl.p2, tpl.sbd, tpl.made].forEach(function (g) { g.forEach(function (os) { os.forEach(function (x) { o.push(x); }); }); });
+    tpl.p3.forEach(function (c) { c.forEach(function (os) { os.forEach(function (x) { o.push(x); }); }); });
+    var xa = tpl.r * 1.4, diem = ung.filter(function (p, k) {
+      if (ung.slice(0, k).some(function (q) { return Math.abs(q[0] - p[0]) < 0.05 && Math.abs(q[1] - p[1]) < 0.05; })) return false;    // trùng
+      for (var t = 0; t < o.length; t++) if (Math.abs(o[t][0] - p[0]) < xa && Math.abs(o[t][1] - p[1]) < xa && Math.hypot(o[t][0] - p[0], o[t][1] - p[1]) < xa) return false;
+      return true;
+    }).filter(function (p) {                       // bỏ điểm giữa hai khối cách xa nhau (vd. câu 13 → 14 ở hai cột khác)
+      return o.some(function (x) { return Math.hypot(x[0] - p[0], x[1] - p[1]) < 0.9; });
+    });
+    return diem;
+  }
+
   // ---------- đo độ đậm một ô ----------
   var hist = new Int32Array(256);
   function doO(G, H, x, y, r, den) {
@@ -1027,7 +1056,7 @@ var OMR = (function () {
 
   return {
     timKhoi: timKhoi, doNet: doNet, xam: xam, phepChieu: phepChieu, ap: ap, tiLe: tiLe, timMoc: timMoc, tinhChinh: tinhChinh,
-    docPhieu: docPhieu, doCacO: doCacO, quyetDinh: quyetDinh, bauChon: bauChon, doO: doO, chon: chon, nan: nan, docAnh: docAnh, thuNho: thuNho
+    docPhieu: docPhieu, doCacO: doCacO, kiemChe: kiemChe, quyetDinh: quyetDinh, bauChon: bauChon, doO: doO, chon: chon, nan: nan, docAnh: docAnh, thuNho: thuNho
   };
 })();
 if (typeof module !== 'undefined') module.exports = OMR;
@@ -1233,27 +1262,30 @@ if (typeof module !== 'undefined') module.exports = CHAM;
 <script data-nk>
 /* Vẽ dấu chấm bài lên ảnh phiếu đã nắn phẳng (dùng chung cho máy quét và trang Bài làm).
  *
- *   VE.but(c, TPL, px)                 -> bút vẽ: vong (viền), sai (viền đỏ + X), dapAn (tô kín đáp án đúng), nhan (chữ trên nền màu)
- *   VE.taoVT(doc)                      -> vị trí các ô học sinh đã tô (lưu kèm bài: kq.vt) để vẽ lại sau khi sửa
- *   VE.danhDau(c, TPL, KY, kq, px)     -> vẽ đúng / sai theo đáp án và bài làm HIỆN TẠI của kq (kq.vt, kq.goc nếu có)
+ *   VE.but(c, TPL, px)                 -> bút vẽ: vong (viền), sai (viền đỏ), dauX (chữ x đỏ cạnh số câu), dapAn (tô kín đáp án đúng),
+ *                                         to (tô như bút chì), xoa (xoá nét tô: vẽ lại ô tròn trống), nhan (chữ trên nền màu)
+ *   VE.taoVT(doc)                      -> vị trí các ô học sinh đã tô (lưu kèm bài: kq.vt)
+ *   VE.danhDau(c, TPL, KY, kq, px)     -> vẽ theo bài làm HIỆN TẠI của kq: câu giáo viên đã sửa (khác kq.goc) thì xoá nét tô cũ,
+ *                                         tô lại đúng lựa chọn mới như học sinh tô, rồi vẽ dấu đúng / sai theo đáp án của KY.
  *
- * Ảnh "sạch" (chưa vẽ dấu) được lưu riêng lúc quét; khi giáo viên sửa bài và bấm Lưu, trang Bài làm lấy ảnh sạch,
- * gọi VE.danhDau với bài đã sửa rồi thay ảnh có dấu cũ.
+ * Từ bản 1.3 mỗi bài chỉ lưu ẢNH SẠCH (kq.sach); dấu được vẽ lúc xem nên sửa bài / đổi đáp án là ảnh tự đúng.
  */
 var VE = (function () {
   'use strict';
   var XANH = '#12b259', DO = '#ff2a2a', CAM = '#ff9500', LAM = '#2f6fe0';
 
-  function but(c, TPL, px) {
-    var k0 = TPL.khung, R = TPL.r * px * 1.25;
+  function but(c, TPL, px, nen) {
+    var k0 = TPL.khung, r = TPL.r * px, R = r * 1.25, giay = nen ? 'rgb(' + nen + ',' + nen + ',' + nen + ')' : '#e2e2e2';
     function tam(o) { return [(o[0] - k0[0]) * px, (o[1] - k0[1]) * px]; }
     function vong(o, mau) { var p = tam(o); c.beginPath(); c.arc(p[0], p[1], R, 0, 6.2832); c.lineWidth = 3; c.strokeStyle = mau; c.stroke(); }
-    // ô tô sai: viền đỏ + gạch chéo X
-    function sai(o) {
-      vong(o, DO);
-      var p = tam(o), d = R * 0.78;
-      c.beginPath(); c.moveTo(p[0] - d, p[1] - d); c.lineTo(p[0] + d, p[1] + d); c.moveTo(p[0] + d, p[1] - d); c.lineTo(p[0] - d, p[1] + d);
-      c.lineWidth = 3.5; c.strokeStyle = DO; c.stroke();
+    // ô học sinh tô sai: chỉ viền đỏ (không gạch chéo đè lên ô)
+    function sai(o) { vong(o, DO); }
+    // chữ x đỏ nhỏ ở bên trái số thứ tự câu (o = ô đầu tiên của câu)
+    function dauX(o, lui) {
+      var p = tam(o), co = Math.round(px * 0.42);
+      c.font = 'bold ' + co + 'px sans-serif'; c.fillStyle = DO; c.textBaseline = 'middle';
+      c.fillText('x', p[0] - px * (lui || 1.12), p[1]);
+      c.textBaseline = 'alphabetic';
     }
     // đáp án đúng của câu làm sai (xanh) hoặc câu bỏ trống (cam): tô kín ô cho dễ thấy
     function dapAn(o, trong) {
@@ -1261,6 +1293,17 @@ var VE = (function () {
       c.beginPath(); c.arc(p[0], p[1], R * 0.82, 0, 6.2832);
       c.fillStyle = trong ? 'rgba(255,149,0,.8)' : 'rgba(18,178,89,.78)'; c.fill();
       c.lineWidth = 2; c.strokeStyle = trong ? '#c46a00' : '#0a7a3c'; c.stroke();
+    }
+    // xoá nét tô của học sinh: phủ màu giấy rồi vẽ lại viền ô tròn trống
+    function xoa(o) {
+      var p = tam(o);
+      c.beginPath(); c.arc(p[0], p[1], r * 1.12, 0, 6.2832); c.fillStyle = giay; c.fill();
+      c.beginPath(); c.arc(p[0], p[1], r * 0.92, 0, 6.2832); c.lineWidth = Math.max(1, px * 0.03); c.strokeStyle = '#3a3a3a'; c.stroke();
+    }
+    // tô ô như bút chì của học sinh
+    function to(o) {
+      var p = tam(o);
+      c.beginPath(); c.arc(p[0], p[1], r * 0.8, 0, 6.2832); c.fillStyle = 'rgba(70,70,70,.9)'; c.fill();
     }
     // chữ trắng trên nền màu; (x, y) = góc trên trái tính theo pixel ảnh nắn
     function nhan(chu, x, y, mau, co) {
@@ -1271,7 +1314,7 @@ var VE = (function () {
       c.fillStyle = '#fff'; c.fillText(chu, x + 7, y + co);
       return rong;
     }
-    return { R: R, tam: tam, vong: vong, sai: sai, dapAn: dapAn, nhan: nhan };
+    return { R: R, tam: tam, vong: vong, sai: sai, dauX: dauX, dapAn: dapAn, xoa: xoa, to: to, nhan: nhan };
   }
 
   // các ô đã tô của một nhóm (tô 2 ô thì trả về cả 2)
@@ -1289,15 +1332,13 @@ var VE = (function () {
     return vt;
   }
 
-  // Phần III: tìm các ô học sinh ĐÃ TÔ ứng với từng kí tự của giá trị (đã sửa), theo thứ tự cột
-  // (vd. tô 3-4-5, sửa thành 34: đánh dấu ô 3, ô 4 ở đúng cột cũ, cột của số 5 không đánh dấu nữa).
-  // Kí tự giáo viên gõ mà học sinh không tô thì không khoanh ô nào (không khoanh ô trống trên phiếu).
+  // Phần III: tìm các ô học sinh ĐÃ TÔ ứng với từng kí tự của giá trị, theo thứ tự cột
   function cotP3(cot, giaTri, hang) {
     var ra = [], j = 0, s = String(giaTri || ''), n = cot.length, t, jj;
     var coO = function (x, h) { return Array.isArray(x) ? x.indexOf(h) >= 0 : x === h; };
     for (t = 0; t < s.length && j < n; t++) {
       var ch = s[t];
-      if (ch === '*') {                                  // cột tô nhiều ô chưa sửa: giữ các ô máy thấy
+      if (ch === '*') {                                  // cột tô nhiều ô: giữ các ô máy thấy
         for (jj = j; jj < n && !Array.isArray(cot[jj]); jj++);
         if (jj < n) { ra.push({ j: jj, o: cot[jj] }); j = jj + 1; } else j++;
         continue;
@@ -1309,52 +1350,75 @@ var VE = (function () {
     }
     return ra;
   }
+  // Phần III đã sửa: đặt giá trị mới từ cột đầu như học sinh tô (mỗi kí tự một cột)
+  function datMoiP3(gt, hang, soCot) {
+    var ra = [], s = String(gt || ''), j = 0;
+    for (var t = 0; t < s.length && j < soCot; t++) { var h = hang.indexOf(s[t]); if (h >= 0) ra.push({ j: j++, o: [h] }); }
+    return ra;
+  }
 
-  // Vẽ dấu chấm theo bài làm hiện tại (kq.p1 / p2 / p3, mã đề) và đáp án của KY.
+  // Vẽ theo bài làm hiện tại (kq.p1 / p2 / p3, mã đề) và đáp án của KY.
   function danhDau(c, TPL, KY, kq, px) {
-    var b = but(c, TPL, px), vt = kq.vt || null, goc = kq.goc || null, i, j, v, to;
+    var b = but(c, TPL, px, kq.nen), vt = kq.vt || null, goc = kq.goc || null, i, j, v, to;
     var de = KY.de[kq.made], L = 'ABCDE';
     var ch = de && !kq.loiMade ? CHAM.cham({ p1: kq.p1, p2: kq.p2, p3: kq.p3 }, KY, kq.made) : null;
     var a1 = CHAM.k1(de), a2 = CHAM.k2(de), a3 = CHAM.k3(de);
     var k0 = TPL.khung;
     // nhãn "sửa" ở bên phải câu giáo viên đã chỉnh tay
     function sua(o) { var p = b.tam(o); b.nhan('sửa', p[0] + b.R * 1.5, p[1] - px * 0.3, CAM, Math.round(px * 0.34)); }
+    // câu đã sửa (Phần I, II): xoá các ô học sinh đã tô, tô lại đúng lựa chọn mới như học sinh tô
+    function veLai(os, cu, moi, bang, nhieu) {
+      var oCu = bang.indexOf(cu) >= 0 ? [bang.indexOf(cu)] : cu === '*' && nhieu ? nhieu : [];
+      oCu.forEach(function (x) { if (os[x]) b.xoa(os[x]); });
+      if (bang.indexOf(moi) >= 0) b.to(os[bang.indexOf(moi)]);
+    }
     if (ch && !ch.loi) {
       for (i = 0; i < TPL.p1.length; i++) {
         if (ch.ct1[i] === undefined || ch.ct1[i] < 0) continue;
-        var c1 = (kq.p1 || '')[i] || '-';
+        var c1 = (kq.p1 || '')[i] || '-', g1 = goc && goc.p1 != null ? (goc.p1[i] || '-') : c1;
+        if (g1 !== c1) veLai(TPL.p1[i], g1, c1, L, vt && vt.p1n[i]);
         v = L.indexOf(c1);
         to = v >= 0 ? [v] : c1 === '*' && vt && vt.p1n[i] ? vt.p1n[i] : [];
         if (ch.ct1[i] === 1) b.vong(TPL.p1[i][v], XANH);
         else {
           for (j = 0; j < a1[i].length; j++) b.dapAn(TPL.p1[i][L.indexOf(a1[i][j])], !to.length);
           for (j = 0; j < to.length; j++) b.sai(TPL.p1[i][to[j]]);
+          b.dauX(TPL.p1[i][0]);
         }
-        if (goc && goc.p1 != null && (goc.p1[i] || '-') !== c1) sua(TPL.p1[i][TPL.p1[i].length - 1]);
+        if (g1 !== c1) sua(TPL.p1[i][TPL.p1[i].length - 1]);
       }
       for (i = 0; i < TPL.p2.length; i++) {
         if (ch.ct2[i] === undefined || ch.ct2[i] < 0) continue;
-        var c2 = (kq.p2 || '')[i] || '-';
+        var c2 = (kq.p2 || '')[i] || '-', g2 = goc && goc.p2 != null ? (goc.p2[i] || '-') : c2;
+        if (g2 !== c2) veLai(TPL.p2[i], g2, c2, 'DS', vt && vt.p2n[i]);
         v = 'DS'.indexOf(c2);
         to = v >= 0 ? [v] : c2 === '*' && vt && vt.p2n[i] ? vt.p2n[i] : [];
         if (ch.ct2[i] === 1) b.vong(TPL.p2[i][v], XANH);
         else {
           for (j = 0; j < a2[i].length; j++) b.dapAn(TPL.p2[i]['DS'.indexOf(a2[i][j])], !to.length);
           for (j = 0; j < to.length; j++) b.sai(TPL.p2[i][to[j]]);
+          b.dauX(TPL.p2[i][0]);
         }
-        if (goc && goc.p2 != null && (goc.p2[i] || '-') !== c2) sua(TPL.p2[i][TPL.p2[i].length - 1]);
+        if (g2 !== c2) sua(TPL.p2[i][TPL.p2[i].length - 1]);
       }
       for (i = 0; i < TPL.p3.length; i++) {
         if (ch.ct3[i] === undefined || ch.ct3[i] < 0) continue;
         var gt = String((kq.p3 || [])[i] || '').trim(), cot = vt && vt.p3[i] ? vt.p3[i] : null, dat;
-        if (cot) dat = cotP3(cot, gt, TPL.p3hang);
-        else {                                           // không có vị trí đã lưu: đặt từ cột đầu
-          dat = []; for (j = 0; j < gt.length && j < TPL.p3[i].length; j++) { v = TPL.p3hang.indexOf(gt[j]); if (v >= 0) dat.push({ j: j, o: [v] }); }
-        }
+        var daSua = !!(goc && goc.p3 && String(goc.p3[i] || '').trim() !== gt);
+        if (daSua) {
+          // xoá mọi ô học sinh đã tô ở câu này rồi tô lại giá trị mới từ cột đầu
+          if (cot) cot.forEach(function (x, jj) { (Array.isArray(x) ? x : x >= 0 ? [x] : []).forEach(function (h) { b.xoa(TPL.p3[i][jj][h]); }); });
+          dat = datMoiP3(gt, TPL.p3hang, TPL.p3[i].length);
+          dat.forEach(function (d) { b.to(TPL.p3[i][d.j][d.o[0]]); });
+        } else if (cot) dat = cotP3(cot, gt, TPL.p3hang);
+        else dat = datMoiP3(gt, TPL.p3hang, TPL.p3[i].length);
         dat.forEach(function (d) { d.o.forEach(function (h) { if (ch.ct3[i]) b.vong(TPL.p3[i][d.j][h], XANH); else b.sai(TPL.p3[i][d.j][h]); }); });
         var o0 = TPL.p3[i][0][0], x = (o0[0] - k0[0] - 0.25) * px, y = (o0[1] - k0[1]) * px - px * 1.72, rong = 0;
-        if (!ch.ct3[i]) rong = b.nhan(a3[i].split('|')[0], x, y, dat.length ? XANH : CAM);   // đáp án đúng phía trên câu
-        if (goc && goc.p3 && String(goc.p3[i] || '').trim() !== gt) b.nhan('sửa', x + rong + (rong ? 6 : 0), y, CAM, Math.round(px * 0.34));
+        if (!ch.ct3[i]) {                              // đáp án đúng phía trên câu + chữ x đỏ bên trái
+          rong = b.nhan(a3[i].split('|')[0], x, y, dat.length ? XANH : CAM);
+          c.font = 'bold ' + Math.round(px * 0.42) + 'px sans-serif'; c.fillStyle = DO; c.fillText('x', x - px * 0.42, y + px * 0.42);
+        }
+        if (daSua) b.nhan('sửa', x + rong + (rong ? 6 : 0), y, CAM, Math.round(px * 0.34));
       }
     }
     if (vt) {
@@ -1591,16 +1655,7 @@ var QUET = (function () {
   var $ = function (id) { return document.getElementById(id); };
   var KY = null, TPL = null, LOP = [], TC = {}, cuoi = null, soBai = 0, DA = {}, dangHoi = false, BAI_CUOI = null;
   var MOI = 'Đưa 4 ô vuông đen ở góc phiếu vào 4 ô trên màn hình';
-  // cài đặt: mo (kiểm tra ảnh mờ) = 'vua' | 'cao' | 'thap' | 'tat'
-  //          hen = số giây đếm ngược từ lúc thấy phiếu tới lúc chụp (0 = chụp ngay khi đọc ổn định)
-  //          doc = 'thuong' | 'toiuu' (đọc nhiều khung hình × nhiều mức ngưỡng rồi bỏ phiếu, không bỏ sót ô tô nhạt)
-  var CD = (function () { try { return JSON.parse(localStorage.getItem('nkzip_quet')) || {}; } catch (e) { return {}; } })();
-  if (!CD.mo) CD.mo = 'vua';
-  CD.hen = Math.max(0, Math.min(10, +CD.hen || 0));
-  if (CD.doc !== 'toiuu') CD.doc = 'thuong';
-  var HE_TOI_UU = [1, 0.8, 0.9, 1.12, 1.25];          // các mức ngưỡng thử ở chế độ tối ưu (1 = bình thường)
-  var NGUONG_MO = { cao: 0.07, vua: 0.12, thap: 0.16, tat: 99 };
-  function luuCD() { try { localStorage.setItem('nkzip_quet', JSON.stringify(CD)); } catch (e) { /* bỏ qua */ } }
+  var HE_TOI_UU = [1, 0.8, 0.9, 1.12, 1.25];          // các mức ngưỡng thử khi bỏ phiếu (1 = bình thường)
 
   // ---------- hàng chờ gửi lên máy chủ (IndexedDB: không mất khi rớt mạng / đóng trang) ----------
   var HC = (function () {
@@ -1633,41 +1688,60 @@ var QUET = (function () {
   // Hàng chờ gửi: bài CHỈ bị xoá khỏi máy khi máy chủ xác nhận đã lưu. Gửi hỏng thì giữ lại rồi gửi lại:
   //  - rớt mạng / máy chủ quá tải: chờ 5 → 10 → 20 → 40 → 60 giây (thêm ngẫu nhiên để các máy không cùng gửi một lúc);
   //  - máy chủ từ chối (vd. bài thi thuộc tài khoản khác): giữ bài, ghi lý do, 2 phút sau thử lại, vẫn gửi tiếp các bài khác.
-  var dangGui = false, choXong = [], conCho = 0, DS_CHO = [], HOAN = {}, henGui = 0;
+  // Gửi GỘP tối đa 4 bài một lượt (máy chủ mở file, khoá, ghi một lần cho cả nhóm). Máy chủ bản cũ chưa có
+  // 'luuNhieuBai' thì tự quay về gửi từng bài.
+  var dangGui = false, choXong = [], conCho = 0, DS_CHO = [], HOAN = {}, henGui = 0, GOP = 4, khongGop = false;
   function baoXong() { var c = choXong; choXong = []; c.forEach(function (f) { f(); }); }
+  function hoan(m, e, tuChoi) {
+    var h = HOAN[m.id] || { lan: 0 }, mang = !tuChoi && (e instanceof TypeError || !e || !e.message);
+    h.lan++;
+    h.loi = mang ? 'Mất mạng / chưa kết nối được' : e && e.quaTai ? 'Máy chủ Google đang quá tải' : e && e.ma === 'dangnhap' ? 'Cần đăng nhập lại' : String(e && e.message || e);
+    h.sau = Date.now() + (tuChoi ? 120000 : Math.min(60000, 5000 * Math.pow(2, h.lan - 1)) * (0.75 + Math.random() * 0.5));
+    HOAN[m.id] = h;
+  }
+  function daLuu(m, r) {                              // máy chủ đã lưu bài m: xoá khỏi hàng chờ
+    delete HOAN[m.id];
+    return HC.xoa(m.id).then(function () {
+      // máy khác đã chấm cùng SBD (bài khác): máy chủ lưu thành bài riêng với mã mới, không ghi đè
+      if (r.id && r.id !== m.kq.id) {
+        if (DA[m.kq.id]) { DA[r.id] = DA[m.kq.id]; delete DA[m.kq.id]; }
+        if (BAI_CUOI && BAI_CUOI.kq.id === m.kq.id) BAI_CUOI.kq.id = r.id;
+      }
+      if (TC.daGui) TC.daGui(m.kq, r.anh, r.id || m.kq.id);
+    });
+  }
   function dayHangCho() {
     if (dangGui) return;
     dangGui = true; clearTimeout(henGui);
     HC.tat().then(function (ds) {
       ds = ds || []; DS_CHO = ds; conCho = ds.length; capNhatDem();
       if (!ds.length) { dangGui = false; baoXong(); return; }
-      var bay = Date.now(), m = ds.filter(function (x) { return !HOAN[x.id] || HOAN[x.id].sau <= bay; })[0];
-      if (!m) {                                        // mọi bài đều đang đợi tới lượt gửi lại
+      var bay = Date.now(), san = ds.filter(function (x) { return !HOAN[x.id] || HOAN[x.id].sau <= bay; });
+      if (!san.length) {                               // mọi bài đều đang đợi tới lượt gửi lại
         dangGui = false; baoXong();
         var som = Math.min.apply(null, ds.map(function (x) { return HOAN[x.id] ? HOAN[x.id].sau : bay; }));
         henGui = setTimeout(dayHangCho, Math.max(1000, som - bay));
         return;
       }
-      return API.goi('luuKetQua', { dl: m.kq, anh: m.anh, anhSach: m.sach || '' }).then(function (r) {
-        delete HOAN[m.id];
-        return HC.xoa(m.id).then(function () {
-          // máy khác đã chấm cùng SBD (bài khác): máy chủ lưu thành bài riêng với mã mới, không ghi đè
-          if (r.id && r.id !== m.kq.id) {
-            if (DA[m.kq.id]) { DA[r.id] = DA[m.kq.id]; delete DA[m.kq.id]; }
-            if (BAI_CUOI && BAI_CUOI.kq.id === m.kq.id) BAI_CUOI.kq.id = r.id;
-          }
-          if (TC.daGui) TC.daGui(m.kq, r.anh, r.id || m.kq.id);
-          dangGui = false; dayHangCho();
+      var lo = khongGop ? san.slice(0, 1) : san.slice(0, GOP);
+      var goi = khongGop ? API.goi('luuKetQua', { dl: lo[0].kq, anh: lo[0].anh, anhSach: lo[0].sach || '' }).then(function (r) { return [r]; })
+        : API.goi('luuNhieuBai', { ds: lo.map(function (m) { return { dl: m.kq, anh: m.anh }; }) }).then(function (r) { return r.kq || []; });
+      return goi.then(function (kq) {
+        var viec = [], tuChoi = 0;
+        lo.forEach(function (m, i) {
+          var r = kq[i];
+          if (r && r.ok) viec.push(daLuu(m, r));
+          else { hoan(m, new Error(r && r.loi || 'Máy chủ không lưu được bài'), true); tuChoi++; }
         });
+        if (tuChoi) tt('Chưa lưu được ' + tuChoi + ' bài – bài vẫn giữ trên máy, sẽ gửi lại');
+        return Promise.all(viec).then(function () { dangGui = false; dayHangCho(); });
       }, function (e) {
-        var h = HOAN[m.id] || { lan: 0 }, mang = e instanceof TypeError || !e || !e.message;
-        var tuChoi = !mang && !e.quaTai && e.ma !== 'dangnhap';
-        h.lan++;
-        h.loi = mang ? 'Mất mạng / chưa kết nối được' : e.quaTai ? 'Máy chủ Google đang quá tải' : e.ma === 'dangnhap' ? 'Cần đăng nhập lại' : String(e.message);
-        h.sau = Date.now() + (tuChoi ? 120000 : Math.min(60000, 5000 * Math.pow(2, h.lan - 1)) * (0.75 + Math.random() * 0.5));
-        HOAN[m.id] = h; dangGui = false; capNhatDem();
-        if (tuChoi) { tt('Chưa lưu được 1 bài (' + h.loi + ') – bài vẫn giữ trên máy, sẽ gửi lại'); dayHangCho(); return; }   // gửi tiếp các bài khác
-        baoXong(); henGui = setTimeout(dayHangCho, Math.max(1000, h.sau - Date.now()));                        // mạng / quá tải: đợi rồi gửi lại
+        if (!khongGop && e && /Không rõ yêu cầu/.test(e.message || '')) { khongGop = true; dangGui = false; dayHangCho(); return; }   // máy chủ bản cũ
+        var tuChoi = !!(e && e.message && !(e instanceof TypeError) && !e.quaTai && e.ma !== 'dangnhap');
+        lo.forEach(function (m) { hoan(m, e, tuChoi); });
+        dangGui = false; capNhatDem();
+        if (tuChoi) { tt('Chưa lưu được bài (' + HOAN[lo[0].id].loi + ') – bài vẫn giữ trên máy, sẽ gửi lại'); dayHangCho(); return; }
+        baoXong(); henGui = setTimeout(dayHangCho, Math.max(1000, HOAN[lo[0].id].sau - Date.now()));   // mạng / quá tải: đợi rồi gửi lại
       });
     }).catch(function () { dangGui = false; baoXong(); henGui = setTimeout(dayHangCho, 8000); });
   }
@@ -1756,6 +1830,12 @@ var QUET = (function () {
     }
     setTimeout(buoc, 30);
   }
+  // Chế độ quét cố định (không còn cài đặt). Chỉ chấm khi ĐỒNG THỜI:
+  //  1) thấy đủ 12 ô vuông đen (phiếu nằm trọn trong khung);  2) ảnh nét;  3) không có vật che (tay, bóng đen);
+  //  4) đủ sáng;  5) kết quả đọc giữ nguyên ~1 giây (máy và phiếu đứng yên).
+  // Đọc theo kiểu "tối ưu": nhiều khung hình × nhiều mức ngưỡng rồi bỏ phiếu. Mỗi lần đưa phiếu vào chỉ chấm MỘT lần:
+  // phải đưa phiếu ra khỏi khung (mất các ô vuông đen) rồi mới nhận tờ tiếp theo.
+  var NGUONG_NET = 0.12, NGUONG_CHE = 0.08, GIAY_TOI = 80, GIU_YEN = 1000, ROI_KHUNG = 500;
   function motKhung(w, h) {
     var bay = Date.now();
     // tạm dừng khi đang hỏi, đang xem lại bài hoặc đang chọn học sinh để gán
@@ -1767,76 +1847,73 @@ var QUET = (function () {
     var m = OMR.timMoc(OMR.xam(cxN.getImageData(0, 0, wn, hn)), TPL);
     if (!m) {
       veKhung(null);
-      if (bay - phieu.mat > 700) phieu = phieuMoi();
+      if (bay - phieu.mat > ROI_KHUNG) phieu = phieuMoi();          // phiếu đã ra khỏi khung: sẵn sàng nhận tờ mới
       if (bay - tgCham > 2500) tt(MOI);
       return;
     }
     phieu.mat = bay;
-    if (!phieu.tu) phieu.tu = bay;
+    var cam = function (s) { veKhung(m.goc, w / wn, '#ffb020'); tt(s); phieu.on = null; phieu.ds = []; };
     // 2) đọc trên ảnh đủ phân giải
     if (cvL.width !== w || cvL.height !== h) { cvL.width = w; cvL.height = h; }
     cxL.drawImage(video, 0, 0, w, h);
     var G = OMR.xam(cxL.getImageData(0, 0, w, h));
     var t = OMR.tinhChinh(G, OMR.tiLe(m.H, w / wn), TPL);
-    if (!t) { veKhung(m.goc, w / wn, '#ffb020'); tt('Giữ yên máy, phiếu đang mờ'); return; }
+    if (!t) return cam('Giữ yên máy, phiếu đang mờ');
+    if (t.soMoc < TPL.moc.length) return cam('Đưa trọn tờ phiếu vào khung – chưa thấy đủ ' + TPL.moc.length + ' ô vuông đen');
     var M = OMR.doCacO(G, t.H, TPL, t.den), doc = OMR.quyetDinh(M, TPL, 1);
-    // vẫn là tờ phiếu vừa chấm (chưa rút ra): không đọc lại
-    if (doc.khoa === khoaVua || (phieu.xong && !khacPhieu(doc, phieu.xong))) { veKhung(m.goc, w / wn, '#27c26c'); return; }
-    if (phieu.xong) { phieu = phieuMoi(); phieu.tu = phieu.mat = bay; }          // đã đổi sang tờ khác mà không rời khung
-    // ảnh mờ: chưa chấm, chờ tối đa 2,5 giây cho khung hình nét hơn
-    var net = OMR.doNet(G, t.H, TPL), mo = net > NGUONG_MO[CD.mo];
-    // chế độ khắt khe: không bao giờ chấm ảnh mờ; các chế độ khác chờ tối đa 2,5 giây rồi chấm kèm ghi chú "ảnh mờ"
-    var khatKhe = CD.mo === 'cao';
-    if (mo) {
-      if (!phieu.moTu) phieu.moTu = bay;
-      if (khatKhe || bay - phieu.moTu < 2500) { veKhung(m.goc, w / wn, '#ffb020'); tt('Ảnh đang mờ – giữ yên máy, đủ sáng, đưa gần hơn một chút'); return; }
-    } else phieu.moTu = 0;
-    veKhung(m.goc, w / wn, '#3d8bfd');
-    // hẹn giờ: thấy phiếu rồi đếm ngược mới chụp (vẫn đọc các khung hình trong lúc chờ)
-    var conLai = CD.hen ? CD.hen * 1000 - (bay - phieu.tu) : 0;
-    var baoCho = function () { tt(conLai > 0 ? 'Giữ yên phiếu – chụp sau ' + Math.ceil(conLai / 1000) + ' giây' : 'Đang đọc…'); };
-    if (CD.doc === 'toiuu') {
-      // 3') tối ưu: gom các khung hình gần nhất của tờ phiếu, đủ 3 khung thì bỏ phiếu giữa mọi lần đọc
-      phieu.ds.push({ M: M, net: net, G: G, H: t.H });
-      if (phieu.ds.length > 4) phieu.ds.shift();
-      if (phieu.ds.length < 3 || conLai > 0) return baoCho();
-      var khung = phieu.ds.slice().sort(function (a, b) { return a.net - b.net; }), docs = [];
-      khung.forEach(function (f, i) { HE_TOI_UU.forEach(function (he) { docs.push(i === 0 && he === 1 ? null : OMR.quyetDinh(f.M, TPL, he)); }); });
-      docs[0] = OMR.quyetDinh(khung[0].M, TPL, 1);                     // lần đọc chuẩn: khung hình nét nhất
-      var bc = OMR.bauChon(docs, TPL);
-      if (mo) bc.nghi.push('ảnh mờ');
-      chot(bc, khung[0].G, khung[0].H, bay);
-      return;
+    if (phieu.xong) {
+      // tờ vừa chấm vẫn nằm trong khung: không chấm lại. Chỉ nhận tờ khác (đổi tờ mà không rời khung) khi
+      // đọc ra khác hẳn (SBD / mã đề khác hoặc khác nhiều câu) và giữ nguyên 1,5 giây.
+      if (soKhac(doc, phieu.xong) < 6) { veKhung(m.goc, w / wn, '#27c26c'); tt('Đã chấm tờ này – đưa phiếu ra rồi đưa tờ tiếp theo vào'); phieu.moi = null; return; }
+      if (!phieu.moi || soKhac(doc, phieu.moi.doc) > 2) { phieu.moi = { doc: doc, tu: bay }; return; }
+      if (bay - phieu.moi.tu < 1500) return;
+      phieu = phieuMoi(); phieu.mat = bay;
     }
-    // 3) chỉ nhận khi hai lần đọc cho cùng kết quả (ba lần nếu còn ô lưng chừng); giữ khung hình nét nhất để lưu ảnh
-    var n = phieu.dem[doc.khoa] = (phieu.dem[doc.khoa] || 0) + 1, tot = phieu.tot[doc.khoa];
-    if (!tot || net < tot.net) phieu.tot[doc.khoa] = tot = { net: net, G: G, H: t.H, doc: doc };
-    var can = khatKhe || (doc.nghi.length && bay - phieu.tu < 3000) ? 3 : 2;
-    if (n < can || conLai > 0) return baoCho();
-    if (mo) tot.doc.nghi.push('ảnh mờ');
-    chot(tot.doc, tot.G, tot.H, bay);
+    // 3) chất lượng ảnh: nét, đủ sáng, không có vật che
+    var net = OMR.doNet(G, t.H, TPL);
+    if (net > NGUONG_NET) return cam('Ảnh đang mờ – giữ yên máy, đủ sáng, đưa gần hơn một chút');
+    var che = OMR.kiemChe(G, t.H, TPL);
+    if (che.giay < GIAY_TOI) return cam('Phiếu quá tối – bật đèn hoặc ra chỗ sáng hơn');
+    if (che.tiLeToi > NGUONG_CHE) return cam('Có vật che phiếu (tay, bóng) – rút tay ra, giữ yên máy');
+    veKhung(m.goc, w / wn, '#3d8bfd');
+    // 4) giữ yên: kết quả đọc gần như không đổi trong ~1 giây (cho phép 1–2 ô lưng chừng, phần bỏ phiếu sẽ quyết)
+    if (!phieu.on || soKhac(doc, phieu.on.doc) > 2) { phieu.on = { doc: doc, tu: bay }; phieu.ds = []; }
+    phieu.ds.push({ M: M, net: net, G: G, H: t.H });
+    if (phieu.ds.length > 4) phieu.ds.shift();
+    if (bay - phieu.on.tu < GIU_YEN || phieu.ds.length < 3) { tt('Giữ yên phiếu…'); return; }
+    // 5) bỏ phiếu giữa các khung hình × các mức ngưỡng; lần đọc chuẩn là khung hình nét nhất
+    var khung = phieu.ds.slice().sort(function (a, b) { return a.net - b.net; }), docs = [];
+    khung.forEach(function (f, i) { HE_TOI_UU.forEach(function (he) { docs.push(i === 0 && he === 1 ? null : OMR.quyetDinh(f.M, TPL, he)); }); });
+    docs[0] = OMR.quyetDinh(khung[0].M, TPL, 1);
+    chot(OMR.bauChon(docs, TPL), khung[0].G, khung[0].H, bay);
   }
-  function phieuMoi() { return { dem: {}, tot: {}, tu: 0, mat: 0, moTu: 0, ds: [], xong: null }; }
+  function phieuMoi() { return { tu: 0, mat: 0, ds: [], on: null, moi: null, xong: null }; }
   // đã chấm xong tờ này: nhớ kết quả để không chấm lại khi tờ phiếu vẫn nằm trong khung
   function chot(doc, G, H, bay) {
     khoaVua = doc.khoa; phieu = phieuMoi(); phieu.xong = doc; phieu.mat = bay; tgCham = bay;
     nhan(doc, G, H);
   }
-  // hai lần đọc là hai tờ phiếu khác nhau? (khác SBD / mã đề, hoặc khác từ 4 câu trở lên)
-  function khacPhieu(a, b) {
-    if (a.sbd.replace(/[_*]/g, '') !== b.sbd.replace(/[_*]/g, '') || a.made !== b.made) return true;
-    var s = a.p1 + a.p2 + a.p3.join('|'), t = b.p1 + b.p2 + b.p3.join('|'), n = Math.abs(s.length - t.length);
+  // số chỗ khác nhau giữa hai lần đọc (SBD, mã đề, từng câu / ý / kí tự Phần III)
+  function soKhac(a, b) {
+    var s = a.sbd + '|' + a.made + '|' + a.p1 + a.p2 + a.p3.join('|'), t = b.sbd + '|' + b.made + '|' + b.p1 + b.p2 + b.p3.join('|'), n = Math.abs(s.length - t.length);
     for (var i = 0; i < Math.min(s.length, t.length); i++) if (s[i] !== t[i]) n++;
-    return n >= 4;
+    return n;
   }
 
   // ---------- ảnh phiếu đã nắn phẳng: bản sạch (để vẽ lại khi sửa bài) + bản đánh dấu đúng/sai ----------
+  // Từ bản 1.3 chỉ ẢNH SẠCH được gửi lên (kq.sach = true); dấu đúng / sai được vẽ lúc xem. Ảnh có dấu chỉ để hiện trên máy quét.
   function anhNan(doc, G, H, kq) {
     var px = 44, id = OMR.nan(G, H, TPL, px), cv = document.createElement('canvas');
     cv.width = id.width; cv.height = id.height;
     var c = cv.getContext('2d'); c.putImageData(id, 0, 0);
-    var sach = kq ? cv.toDataURL('image/jpeg', 0.74) : '';
-    if (kq) VE.danhDau(c, TPL, KY, kq, px);
+    var sach = kq ? cv.toDataURL('image/jpeg', 0.72) : '';
+    if (kq) {
+      // độ sáng giấy của ảnh (để khi sửa bài, phần xoá nét tô cũ cùng màu với giấy)
+      var dl = id.data, mau = [];
+      for (var q = 0; q < dl.length; q += 4 * 97) mau.push(dl[q]);
+      mau.sort(function (a, b) { return a - b; }); kq.nen = mau[Math.floor(mau.length * 0.75)] || 230;
+      VE.danhDau(c, TPL, KY, kq, px);
+    }
     else {                                          // phiếu đáp án: khoanh xanh các ô máy đọc được, đỏ + X ô tô 2 lựa chọn
       var b = VE.but(c, TPL, px), i, j;
       var moi = function (m, n, os) { if (m >= 0) b.vong(os[m], '#12b259'); else if (m === -2) VE.daTo(m, n).forEach(function (x) { b.sai(os[x]); }); };
@@ -1863,7 +1940,8 @@ var QUET = (function () {
         sbdDoc: doc.sbd, madeDoc: doc.made,         // giữ nguyên chuỗi máy đọc (có '_' / '*') để báo lỗi tô
         vt: VE.taoVT(doc),                          // vị trí các ô đã tô: vẽ lại ảnh khi giáo viên sửa bài
         goc: { p1: doc.p1, p2: doc.p2, p3: doc.p3.slice() },   // bài làm máy đọc (đánh dấu "sửa" ở câu giáo viên chỉnh)
-        ghiDe: false                                // máy chủ không ghi đè bài cùng SBD của máy khác (lưu thành bài riêng)
+        ghiDe: false,                               // máy chủ không ghi đè bài cùng SBD của máy khác (lưu thành bài riêng)
+        sach: true                                  // ảnh lưu lên web là ảnh sạch: dấu được vẽ lúc xem (VE.danhDau)
       }
     };
   }
@@ -1883,6 +1961,7 @@ var QUET = (function () {
   }
   // dấu vân tay bài làm: giống hệt nhau nghĩa là cùng một tờ phiếu được đọc lại
   function vanTay(r) { return [r.made, r.p1, r.p2, (r.p3 || []).join(';')].join('|'); }
+  function soKhacVT(a, b) { var n = Math.abs(a.length - b.length); for (var i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) n++; return n; }
   function xuLyBai(kq, anh, sach) {
     var cu = trungVoi(kq);
     // tờ phiếu bị đọc lại (vd. rút phiếu ra chậm) mà kết quả không đổi: bỏ qua, không hỏi; khác thì mới hỏi chấm lại
@@ -1891,10 +1970,12 @@ var QUET = (function () {
     chotBai(kq, anh, sach);
   }
   function chotBai(kq, anh, sach) {
-    HC.them({ id: kq.id, kq: kq, anh: anh.split(',')[1], sach: sach ? sach.split(',')[1] : '' }).then(dayHangCho);
+    // chỉ gửi MỘT ảnh: ảnh sạch (kq.sach); ảnh có dấu chỉ dùng hiện trên máy quét
+    var guiAnh = kq.sach && sach ? sach : anh;
+    HC.them({ id: kq.id, kq: kq, anh: guiAnh.split(',')[1], sach: '' }).then(dayHangCho);
     DA[kq.id] = { ten: kq.ten, diem: kq.diem, vanTay: vanTay(kq) };
     cuoi = kq.id; BAI_CUOI = { kq: kq, anh: anh, sach: sach }; soBai++;
-    if (TC.them) TC.them(kq, anh);
+    if (TC.them) TC.them(kq, guiAnh);
     hienThe(kq);                                     // chỉ hiện thẻ trên nền camera, vẫn quét tiếp được
     var tot = !kq.loiMade && !!kq.ten && !canhBao(kq).length;
     bip(tot);
@@ -1905,7 +1986,11 @@ var QUET = (function () {
   function hoiTrung(kq, anh, cu, sach) {
     dangHoi = true; bip(false);
     $('qhTieuDe').textContent = 'Bài của ' + (kq.ten || 'SBD ' + kq.sbd) + ' đã có';
-    $('qhNoi').innerHTML = 'SBD <b>' + kq.sbd + '</b> đã được chấm trước đó (điểm <b>' + vn(cu.diem) + '</b>). Bài vừa quét được <b>' + vn(kq.diem) + '</b> điểm.';
+    // so với bài đã chấm: gần giống = có thể cùng một tờ bị chấm lại; khác nhiều = có thể học sinh khác tô trùng SBD
+    var khac = cu.vanTay ? soKhacVT(cu.vanTay, vanTay(kq)) : -1;
+    $('qhNoi').innerHTML = 'SBD <b>' + kq.sbd + '</b> đã được chấm trước đó (điểm <b>' + vn(cu.diem) + '</b>). Bài vừa quét được <b>' + vn(kq.diem) + '</b> điểm.' +
+      (khac < 0 ? '' : khac <= 3 ? '<br><b style="color:var(--xanh)">Gần giống bài đã chấm (khác ' + khac + ' chỗ)</b> – có thể <b>cùng một tờ</b> bị chấm lại: chọn Ghi đè hoặc Bỏ bài vừa quét.' :
+        '<br><b style="color:var(--cam)">Khác ' + khac + ' chỗ</b> – có thể <b>học sinh khác</b> tô trùng SBD: chọn Giữ cả hai hoặc Gán cho học sinh khác.');
     $('qHoi').classList.add('hien');
     var xong = function () { $('qHoi').classList.remove('hien'); dangHoi = false; };
     $('qhGhiDe').onclick = function () { xong(); kq.ghiDe = true; chotBai(kq, anh, sach); };
@@ -2058,11 +2143,12 @@ var QUET = (function () {
     var G = OMR.xam(cxL.getImageData(0, 0, cvL.width, cvL.height));
     var doc = OMR.docAnh(G, TPL, OMR.thuNho(G, 1100));
     if (!doc) { bip(false); tt('Không thấy đủ các ô vuông đen trên ảnh. Chụp lại thẳng và rõ hơn.'); return false; }
-    var H = doc.H;
-    if (CD.doc === 'toiuu') {                       // một ảnh: bỏ phiếu giữa các mức ngưỡng
-      var M = OMR.doCacO(G, H, TPL, doc.den);
-      doc = OMR.bauChon(HE_TOI_UU.map(function (he) { return OMR.quyetDinh(M, TPL, he); }), TPL);
-    }
+    var H = doc.H, che = OMR.kiemChe(G, H, TPL);
+    if (doc.soMoc < TPL.moc.length) { tt('Ảnh chưa thấy đủ ' + TPL.moc.length + ' ô vuông đen – chụp lại cả tờ phiếu.'); return false; }
+    if (doc.net > NGUONG_NET) { tt('Ảnh bị mờ – chụp lại, giữ yên máy.'); return false; }
+    if (che.tiLeToi > NGUONG_CHE) { tt('Có vật che phiếu – chụp lại.'); return false; }
+    var M = OMR.doCacO(G, H, TPL, doc.den);       // một ảnh: bỏ phiếu giữa các mức ngưỡng
+    doc = OMR.bauChon(HE_TOI_UU.map(function (he) { return OMR.quyetDinh(M, TPL, he); }), TPL);
     khoaVua = doc.khoa; nhan(doc, G, H); return true;
   }
 
@@ -2086,16 +2172,6 @@ var QUET = (function () {
     $('lkTiep').onclick = anLon;
     $('lkLai').onclick = chupLaiDA;
     $('lkOk').onclick = dongYDA;
-    $('qCd').onclick = function () {
-      $('qcdMo').value = CD.mo; $('qcdDoc').value = CD.doc; $('qcdHen').value = CD.hen || 0;
-      $('qCaiDat').classList.add('hien');
-    };
-    $('qcdXong').onclick = function () {
-      CD.mo = $('qcdMo').value; CD.doc = $('qcdDoc').value === 'toiuu' ? 'toiuu' : 'thuong';
-      CD.hen = Math.max(0, Math.min(10, Math.round(parseFloat(String($('qcdHen').value).replace(',', '.')) || 0)));
-      luuCD(); phieu = phieuMoi();
-      $('qCaiDat').classList.remove('hien');
-    };
     // Xoá / gán học sinh / xem lại bài vừa chấm (nút trên thẻ kết quả và trên màn xem bài)
     $('lkXoa').onclick = $('qkXoa').onclick = function () {
       // không dùng hộp confirm() của trình duyệt: trên iPhone nó làm camera dừng hình. Bấm 2 lần để xoá.
@@ -2690,27 +2766,43 @@ var QUET = (function () {
     if (!XEM.tc || !XEM.tc.nhung) $('#hop').classList.add('hien');
   }
   function khungXem() { return XEM.tc && XEM.tc.nhung ? XEM.tc.nhung : $('#hopND'); }
+  // Ảnh sạch của bài (dấu đúng / sai vẽ lúc xem): bài quét từ bản 1.3 lưu ảnh sạch ở r.anh (r.sach);
+  // bài quét từ 1.1.11 – 1.2.6 có thêm r.anhSach; bài cũ hơn chỉ có ảnh đã vẽ dấu sẵn.
+  function anhSachCua(r) { return r.sach ? r.anh : r.anhSach || ''; }
+  var xemGoc = false;                                // "Ảnh gốc": xem ảnh chụp thật, không vẽ dấu / không vẽ phần đã sửa
   function veXem() {
-    var a = anhUrl(XEM.goc.anh), nd = khungXem();
+    var sach = anhSachCua(XEM.goc), a = anhUrl(sach || XEM.goc.anh), nd = khungXem();
     nd.classList.toggle('don', !a);
-    nd.innerHTML = (a ? '<div class="anhBoc"><div id="xemAnh" class="vua"><img src="' + esc(a) + '" alt="Ảnh bài làm" draggable="false"></div>' +
-      '<div class="thuPhong"><button id="zTru" title="Thu nhỏ">−</button><button id="zVua" class="dai" title="Vừa khung">Vừa khung</button><button id="zCong" title="Phóng to">+</button></div>' +
-      (XEM.goc.anhDangVe ? '<div class="dangVe">Đang vẽ lại ảnh theo bài đã sửa…</div>' : '') + '</div>' : '') +
+    nd.innerHTML = (a ? '<div class="anhBoc"><div id="xemAnh" class="vua">' + (sach ? '<canvas title="Ảnh bài làm"></canvas>' : '<img src="' + esc(a) + '" alt="Ảnh bài làm" draggable="false">') + '</div>' +
+      '<div class="thuPhong"><button id="zTru" title="Thu nhỏ">−</button><button id="zVua" class="dai" title="Vừa khung">Vừa khung</button><button id="zCong" title="Phóng to">+</button>' +
+      (sach ? '<button id="zGoc" class="dai' + (xemGoc ? ' chon' : '') + '" title="Xem ảnh chụp thật, không có dấu chấm và phần đã sửa">' + (xemGoc ? 'Ảnh có dấu' : 'Ảnh gốc') + '</button>' : '') + '</div></div>' : '') +
       '<div id="xemBen"></div>';
     veXemBen();
     if (a) {
-      var kh = $('#xemAnh', nd), im = $('img', kh);
+      var kh = $('#xemAnh', nd), im = $(sach ? 'canvas' : 'img', kh);
+      var rongCao = function () { return sach ? im.width / Math.max(1, im.height) : im.naturalWidth / im.naturalHeight; };
       var dat = function () {
         if (XEM.z <= 1) { kh.className = 'vua'; im.style.width = im.style.height = ''; }
-        else { kh.className = ''; im.style.height = 'auto'; im.style.width = Math.round(kh.clientHeight * XEM.z * (im.naturalWidth / im.naturalHeight || 0.7)) + 'px'; }
+        else { kh.className = ''; im.style.height = 'auto'; im.style.width = Math.round(kh.clientHeight * XEM.z * (rongCao() || 0.7)) + 'px'; }
       };
       $('#zCong', nd).onclick = function () { XEM.z = Math.min(4, XEM.z * 1.35); dat(); };
       $('#zTru', nd).onclick = function () { XEM.z = Math.max(1, XEM.z / 1.35); dat(); };
       $('#zVua', nd).onclick = function () { XEM.z = 1; dat(); };
+      if ($('#zGoc', nd)) $('#zGoc', nd).onclick = function () { xemGoc = !xemGoc; veXem(); };
       im.ondblclick = function () { XEM.z = XEM.z > 1 ? 1 : 2; dat(); };
-      im.onload = dat;
       kh.addEventListener('wheel', function (e) { if (!e.ctrlKey) return; e.preventDefault(); XEM.z = Math.max(1, Math.min(4, XEM.z * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); dat(); }, { passive: false });
-      if (XEM.z > 1) dat();
+      if (sach) {
+        var goc = XEM.goc, anh = new Image();
+        anh.onload = function () {
+          if (!XEM || XEM.goc !== goc) return;          // đã chuyển sang bài khác
+          im.width = anh.naturalWidth; im.height = anh.naturalHeight;
+          var c = im.getContext('2d'), T = MAU[ky().mau];
+          c.drawImage(anh, 0, 0);
+          if (!xemGoc) VE.danhDau(c, T, ky(), goc, im.width / (T.khung[2] - T.khung[0]));
+          dat();
+        };
+        anh.src = a;
+      } else { im.onload = dat; if (XEM.z > 1) dat(); }
     }
   }
   function nutBong(nhan, co, kieu, dl) { return '<button class="bong' + (co ? ' ' + kieu : '') + '" ' + dl + '>' + nhan + '</button>'; }
@@ -2720,7 +2812,7 @@ var QUET = (function () {
     var nhung = !!(XEM.tc && XEM.tc.nhung);
     h += moi ? '<h3 style="margin:0 0 6px">Thêm bài bằng tay</h3>' : '<div class="dieuHuong"><button id="sTruoc" title="Học sinh trước (← trên bàn phím)">‹</button><span>' + (XEM.vt + 1) + ' / ' + XEM.n + '</span><button id="sSau" title="Học sinh sau (→ trên bàn phím)">›</button>' + (nhung ? '' : '<button id="sDong" title="Đóng (Esc)">✕</button>') + '</div>';
     if (XEM.tc && XEM.tc.dau) h += XEM.tc.dau(XEM.goc);
-    if (!moi && XEM.goc.anh && !XEM.goc.anhSach && String(XEM.goc.anh).indexOf('data:') !== 0) h += '<div class="mo" style="font-size:12.5px;margin:0 0 6px">Ảnh này chụp bằng bản cũ nên dấu trên ảnh không tự vẽ lại khi sửa (điểm vẫn tính theo bài đã sửa).</div>';
+    if (!moi && XEM.goc.anh && !anhSachCua(XEM.goc) && String(XEM.goc.anh).indexOf('data:') !== 0) h +='<div class="mo" style="font-size:12.5px;margin:0 0 6px">Ảnh này chụp bằng bản cũ nên dấu trên ảnh không tự vẽ lại khi sửa (điểm vẫn tính theo bài đã sửa).</div>';
     h += '<div class="hang" style="align-items:flex-start;gap:10px;flex-wrap:nowrap"><div style="flex:1;min-width:0"><div style="font-size:19px;font-weight:900">' + esc(hs ? hs.ten : (r.sbd ? 'Không có SBD ' + r.sbd + ' trong danh sách' : 'Chưa nhập số báo danh')) + '</div><div class="mo">' + (hs ? 'Lớp ' + esc(hs.lop) + ' · SBD ' + esc(r.sbd) : '') + '</div></div>' +
       '<button id="sGan" class="nho" style="flex:none">Gán học sinh</button></div>' +
       '<div class="o2 hep" style="margin:8px 0 4px"><div class="so"><small>Điểm</small><b class="v">' + (c.loi ? '—' : vn(c.diem)) + '</b></div><div class="so"><small>Phần I</small><b>' + vn(c.d1 || 0) + '</b></div><div class="so"><small>Phần II</small><b>' + vn(c.d2 || 0) + '</b></div><div class="so"><small>Phần III</small><b>' + vn(c.d3 || 0) + '</b></div></div>' +
@@ -2795,28 +2887,12 @@ var QUET = (function () {
     o.onclick = function (e) { if (e.target === o) dong(); };
     ve(); setTimeout(function () { $('#chTim').focus(); }, 30);
   }
-  // Vẽ lại dấu chấm lên ẢNH SẠCH (lưu lúc quét) theo bài đã sửa và đáp án hiện tại -> dataURL ảnh mới
-  function veLaiAnh(k, m) {
-    var src = String(m.anhSach || '');
-    var lay = src[0] === '/' ? Promise.resolve(src) : API.goi('layAnh', { kyThi: k.id, id: src }).then(function (r) { return 'data:image/jpeg;base64,' + r.b64; });
-    return lay.then(function (url) {
-      return new Promise(function (ok, hong) {
-        var im = new Image();
-        im.onload = function () {
-          var cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
-          var c = cv.getContext('2d'), T = MAU[k.mau];
-          c.drawImage(im, 0, 0);
-          VE.danhDau(c, T, k, m, cv.width / (T.khung[2] - T.khung[0]));
-          ok(cv.toDataURL('image/jpeg', 0.74));
-        };
-        im.onerror = function () { hong(new Error('Không tải được ảnh sạch')); };
-        im.src = url;
-      });
-    });
-  }
+  // Lưu bài đã sửa: chỉ gửi dữ liệu (không gửi ảnh). Ảnh sạch giữ nguyên; lúc xem, app tự xoá nét tô cũ ở câu đã sửa,
+  // tô lại lựa chọn mới như học sinh tô và vẽ dấu theo đáp án hiện tại (VE.danhDau) – bấm Lưu một lần là xong.
   function luuBai() {
     var k = ky(), r = XEM.r, moi = XEM.id === null, sbd = String(r.sbd || '').trim(), tc = XEM.tc;
     if (moi && !/^\d+$/.test(sbd)) return bao('Cần nhập số báo danh.');
+    if (XEM.goc.chuaGui) return bao('Bài này còn đang gửi lên web – đợi gửi xong (bấm ⟳ Tải lại) rồi hãy sửa.', 6000);
     var m = tinhLai(k, r, sbd, r.made);
     m.nghi = []; m = boTam(m); m.tenKy = k.ten; m.ghiDe = true;
     if (!m.anh && XEM.goc.anh && String(XEM.goc.anh).indexOf('data:') !== 0) m.anh = XEM.goc.anh;
@@ -2829,22 +2905,13 @@ var QUET = (function () {
     }
     if (!moi && idMoi !== idCu) truoc = API.goi('xoaKetQua', { id: idCu, kyThi: k.id, giuAnh: true });
     m.id = idMoi;
-    var veLai = !!(m.anhSach && m.vt);              // bài quét từ bản 1.1.11: vẽ lại ảnh theo bài đã sửa
-    // cập nhật ngay trên màn hình, gửi máy chủ sau
+    // cập nhật ngay trên màn hình (ảnh vẽ lại ngay theo bài đã sửa), gửi máy chủ sau
     var hien = sao(m); delete hien.tenKy; delete hien.ghiDe; if (!hien.anh) hien.anh = XEM.goc.anh;
-    if (veLai) hien.anhDangVe = true;
     KQ = KQ.filter(function (x) { return x.id !== idCu && x.id !== idMoi; }); KQ.push(hien); KQC[k.id] = KQ;
     bao('Đã lưu · điểm mới: ' + vn(m.diem) + baoTrung, baoTrung ? 7000 : 3200);
     if (tc && tc.sauLuu) tc.sauLuu(idMoi);
     else { veChinh(); if (moi) dongHop(); else moBai(idMoi, XEM && XEM.ds ? XEM.ds.map(function (x) { return x === idCu ? idMoi : x; }) : null, tc); }
-    var anhMoi = veLai ? veLaiAnh(k, m).catch(function (e) { bao('Chưa vẽ lại được ảnh: ' + e.message, 6000); return ''; }) : Promise.resolve('');
-    Promise.all([truoc, anhMoi]).then(function (x) {
-      var du = x[1], gui = { dl: m };
-      delete hien.anhDangVe;
-      if (du) { gui.anh = du.split(',')[1]; hien.anh = du; }          // hiện ngay ảnh mới (giữ trong bộ nhớ tới lần tải lại)
-      if (XEM && XEM.goc === hien) veXem();
-      return API.goi('luuKetQua', gui).then(function (rr) { if (rr.anhSach) hien.anhSach = rr.anhSach; });
-    }).catch(loi);
+    truoc.then(function () { return API.goi('luuKetQua', { dl: m }); }).catch(loi);
   }
   function xoaBai() {
     var k = ky(), r = XEM.goc;
@@ -3641,6 +3708,23 @@ var QUET = (function () {
     return cot || '<div class="mo">Bài thi này không có Phần III.</div>';
   }
   var CHE_TK = [['nghi', 'Nghi máy quét nhầm'], ['thieu', 'Tô thiếu / sai SBD'], ['trung', 'Trùng SBD'], ['sot', 'Tô sót đáp án'], ['gt', 'Lọc theo đáp án Phần III']];
+  // số chỗ khác nhau giữa hai bài (mã đề, từng câu / ý, từng kí tự Phần III)
+  function soKhacBai(a, b) {
+    var s = [a.made, a.p1, a.p2, (a.p3 || []).join(';')].join('|'), t = [b.made, b.p1, b.p2, (b.p3 || []).join(';')].join('|'), n = Math.abs(s.length - t.length);
+    for (var i = 0; i < Math.min(s.length, t.length); i++) if (s[i] !== t[i]) n++;
+    return n;
+  }
+  // các bài thừa trong những nhóm trùng SBD giống hệt nhau (mỗi nhóm giữ bài chấm sớm nhất, ưu tiên bài đã có ảnh)
+  function nhomGiongHet() {
+    var nhom = {}, thua = [];
+    KQ.forEach(function (r) { if (/^\d+$/.test(r.sbd) && !r.chuaGui) { var kh = r.sbd + '|' + [r.made, r.p1, r.p2, (r.p3 || []).join(';')].join('|'); (nhom[kh] = nhom[kh] || []).push(r); } });
+    Object.keys(nhom).forEach(function (kh) {
+      var ds = nhom[kh]; if (ds.length < 2) return;
+      ds.sort(function (a, b) { return (b.anh ? 1 : 0) - (a.anh ? 1 : 0) || String(a.luc).localeCompare(String(b.luc)); });
+      thua = thua.concat(ds.slice(1));
+    });
+    return thua;
+  }
   function daBoQua(r, che) { return !!(r.boQua && r.boQua[che]) || !!boQuaTam[che + '|' + r.id]; }
   function chuanGT(s) { return String(s == null ? '' : s).trim().replace(/\./g, ','); }
   function sbdMay(r) { return String(r.sbdDoc || r.sbd || '').replace(/_/g, '?').replace(/\*/g, '⁑'); }
@@ -3687,10 +3771,14 @@ var QUET = (function () {
           kt.sbd === 'thiếu' ? 'Số báo danh tô thiếu (máy đọc <b>' + esc(sbdMay(r)) + '</b>, ? = cột không tô)' : 'SBD <b>' + esc(r.sbd) + '</b> không có trong danh sách lớp'] });
       } else if (che === 'trung') {
         if (!/^\d+$/.test(r.sbd) || !(soSbd[r.sbd] > 1)) return;
-        var vt = function (x) { return [x.made, x.p1, x.p2, (x.p3 || []).join(';')].join('|'); };
         var khac = KQ.filter(function (x) { return x !== r && x.sbd === r.sbd; });
         ds.push({ r: r, hs: true, ghi: ['SBD <b>' + esc(r.sbd) + '</b> có ' + soSbd[r.sbd] + ' bài. Bài này: ' + vn(r.diem) + ' điểm, mã đề ' + esc(r.made) + '.'].concat(khac.map(function (x) {
-          return 'Bài kia: ' + vn(x.diem) + ' điểm, mã đề ' + esc(x.made) + (vt(x) === vt(r) ? ' – <b>giống hệt bài này</b> (cùng một tờ phiếu, xoá bớt một bài)' : ' – khác bài này (có thể học sinh khác tô nhầm SBD: gán lại đúng học sinh)');
+          var n = soKhacBai(x, r), anh = anhUrl(anhSachCua(x) || x.anh);
+          return 'Bài kia: ' + vn(x.diem) + ' điểm, mã đề ' + esc(x.made) +
+            (n === 0 ? ' – <b>giống hệt bài này</b>: cùng một tờ bị chấm 2 lần, xoá bớt một bài' :
+              n <= 3 ? ' – <b>gần giống</b> (khác ' + n + ' chỗ): có thể cùng một tờ chấm lại khi tay còn che / ảnh mờ – giữ bài ảnh rõ, xoá bài kia' :
+                ' – <b>khác ' + n + ' chỗ</b>: có thể học sinh khác tô trùng SBD – so họ tên trên ảnh rồi gán lại đúng học sinh') +
+            (anh ? '<br><img class="anhSoSanh" src="' + esc(anh) + '" alt="Ảnh bài kia" title="Ảnh bài kia (so họ tên viết tay)">' : '');
         })) });
       } else if (che === 'sot') {
         var t = cauTrong(k, r).filter(function (c) { return !chiMoTK || c.mo; });
@@ -3726,7 +3814,11 @@ var QUET = (function () {
     if (cheTK === 'nghi') h += '<span class="mo" style="font-size:13px;flex:1;min-width:260px">Chỗ có lí do để nghi <b>máy</b> đọc sai: Phần III máy đọc dư 1 kí tự hoặc thấy 2 ô trong một cột so với đáp án; câu máy “chưa chắc” mà kết quả là bỏ trống / tô 2 ô.</span>' +
       (soChac ? '<button id="tkApTat">✓ Cập nhật tất cả gợi ý chắc chắn (' + soChac + ')</button>' : '');
     if (cheTK === 'thieu') h += '<span class="mo" style="font-size:13px">Bài chưa gán được học sinh: SBD tô thiếu, tô 2 ô trong một cột hoặc không có trong danh sách lớp. Gợi ý là học sinh chưa có bài, khớp nhiều chữ số SBD nhất.</span>';
-    if (cheTK === 'trung') h += '<span class="mo" style="font-size:13px">Các bài có cùng SBD (vd. hai máy cùng chấm, hoặc học sinh tô nhầm SBD của bạn khác). Giống hệt nhau thì xoá bớt một bài; khác nhau thì gán lại đúng học sinh.</span>';
+    if (cheTK === 'trung') {
+      var giongHet = nhomGiongHet();
+      h += '<span class="mo" style="font-size:13px;flex:1;min-width:260px">Các bài có cùng SBD (một tờ bị chấm 2 lần, hai máy cùng chấm, hoặc học sinh tô nhầm SBD của bạn khác). Giống hệt / gần giống thì xoá bớt một bài; khác nhiều thì gán lại đúng học sinh.</span>' +
+        (giongHet.length ? '<button id="tkXoaTrung">🧹 Tự xoá ' + giongHet.length + ' bài trùng giống hệt</button>' : '');
+    }
     if (cheTK === 'sot') h += '<label class="mo" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="tkChiMo"' + (chiMoTK ? ' checked' : '') + '> Chỉ câu máy thấy có vết tô mờ (bỏ chọn để xem mọi câu bỏ trống)</label>';
     if (cheTK === 'gt') h += '<span class="mo" style="font-size:13px">Gộp mọi mã đề. Mỗi cột một câu: ô xanh là đáp án đúng, bên dưới là các câu trả lời sai và số bài. Bấm một ô đỏ để xem bài ở khung bên phải.</span>' +
       '<div class="o" style="margin-left:auto"><label>Xếp câu trả lời sai</label><select id="gtXep"><option value="gt"' + (xepGT === 'gt' ? ' selected' : '') + '>Theo giá trị (lớn → nhỏ)</option><option value="so"' + (xepGT === 'so' ? ' selected' : '') + '>Theo số bài (nhiều → ít)</option></select></div>';
@@ -3741,6 +3833,16 @@ var QUET = (function () {
     if ($('#gtXep')) $('#gtXep').onchange = function () { xepGT = this.value; veChinh(); };
     $$('#noiDung [data-che]').forEach(function (b) { b.onclick = function () { cheTK = b.getAttribute('data-che'); vtTK = 0; XEM = null; veChinh(); }; });
     if ($('#tkChiMo')) $('#tkChiMo').onchange = function () { chiMoTK = this.checked; vtTK = 0; veChinh(); };
+    if ($('#tkXoaTrung')) $('#tkXoaTrung').onclick = function () {
+      var xoa = nhomGiongHet();
+      if (!xoa.length || !confirm('Xoá ' + xoa.length + ' bài trùng GIỐNG HỆT (cùng SBD, cùng mã đề, cùng bài làm)?\nMỗi nhóm giữ lại 1 bài; ảnh bài bị xoá vào thùng rác Google Drive.')) return;
+      var ids = xoa.map(function (r) { return r.id; });
+      KQ = KQ.filter(function (x) { return ids.indexOf(x.id) < 0; }); KQC[k.id] = KQ;
+      XEM = null; vtTK = 0; veChinh();
+      bao('Đang xoá ' + ids.length + ' bài trùng…', 30000);
+      ids.reduce(function (p, id) { return p.then(function () { return API.goi('xoaKetQua', { id: id, kyThi: k.id }); }); }, Promise.resolve())
+        .then(function () { bao('Đã xoá ' + ids.length + ' bài trùng giống hệt', 5000); }).catch(loi);
+    };
     $$('#noiDung [data-gt]').forEach(function (b) {
       b.onclick = function () {
         var p = b.getAttribute('data-gt').split('|'), i = +p[0], v = p.slice(1).join('|');
