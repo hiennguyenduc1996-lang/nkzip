@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.3.2';</script>
+<script>window.NK_BAN = '1.3.3';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -404,7 +404,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.2</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.3</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -415,7 +415,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.2 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.3 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -444,7 +444,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.3.2 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.3.3 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1301,7 +1301,7 @@ if (typeof module !== 'undefined') module.exports = CHAM;
  *                                         to (tô như bút chì), xoa (xoá nét tô: vẽ lại ô tròn trống), nhan (chữ trên nền màu)
  *   VE.taoVT(doc)                      -> vị trí các ô học sinh đã tô (lưu kèm bài: kq.vt)
  *   VE.danhDau(c, TPL, KY, kq, px)     -> vẽ theo bài làm HIỆN TẠI của kq: câu giáo viên đã sửa (khác kq.goc) thì xoá nét tô cũ,
- *                                         tô lại đúng lựa chọn mới như học sinh tô, rồi vẽ dấu đúng / sai theo đáp án của KY.
+ *                                         khoanh lựa chọn mới (không tô chấm đen), rồi vẽ dấu đúng / sai theo đáp án của KY.
  *
  * Từ bản 1.3 mỗi bài chỉ lưu ẢNH SẠCH (kq.sach); dấu được vẽ lúc xem nên sửa bài / đổi đáp án là ảnh tự đúng.
  */
@@ -1401,11 +1401,10 @@ var VE = (function () {
     var k0 = TPL.khung;
     // nhãn "sửa" ở bên phải câu giáo viên đã chỉnh tay
     function sua(o) { var p = b.tam(o); b.nhan('sửa', p[0] + b.R * 1.5, p[1] - px * 0.3, CAM, Math.round(px * 0.34)); }
-    // câu đã sửa (Phần I, II): xoá các ô học sinh đã tô, tô lại đúng lựa chọn mới như học sinh tô
+    // câu đã sửa (Phần I, II): xoá các ô học sinh đã tô; lựa chọn mới chỉ được khoanh (không tô chấm đen – chấm đen là của ảnh gốc)
     function veLai(os, cu, moi, bang, nhieu) {
       var oCu = bang.indexOf(cu) >= 0 ? [bang.indexOf(cu)] : cu === '*' && nhieu ? nhieu : [];
       oCu.forEach(function (x) { if (os[x]) b.xoa(os[x]); });
-      if (bang.indexOf(moi) >= 0) b.to(os[bang.indexOf(moi)]);
     }
     if (ch && !ch.loi) {
       for (i = 0; i < TPL.p1.length; i++) {
@@ -1444,7 +1443,6 @@ var VE = (function () {
           // xoá mọi ô học sinh đã tô ở câu này rồi tô lại giá trị mới từ cột đầu
           if (cot) cot.forEach(function (x, jj) { (Array.isArray(x) ? x : x >= 0 ? [x] : []).forEach(function (h) { b.xoa(TPL.p3[i][jj][h]); }); });
           dat = datMoiP3(gt, TPL.p3hang, TPL.p3[i].length);
-          dat.forEach(function (d) { b.to(TPL.p3[i][d.j][d.o[0]]); });
         } else if (cot) dat = cotP3(cot, gt, TPL.p3hang);
         else dat = datMoiP3(gt, TPL.p3hang, TPL.p3[i].length);
         dat.forEach(function (d) { d.o.forEach(function (h) { if (ch.ct3[i]) b.vong(TPL.p3[i][d.j][h], XANH); else b.sai(TPL.p3[i][d.j][h]); }); });
@@ -1465,7 +1463,7 @@ var VE = (function () {
           v = nhanMa.indexOf(mdMoi[i]);
           if (v < 0 || vt.made[i] === v) continue;
           if (vt.made[i] >= 0) b.xoa(TPL.made[i][vt.made[i]]);
-          b.to(TPL.made[i][v]); daDoi = true;
+          daDoi = true;
         }
       }
       if (daDoi) {
@@ -1918,7 +1916,16 @@ var QUET = (function () {
   //  4) đủ sáng;  5) kết quả đọc giữ nguyên ~1 giây (máy và phiếu đứng yên).
   // Đọc theo kiểu "tối ưu": nhiều khung hình × nhiều mức ngưỡng rồi bỏ phiếu. Mỗi lần đưa phiếu vào chỉ chấm MỘT lần:
   // phải đưa phiếu ra khỏi khung (mất các ô vuông đen) rồi mới nhận tờ tiếp theo.
-  var NGUONG_NET = 0.12, GIAY_TOI = 80, GIU_YEN = 1000, ROI_KHUNG = 500;
+  // GIU_YEN: tờ phiếu (4 góc) đứng yên bao lâu thì chấm; XE_DICH: góc lệch quá tỉ lệ này của đường chéo = phiếu đang di chuyển
+  var NGUONG_NET = 0.12, GIAY_TOI = 80, GIU_YEN = 900, ROI_KHUNG = 400, XE_DICH = 0.012, DOI_TO = 0.04;
+  function gocPhieu(H) { var k = TPL.khung; return [OMR.ap(H, k[0], k[1]), OMR.ap(H, k[2], k[1]), OMR.ap(H, k[2], k[3]), OMR.ap(H, k[0], k[3])]; }
+  function lech(a, b) {                               // độ xê dịch lớn nhất của 4 góc, tính theo đường chéo tờ phiếu
+    var cheo = Math.hypot(a[2][0] - a[0][0], a[2][1] - a[0][1]) || 1, m = 0;
+    for (var i = 0; i < 4; i++) m = Math.max(m, Math.hypot(a[i][0] - b[i][0], a[i][1] - b[i][1]));
+    return m / cheo;
+  }
+  // tờ vừa đọc có phải tờ khác tờ đã chấm không: SBD / mã đề khác, hoặc bài làm khác từ 4 chỗ (đọc lại cùng tờ chỉ lệch 1–2 ô lưng chừng)
+  function toKhac(a, b) { return a.sbd !== b.sbd || a.made !== b.made || soKhac(a, b) >= 4; }
   function motKhung(w, h) {
     var bay = Date.now();
     // tạm dừng khi đang hỏi, đang xem lại bài hoặc đang chọn học sinh để gán
@@ -1935,32 +1942,36 @@ var QUET = (function () {
       return;
     }
     phieu.mat = bay;
-    var cam = function (s) { veKhung(m.goc, w / wn, '#ffb020'); tt(s); phieu.on = null; phieu.ds = []; };
+    // cam: có vấn đề làm hỏng lần đọc (che tay, thiếu mốc…) → bắt đầu đếm lại; boQua: chỉ bỏ khung hình này (vd. một khung mờ)
+    var cam = function (s) { veKhung(m.goc, w / wn, '#ffb020'); tt(s); phieu.on = null; phieu.ds = []; phieu.dong = true; };
+    var boQua = function (s) { veKhung(m.goc, w / wn, '#ffb020'); if (!phieu.ds.length) tt(s); };
     // 2) đọc trên ảnh đủ phân giải
     if (cvL.width !== w || cvL.height !== h) { cvL.width = w; cvL.height = h; }
     cxL.drawImage(video, 0, 0, w, h);
     var anhL = cxL.getImageData(0, 0, w, h), G = OMR.xam(anhL);
     var t = OMR.tinhChinh(G, OMR.tiLe(m.H, w / wn), TPL);
-    if (!t) return cam('Giữ yên máy, phiếu đang mờ');
+    if (!t) return boQua('Giữ yên máy, phiếu đang mờ');
     if (t.soMoc < TPL.moc.length) return cam('Đưa trọn tờ phiếu vào khung – chưa thấy đủ ' + TPL.moc.length + ' ô vuông đen');
-    var M = OMR.doCacO(G, t.H, TPL, t.den), doc = OMR.quyetDinh(M, TPL, 1);
-    if (phieu.xong) {
-      // tờ vừa chấm vẫn nằm trong khung: không chấm lại. Chỉ nhận tờ khác (đổi tờ mà không rời khung) khi
-      // đọc ra khác hẳn (SBD / mã đề khác hoặc khác nhiều câu) và giữ nguyên 1,5 giây.
-      if (soKhac(doc, phieu.xong) < 6) { veKhung(m.goc, w / wn, '#27c26c'); tt('Đã chấm tờ này – đưa phiếu ra rồi đưa tờ tiếp theo vào'); phieu.moi = null; return; }
-      if (!phieu.moi || soKhac(doc, phieu.moi.doc) > 2) { phieu.moi = { doc: doc, tu: bay }; return; }
-      if (bay - phieu.moi.tu < 1500) return;
-      phieu = phieuMoi(); phieu.mat = bay;
-    }
-    // 3) chất lượng ảnh: nét, đủ sáng, không có vật che
+    // 3) phiếu có đứng yên không: so 4 góc với lúc bắt đầu đứng yên
+    var goc = gocPhieu(t.H), dl = phieu.on ? lech(goc, phieu.on.goc) : 1;
+    if (phieu.xong && lech(goc, phieu.xong.goc) > DOI_TO) phieu.dong = true;      // tờ đã chấm bị nhấc / thay tờ khác
+    if (dl > XE_DICH) { phieu.on = { goc: goc, tu: bay }; phieu.ds = []; if (dl < 1) phieu.dong = true; }
+    // 4) chất lượng ảnh: nét, đủ sáng, không có vật che
     var net = OMR.doNet(G, t.H, TPL);
-    if (net > NGUONG_NET) return cam('Ảnh đang mờ – giữ yên máy, đủ sáng, đưa gần hơn một chút');
+    if (net > NGUONG_NET) return boQua('Ảnh đang mờ – giữ yên máy, đủ sáng, đưa gần hơn một chút');
     var che = OMR.kiemChe(G, t.H, TPL, anhL);
     if (che.giay < GIAY_TOI) return cam('Phiếu quá tối – bật đèn hoặc ra chỗ sáng hơn');
     if (che.che) return cam('Có tay hoặc vật che lên phiếu – rút tay ra, giữ yên máy');
+    var M = OMR.doCacO(G, t.H, TPL, t.den);
+    if (phieu.xong && !phieu.dong) {
+      // tờ vừa chấm vẫn nằm yên trong khung: không chấm lại – trừ khi đọc nhanh thấy khác hẳn (tờ mới đặt đúng chỗ tờ cũ)
+      var d1 = OMR.quyetDinh(M, TPL, 1), x = phieu.xong.doc;
+      if (d1.sbd === x.sbd && d1.made === x.made && soKhac(d1, x) < 6) {
+        veKhung(m.goc, w / wn, '#27c26c'); tt('Đã chấm tờ này – đưa tờ tiếp theo vào'); return;
+      }
+      phieu.dong = true; phieu.on = { goc: goc, tu: bay }; phieu.ds = [];
+    }
     veKhung(m.goc, w / wn, '#3d8bfd');
-    // 4) giữ yên: kết quả đọc gần như không đổi trong ~1 giây (cho phép 1–2 ô lưng chừng, phần bỏ phiếu sẽ quyết)
-    if (!phieu.on || soKhac(doc, phieu.on.doc) > 2) { phieu.on = { doc: doc, tu: bay }; phieu.ds = []; }
     phieu.ds.push({ M: M, net: net, G: G, H: t.H });
     if (phieu.ds.length > 4) phieu.ds.shift();
     if (bay - phieu.on.tu < GIU_YEN || phieu.ds.length < 3) { tt('Giữ yên phiếu…'); return; }
@@ -1968,12 +1979,16 @@ var QUET = (function () {
     var khung = phieu.ds.slice().sort(function (a, b) { return a.net - b.net; }), docs = [];
     khung.forEach(function (f, i) { HE_TOI_UU.forEach(function (he) { docs.push(i === 0 && he === 1 ? null : OMR.quyetDinh(f.M, TPL, he)); }); });
     docs[0] = OMR.quyetDinh(khung[0].M, TPL, 1);
-    chot(OMR.bauChon(docs, TPL), khung[0].G, khung[0].H, bay);
+    var kq = OMR.bauChon(docs, TPL);
+    if (phieu.xong && !toKhac(kq, phieu.xong.doc)) {  // vẫn là tờ cũ (chỉ bị xê dịch): không chấm lại
+      phieu.xong.goc = goc; phieu.dong = false; phieu.ds = []; return;
+    }
+    chot(kq, khung[0].G, khung[0].H, bay, goc);
   }
-  function phieuMoi() { return { tu: 0, mat: 0, ds: [], on: null, moi: null, xong: null }; }
-  // đã chấm xong tờ này: nhớ kết quả để không chấm lại khi tờ phiếu vẫn nằm trong khung
-  function chot(doc, G, H, bay) {
-    khoaVua = doc.khoa; phieu = phieuMoi(); phieu.xong = doc; phieu.mat = bay; tgCham = bay;
+  function phieuMoi() { return { mat: 0, ds: [], on: null, dong: false, xong: null }; }
+  // đã chấm xong tờ này: nhớ kết quả + vị trí để không chấm lại khi tờ phiếu vẫn nằm yên trong khung
+  function chot(doc, G, H, bay, goc) {
+    khoaVua = doc.khoa; phieu = phieuMoi(); phieu.xong = { doc: doc, goc: goc }; phieu.mat = bay; tgCham = bay;
     nhan(doc, G, H);
   }
   // số chỗ khác nhau giữa hai lần đọc (SBD, mã đề, từng câu / ý / kí tự Phần III)
@@ -2304,7 +2319,9 @@ var QUET = (function () {
   dayHangCho();
   return {
     mo: mo, dong: dong, choGui: choGui, xuLyAnh: xuLyAnh, boKy: boKy,
-    thuKhung: function (w, h) { kichThu = { w: w, h: h }; veKhung(null, 1, '#3d8bfd'); }
+    thuKhung: function (w, h) { kichThu = { w: w, h: h }; veKhung(null, 1, '#3d8bfd'); },
+    // chỉ để thử (tests): xử lí một "khung hình camera" lấy từ canvas / ảnh nguồn
+    thuMotKhung: function (nguon, w, h) { var v = video; video = nguon; try { motKhung(w, h); } finally { video = v; } return { tt: $('qTT').textContent, soBai: soBai }; }
   };
 })();
 
