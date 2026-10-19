@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.4.0';</script>
+<script>window.NK_BAN = '1.4.1';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -414,7 +414,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.4.0</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.4.1</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -426,7 +426,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.4.0 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.4.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -455,7 +455,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.4.0 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.4.1 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1651,6 +1651,14 @@ var FBK = (function () {
     });
   }
 
+  // Firestore không lưu được mảng lồng mảng (vd. vị trí ô tô Phần III trong kq.vt): cất cả đối tượng thành chuỗi JSON 'j',
+  // chỉ tách riêng vài trường để tìm / phân quyền (kyThi, sbd, chu) và ảnh. Đọc ra thì ghép lại như cũ.
+  function dong(o) { return { id: o.id || '', kyThi: o.kyThi || '', chu: o.chu || '', sbd: String(o.sbd == null ? '' : o.sbd), anh: o.anh || '', j: JSON.stringify(o) }; }
+  function moDong(d) {
+    if (!d || typeof d.j !== 'string') return d;
+    try { var o = JSON.parse(d.j); if (d.anh) o.anh = d.anh; return o; } catch (e) { return d; }
+  }
+
   // ---- lưu một bài (giống luuNhieuBai_ / luuKetQua_ của Apps Script) ----
   // dl.ghiDe === false (máy quét): cùng mã mà khác bài → lưu thành bài riêng _2, _3…; giống hệt → bỏ qua
   function luuMot(dl, anh) {
@@ -1660,9 +1668,11 @@ var FBK = (function () {
       var rk = db.collection('kq').doc(goc);
       return rk.get().then(function (s) {
         if (!s.exists) return { ok: true, id: goc, anh: '', boQua: true };
-        if (!anh) return { ok: true, id: goc, anh: s.data().anh || '' };
-        return db.collection('anh').doc(goc).set({ kyThi: s.data().kyThi || dl.kyThi || '', b64: anh })
-          .then(function () { return rk.update({ anh: 'fs:' + goc, sach: true }); })
+        var cuA = moDong(s.data());
+        if (!anh) return { ok: true, id: goc, anh: cuA.anh || '' };
+        cuA.anh = 'fs:' + goc; cuA.sach = true;
+        return db.collection('anh').doc(goc).set({ kyThi: cuA.kyThi || dl.kyThi || '', b64: anh })
+          .then(function () { return rk.set(dong(cuA)); })
           .then(function () { ANH[goc] = null; return { ok: true, id: goc, anh: 'fs:' + goc }; });
       });
     }
@@ -1672,15 +1682,15 @@ var FBK = (function () {
         var ref = db.collection('kq').doc(id);
         return tx.get(ref).then(function (s) {
           if (s.exists && !ghiDe) {
-            var cu = s.data();
+            var cu = moDong(s.data());
             if (vanTay(cu) === vanTay(dl)) return { ok: true, id: id, anh: cu.anh || '', trung: 'giong' };
             trung = 'khac'; return thu(goc + '_' + n, n + 1);
           }
           var m = sach(dl); m.id = id;
           if (anh) { m.anh = 'fs:' + id; m.sach = true; }
-          else if (s.exists && s.data().anh && !m.anh) m.anh = s.data().anh;
+          else if (s.exists && moDong(s.data()).anh && !m.anh) m.anh = moDong(s.data()).anh;
           if (String(m.anh || '').indexOf('data:') === 0) m.anh = '';
-          tx.set(ref, m);
+          tx.set(ref, dong(m));
           return { ok: true, id: id, anh: m.anh || '', trung: trung };
         });
       }
@@ -1691,8 +1701,8 @@ var FBK = (function () {
     });
   }
 
-  function taiKyThi() { return db.collection('kyThi').get().then(function (s) { return s.docs.map(function (d) { return d.data(); }).sort(function (a, b) { return String(a.tao || a.id) < String(b.tao || b.id) ? -1 : 1; }); }); }
-  function taiKQ(kyThi) { return db.collection('kq').where('kyThi', '==', kyThi).get().then(function (s) { return s.docs.map(function (d) { return d.data(); }); }); }
+  function taiKyThi() { return db.collection('kyThi').get().then(function (s) { return s.docs.map(function (d) { return moDong(d.data()); }).sort(function (a, b) { return String(a.tao || a.id) < String(b.tao || b.id) ? -1 : 1; }); }); }
+  function taiKQ(kyThi) { return db.collection('kq').where('kyThi', '==', kyThi).get().then(function (s) { return s.docs.map(function (d) { return moDong(d.data()); }); }); }
   var LOP = null;                  // lớp / học sinh lấy từ Apps Script (dùng chung với chế độ chấm trong lớp)
 
   function goi(viec, y, lan) {
@@ -1709,8 +1719,8 @@ var FBK = (function () {
         case 'luuKyThi':
           var ref = db.collection('kyThi').doc(y.dl.id);
           return ref.get().then(function (s) {
-            var k = sach(y.dl); k.chu = s.exists && s.data().chu ? s.data().chu : API.toi();
-            return ref.set(k).then(function () { return { ok: true }; });
+            var k = sach(y.dl), cu = s.exists ? moDong(s.data()) : null; k.chu = cu && cu.chu ? cu.chu : API.toi();
+            return ref.set(dong(k)).then(function () { return { ok: true }; });
           });
         case 'xoaKyThi': return xoaKy(y.id).then(function () { return { ok: true }; });
         case 'xoaNhieuKyThi':
@@ -1726,9 +1736,12 @@ var FBK = (function () {
         case 'luuKetQua': return luuMot(y.dl, y.anh);
         case 'luuNhieuKetQua':              // chấm lại / sửa hàng loạt: ghi điểm mới, giữ nguyên ảnh
           return Promise.all(chia(y.ds || [], 400).map(function (lo) {
-            var b = db.batch();
-            lo.forEach(function (q) { q = sach(q); if (!q.anh) delete q.anh; b.set(db.collection('kq').doc(q.id), q, { merge: true }); });
-            return b.commit();
+            // giữ ảnh đã lưu khi bản gửi lên không kèm ảnh
+            return Promise.all(lo.map(function (q) { return q.anh ? null : db.collection('kq').doc(q.id).get(); })).then(function (cu) {
+              var b = db.batch();
+              lo.forEach(function (q, i) { q = sach(q); if (!q.anh && cu[i] && cu[i].exists) q.anh = moDong(cu[i].data()).anh || ''; b.set(db.collection('kq').doc(q.id), dong(q)); });
+              return b.commit();
+            });
           })).then(function () { return { ok: true }; });
         case 'xoaKetQua':
           var vc = [db.collection('kq').doc(y.id).delete()];
@@ -1774,7 +1787,7 @@ var FBK = (function () {
     sanSang().then(function () {
       if (dung) return;
       huy = db.collection('kq').where('kyThi', '==', kyThi).onSnapshot(function (s) {
-        if (!s.metadata.hasPendingWrites) cb(s.docs.map(function (d) { return d.data(); }));
+        if (!s.metadata.hasPendingWrites) cb(s.docs.map(function (d) { return moDong(d.data()); }));
       }, function () { /* mất quyền / mạng: thôi theo dõi, vẫn tải lại thủ công được */ });
     }).catch(function () {});
     return function () { dung = true; if (huy) huy(); };
