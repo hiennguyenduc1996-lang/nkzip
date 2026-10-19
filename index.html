@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.3.7';</script>
+<script>window.NK_BAN = '1.3.8';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -404,7 +404,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.7</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.8</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -415,7 +415,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.7 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.8 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -444,7 +444,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.3.7 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.3.8 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1729,22 +1729,38 @@ var QUET = (function () {
   })();
 
   // Hàng chờ gửi: bài CHỈ bị xoá khỏi máy khi máy chủ xác nhận đã lưu. Gửi hỏng thì giữ lại rồi gửi lại:
-  //  - rớt mạng / máy chủ quá tải: chờ 5 → 10 → 20 → 40 → 60 giây (thêm ngẫu nhiên để các máy không cùng gửi một lúc);
-  //  - máy chủ từ chối (vd. bài thi thuộc tài khoản khác): giữ bài, ghi lý do, 2 phút sau thử lại, vẫn gửi tiếp các bài khác.
+  //  - máy chủ QUÁ TẢI (Google trả trang lỗi, "too many simultaneous invocations", khoá bảng tính chờ quá lâu…):
+  //    KHÔNG báo lỗi – tự giảm tốc (1 lượt điểm, tạm dừng ảnh vài giây) rồi gửi lại sau 2–6 giây; gửi được thì tăng dần lại;
+  //  - rớt mạng: chờ 5 → 10 → 20 → 40 → 60 giây (thêm ngẫu nhiên để các máy không cùng gửi một lúc);
+  //  - máy chủ TỪ CHỐI thật (vd. bài thi thuộc tài khoản khác): giữ bài, báo lý do, 2 phút sau thử lại, vẫn gửi tiếp các bài khác.
   // Gửi 2 bước cho nhanh: (1) ĐIỂM trước – tối đa 25 bài một lượt, không kèm ảnh, nên bảng điểm lên web gần như ngay;
   // (2) ẢNH sau – tối đa 8 tấm một lượt, máy chủ tải lên Drive song song và chỉ gắn ảnh vào bài (không ghi đè dữ liệu).
-  // Hai làn riêng: làn ĐIỂM (tối đa 2 lượt cùng lúc) luôn còn chỗ nên bài vừa chấm lên web ngay, không phải xếp sau ảnh;
+  // Hai làn riêng: làn ĐIỂM (tối đa 3 lượt cùng lúc) để bài vừa chấm lên web ngay, không phải xếp sau ảnh;
   // làn ẢNH tối đa 2 lượt chạy ngầm. Bài ở bước 2 có m.buoc = 'anh', m.idMay = mã bài trên máy chủ.
   // Máy chủ bản cũ: chưa tách bước (r.ban != 2) thì bước 2 gửi lại cả bài kèm ảnh; chưa có 'luuNhieuBai' thì gửi từng bài.
   var choXong = [], conCho = 0, conDL = 0, DS_CHO = [], HOAN = {}, henGui = 0, khongGop = false, khongTach = false;
-  var DANG = {}, chay = 0, chayDL = 0, chayAnh = 0, dangDoc = false, docLai = false, SONG_DL = 2, SONG_ANH = 2, GOP_DL = 25, GOP_ANH = 8;
+  var DANG = {}, chay = 0, chayDL = 0, chayAnh = 0, dangDoc = false, docLai = false, SONG_DL = 3, SONG_ANH = 2, GOP_DL = 25, GOP_ANH = 8;
+  // tự điều chỉnh tốc độ: capDL / capAnh = số lượt được chạy cùng lúc lúc này; dungAnh = tạm dừng gửi ảnh tới thời điểm này
+  var capDL = SONG_DL, capAnh = SONG_ANH, dungAnh = 0, tot = 0;
   function sao(o) { return JSON.parse(JSON.stringify(o)); }
   function baoXong() { var c = choXong; choXong = []; c.forEach(function (f) { f(); }); }
-  function hoan(m, e, tuChoi) {
-    var h = HOAN[m.id] || { lan: 0 }, mang = !tuChoi && (e instanceof TypeError || !e || !e.message);
+  // lỗi do Google / Apps Script đang bận (tạm thời), không phải máy chủ từ chối bài
+  function laQuaTai(e) {
+    return !!(e && (e.quaTai || /too many|simultaneous|invoked|lock|timed? ?out|exceeded|try again|rate limit|quá tải|bận|Service/i.test(String(e.message || e))));
+  }
+  function giamToc() { capDL = 1; capAnh = 1; dungAnh = Date.now() + 6000 + Math.random() * 4000; tot = 0; }
+  function tangToc() {
+    if (++tot < 2) return;
+    tot = 0;
+    if (capDL < SONG_DL) capDL++; else if (capAnh < SONG_ANH) capAnh++;
+  }
+  // kieu: 'tai' = quá tải (gửi lại nhanh, im lặng), true = máy chủ từ chối, khác = mạng
+  function hoan(m, e, kieu) {
+    var h = HOAN[m.id] || { lan: 0 }, mang = !kieu && (e instanceof TypeError || !e || !e.message);
     h.lan++;
-    h.loi = mang ? 'Mất mạng / chưa kết nối được' : e && e.quaTai ? 'Máy chủ Google đang quá tải' : e && e.ma === 'dangnhap' ? 'Cần đăng nhập lại' : String(e && e.message || e);
-    h.sau = Date.now() + (tuChoi ? 120000 : Math.min(60000, 5000 * Math.pow(2, h.lan - 1)) * (0.75 + Math.random() * 0.5));
+    h.loi = kieu === 'tai' ? 'Máy chủ đang bận – tự gửi lại' : mang ? 'Mất mạng / chưa kết nối được' : e && e.ma === 'dangnhap' ? 'Cần đăng nhập lại' : String(e && e.message || e);
+    h.sau = Date.now() + (kieu === 'tai' ? Math.min(15000, 2000 * h.lan) * (0.7 + Math.random() * 0.6)
+      : kieu ? 120000 : Math.min(60000, 5000 * Math.pow(2, h.lan - 1)) * (0.75 + Math.random() * 0.5));
     HOAN[m.id] = h;
   }
   function doiMa(m, id) {                             // máy khác đã chấm cùng SBD (bài khác): máy chủ lưu thành bài riêng với mã mới
@@ -1777,18 +1793,19 @@ var QUET = (function () {
     HC.tat().then(function (ds) {
       dangDoc = false;
       ds = ds || []; DS_CHO = ds; conCho = ds.length; conDL = ds.filter(function (m) { return !m.buoc; }).length; capNhatDem();
-      var bay = Date.now(), lo;
+      var bay = Date.now(), lo, choAnh = bay < dungAnh;
       if (khongGop) { while (chay < 1 && (lo = chonLo(ds, bay, false) || chonLo(ds, bay, true))) guiLo(lo.ds, lo.anh); }   // máy chủ rất cũ: từng bài một
       else {
-        while (chayDL < SONG_DL && (lo = chonLo(ds, bay, false))) guiLo(lo.ds, false);
-        while (chayAnh < SONG_ANH && (lo = chonLo(ds, bay, true))) guiLo(lo.ds, true);
+        while (chayDL < capDL && (lo = chonLo(ds, bay, false))) guiLo(lo.ds, false);
+        if (!choAnh) while (chayAnh < capAnh && (lo = chonLo(ds, bay, true))) guiLo(lo.ds, true);
       }
-      if (!chay) {
-        baoXong();
-        if (ds.length) {                               // mọi bài còn lại đều đang đợi tới lượt gửi lại
-          var som = Math.min.apply(null, ds.map(function (x) { return HOAN[x.id] ? HOAN[x.id].sau : bay; }));
-          henGui = setTimeout(dayHangCho, Math.max(1000, som - bay));
-        }
+      if (!chay) baoXong();
+      if (ds.length) {                                 // bài đang đợi tới lượt gửi lại / ảnh đang tạm dừng: hẹn giờ gửi tiếp
+        var som = Math.min.apply(null, ds.filter(function (x) { return !DANG[x.id]; }).map(function (x) {
+          var t = HOAN[x.id] ? HOAN[x.id].sau : bay;
+          return x.buoc === 'anh' && choAnh ? Math.max(t, dungAnh) : t;
+        }).concat([bay + 60000]));
+        if (som > bay || !chay) henGui = setTimeout(dayHangCho, Math.max(500, som - bay));
       }
       if (docLai) { docLai = false; dayHangCho(); }
     }).catch(function () { dangDoc = false; if (!chay) baoXong(); henGui = setTimeout(dayHangCho, 8000); });
@@ -1811,19 +1828,25 @@ var QUET = (function () {
     }
     var xong = function () { lo.forEach(function (m) { delete DANG[m.id]; }); chay--; if (laAnh) chayAnh--; else chayDL--; dayHangCho(); };
     goi.then(function (kq) {
-      var viec = [], tuChoi = 0;
+      var viec = [], tuChoi = 0, tai = false;
       lo.forEach(function (m, i) {
         var r = kq[i];
         if (r && r.ok) viec.push(daLuu(m, r, laAnh).catch(function () {}));
-        else { hoan(m, new Error(r && r.loi || 'Máy chủ không lưu được bài'), true); tuChoi++; }
+        else {
+          var e = new Error(r && r.loi || 'Máy chủ không lưu được bài');
+          if (laAnh || laQuaTai(e)) { hoan(m, e, 'tai'); tai = true; }        // ảnh lỗi / máy chủ bận: tự gửi lại, không báo
+          else { hoan(m, e, true); tuChoi++; }
+        }
       });
+      if (tai) giamToc(); else tangToc();
       if (tuChoi) tt('Chưa lưu được ' + tuChoi + ' bài – bài vẫn giữ trên máy, sẽ gửi lại');
       return Promise.all(viec);
     }, function (e) {
       if (!khongGop && e && /Không rõ yêu cầu/.test(e.message || '')) { khongGop = true; return; }   // máy chủ bản cũ
-      var tuChoi = !!(e && e.message && !(e instanceof TypeError) && !e.quaTai && e.ma !== 'dangnhap');
+      if (laQuaTai(e)) { giamToc(); lo.forEach(function (m) { hoan(m, e, 'tai'); }); return; }       // quá tải: im lặng, giảm tốc
+      var tuChoi = !!(e && e.message && !(e instanceof TypeError) && e.ma !== 'dangnhap');
       lo.forEach(function (m) { hoan(m, e, tuChoi); });
-      if (tuChoi) tt('Chưa lưu được bài (' + HOAN[lo[0].id].loi + ') – bài vẫn giữ trên máy, sẽ gửi lại');
+      if (tuChoi && !laAnh) tt('Chưa lưu được bài (' + HOAN[lo[0].id].loi + ') – bài vẫn giữ trên máy, sẽ gửi lại');
     }).then(xong, xong);
   }
   // Bài thi bị xoá: bỏ các bài của bài thi đó còn nằm trong hàng chờ gửi
@@ -1834,6 +1857,9 @@ var QUET = (function () {
   }
   function choGui() { return new Promise(function (ok) { choXong.push(ok); dayHangCho(); setTimeout(ok, 15000); }); }
   window.addEventListener('online', dayHangCho);
+  // điện thoại tạm dừng trang khi chuyển sang ứng dụng khác: quay lại NKZip là gửi tiếp ngay (bài vẫn nằm an toàn trong máy)
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { HOAN = {}; dayHangCho(); } });
+  window.addEventListener('pageshow', function () { dayHangCho(); });
 
   // ---------- camera ----------
   var video, lop, luong = null, dangQuet = false, ranh = null, denBat = false;
@@ -2215,8 +2241,8 @@ var QUET = (function () {
   // Đối chiếu trên thanh trên cùng: "40 bài · ⏳ 3 chưa lên web" (cam) / "40 bài · ✓ đã lên web đủ" (xanh). Bấm vào để xem danh sách.
   function capNhatDem() {
     var e = $('qDem'); if (!e) return;
-    e.className = conDL ? 'cho' : soBai || conCho ? 'du' : '';
-    e.textContent = soBai + ' bài' + (conDL ? ' · ⏳ ' + conDL + ' chưa lên web' : soBai ? ' · ✓ đã lên web đủ' : '') + (conCho - conDL > 0 ? ' · 🖼 ' + (conCho - conDL) + ' ảnh đang gửi' : '');
+    e.className = conDL ? 'cho' : soBai ? 'du' : '';
+    e.textContent = soBai + ' bài' + (conDL ? ' · ⏳ ' + conDL + ' chưa lên web' : soBai ? ' · ✓ đã lên web đủ' : '');   // ảnh gửi ngầm phía sau: không báo
     if ($('qCho') && $('qCho').classList.contains('hien')) veCho();
   }
   function escQ(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -2229,16 +2255,16 @@ var QUET = (function () {
   }
   function veCho() {
     var o = $('qCho'), bay = Date.now();
-    var ds = DS_CHO.map(function (m) {
+    var ds = DS_CHO.filter(function (m) { return !m.buoc; }).map(function (m) {      // chỉ liệt kê bài chưa có điểm trên web
       var h = HOAN[m.id], kq = m.kq || {};
       return '<div class="choDong"><b>' + escQ(kq.ten || 'SBD ' + (kq.sbd || '?')) + '</b><span>' +
         (m.buoc === 'anh' ? 'điểm đã lên web · ' : '') + (h ? escQ(h.loi) + ' · gửi lại sau ' + Math.max(0, Math.round((h.sau - bay) / 1000)) + ' giây' : m.buoc === 'anh' ? 'đang gửi ảnh…' : 'đang gửi…') + '</span></div>';
     }).join('');
-    o.innerHTML = '<div class="the"><h3 style="font-size:18px">' + (conDL ? '⏳ Còn ' + conDL + ' bài chưa lên web' : conCho ? '✓ Điểm đã lên web đủ · 🖼 còn ' + conCho + ' ảnh đang gửi' : '✓ Đã lên web đủ') + '</h3>' +
-      '<p class="mo" style="margin:0">' + (conCho ? 'Các bài này vẫn nằm trên máy và đang tự gửi lại. Giữ trang mở, có mạng để gửi xong' + (choThoat ? '; nếu thoát, lần sau mở NKZip trên máy này sẽ gửi tiếp.' : '.') : 'Mọi bài đã chấm trên máy này đều đã lưu lên web.') + '</p>' +
+    o.innerHTML = '<div class="the"><h3 style="font-size:18px">' + (conDL ? '⏳ Còn ' + conDL + ' bài chưa lên web' : '✓ Đã lên web đủ') + '</h3>' +
+      '<p class="mo" style="margin:0">' + (conDL ? 'Các bài này vẫn nằm trên máy và đang tự gửi lại. Giữ trang mở, có mạng để gửi xong' + (choThoat ? '; nếu thoát, lần sau mở NKZip trên máy này sẽ gửi tiếp.' : '.') : 'Mọi bài đã chấm trên máy này đều đã lưu lên web.') + '</p>' +
       (ds ? '<div class="choDs">' + ds + '</div>' : '') +
-      (conCho ? '<button class="vang" id="qcGuiLai">Gửi lại ngay</button>' : '') +
-      (choThoat ? '<button id="qcO">' + (conCho ? 'Ở lại chờ gửi' : 'Ở lại chấm tiếp') + '</button><button class="' + (conCho ? 'nguy' : 'vang') + '" id="qcThoat">' + (conCho ? 'Vẫn thoát' : 'Thoát') + '</button>' : '<button id="qcO">Đóng</button>') + '</div>';
+      (conDL ? '<button class="vang" id="qcGuiLai">Gửi lại ngay</button>' : '') +
+      (choThoat ? '<button id="qcO">' + (conDL ? 'Ở lại chờ gửi' : 'Ở lại chấm tiếp') + '</button><button class="' + (conDL ? 'nguy' : 'vang') + '" id="qcThoat">' + (conDL ? 'Vẫn thoát' : 'Thoát') + '</button>' : '<button id="qcO">Đóng</button>') + '</div>';
     if ($('qcGuiLai')) $('qcGuiLai').onclick = function () { HOAN = {}; dayHangCho(); };
     $('qcO').onclick = function () { o.classList.remove('hien'); dangHoi = false; };
     if ($('qcThoat')) $('qcThoat').onclick = function () { o.classList.remove('hien'); dangHoi = false; dong(); };
@@ -2267,7 +2293,7 @@ var QUET = (function () {
     if (daGan) return; daGan = true;
     video = $('qVideo'); lop = $('qLop');
     // còn bài chưa lên web: hỏi lại trước khi thoát
-    $('qLui').onclick = function () { if (conCho > 0 && TC.cheDo !== 'dapan') return hienCho(true); dong(); };
+    $('qLui').onclick = function () { if (conDL > 0 && TC.cheDo !== 'dapan') return hienCho(true); dong(); };
     $('qDem').onclick = function () { hienCho(false); };
     $('qDen').onclick = function () { denBat = !denBat; if (ranh) ranh.applyConstraints({ advanced: [{ torch: denBat }] }).catch(function () {}); };
     $('qChup').onclick = function () { $('qTep').click(); };
