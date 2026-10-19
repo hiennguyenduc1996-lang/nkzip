@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.3.5';</script>
+<script>window.NK_BAN = '1.3.6';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -404,7 +404,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.5</span></div>
+    <div class="logo"><i>NK</i><span>NK<b>Zip</b></span><span class="chip">v1.3.6</span></div>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
@@ -415,7 +415,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.3.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -444,7 +444,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.3.5 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.3.6 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1912,8 +1912,10 @@ var QUET = (function () {
   //  4) đủ sáng;  5) kết quả đọc giữ nguyên ~1 giây (máy và phiếu đứng yên).
   // Đọc theo kiểu "tối ưu": nhiều khung hình × nhiều mức ngưỡng rồi bỏ phiếu. Mỗi lần đưa phiếu vào chỉ chấm MỘT lần:
   // phải đưa phiếu ra khỏi khung (mất các ô vuông đen) rồi mới nhận tờ tiếp theo.
-  // GIU_YEN: tờ phiếu (4 góc) đứng yên bao lâu thì chấm; XE_DICH: góc lệch quá tỉ lệ này của đường chéo = phiếu đang di chuyển
-  var NGUONG_NET = 0.12, GIAY_TOI = 80, GIU_YEN = 600, ROI_KHUNG = 400, XE_DICH = 0.012, DOI_TO = 0.04, theoDoi = null;
+  // GIU_YEN: tờ phiếu đứng yên bao lâu thì chấm. XE_DICH: 4 góc dịch quá tỉ lệ này của đường chéo GIỮA HAI KHUNG HÌNH LIỀN NHAU
+  // = phiếu đang bị đẩy / nhấc (rung tay cầm máy chỉ dịch ít mỗi khung, và mỗi khung đã được nắn phẳng theo mốc của chính nó nên không làm sai kết quả).
+  // DOI_TO: tờ đã chấm lệch quá mức này so với lúc chấm = có thể đã thay tờ khác → đọc lại để kiểm tra.
+  var NGUONG_NET = 0.12, GIAY_TOI = 80, GIU_YEN = 400, ROI_KHUNG = 400, XE_DICH = 0.03, DOI_TO = 0.06, theoDoi = null;
   function gocPhieu(H) { var k = TPL.khung; return [OMR.ap(H, k[0], k[1]), OMR.ap(H, k[2], k[1]), OMR.ap(H, k[2], k[3]), OMR.ap(H, k[0], k[3])]; }
   function lech(a, b) {                               // độ xê dịch lớn nhất của 4 góc, tính theo đường chéo tờ phiếu
     var cheo = Math.hypot(a[2][0] - a[0][0], a[2][1] - a[0][1]) || 1, m = 0;
@@ -1956,10 +1958,11 @@ var QUET = (function () {
     if (!t) { theoDoi = null; return boQua('Giữ yên máy, phiếu đang mờ'); }
     if (t.soMoc < TPL.moc.length) { theoDoi = null; return cam('Đưa trọn tờ phiếu vào khung – chưa thấy đủ ' + TPL.moc.length + ' ô vuông đen'); }
     theoDoi = t.H;
-    // 3) phiếu có đứng yên không: so 4 góc với lúc bắt đầu đứng yên
-    var goc = gocPhieu(t.H), dl = phieu.on ? lech(goc, phieu.on.goc) : 1;
+    // 3) phiếu có đang bị di chuyển không: so 4 góc với khung hình ngay trước
+    var goc = gocPhieu(t.H), dl = phieu.truoc ? lech(goc, phieu.truoc) : 1;
+    phieu.truoc = goc;
     if (phieu.xong && lech(goc, phieu.xong.goc) > DOI_TO) phieu.dong = true;      // tờ đã chấm bị nhấc / thay tờ khác
-    if (dl > XE_DICH) { phieu.on = { goc: goc, tu: bay }; phieu.ds = []; if (dl < 1) phieu.dong = true; }
+    if (!phieu.on || dl > XE_DICH) { if (phieu.on && dl < 1) phieu.dong = true; phieu.on = { goc: goc, tu: bay }; phieu.ds = []; }
     // 4) chất lượng ảnh: nét, đủ sáng, không có vật che
     var net = OMR.doNet(G, t.H, TPL);
     if (net > NGUONG_NET) return boQua('Ảnh đang mờ – giữ yên máy, đủ sáng, đưa gần hơn một chút');
@@ -1989,7 +1992,7 @@ var QUET = (function () {
     }
     chot(kq, khung[0].G, khung[0].H, bay, goc);
   }
-  function phieuMoi() { return { mat: 0, ds: [], on: null, dong: false, xong: null }; }
+  function phieuMoi() { return { mat: 0, ds: [], on: null, truoc: null, dong: false, xong: null }; }
   // đã chấm xong tờ này: nhớ kết quả + vị trí để không chấm lại khi tờ phiếu vẫn nằm yên trong khung
   function chot(doc, G, H, bay, goc) {
     khoaVua = doc.khoa; phieu = phieuMoi(); phieu.xong = { doc: doc, goc: goc }; phieu.mat = bay; tgCham = bay;
