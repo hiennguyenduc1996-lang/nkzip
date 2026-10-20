@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.5.1';</script>
+<script>window.NK_BAN = '1.5.2';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -97,6 +97,11 @@
   th { font-size:12px; color:var(--mo); font-weight:600; position:sticky; top:0; background:#101f4d; cursor:pointer; z-index:1; }
   td.p, th.p { text-align:right; }
   tr.bam:hover td { background:#17306e; cursor:pointer; }
+  /* Bài làm: bài trùng SBD (đưa lên đầu khi sắp theo SBD), mỗi nhóm SBD một màu xen kẽ */
+  tr.trungSbd.tr1 td { background:#4a2f0e; } tr.trungSbd.tr2 td { background:#5a1f2c; }
+  tr.trungSbd td:first-child { box-shadow:inset 4px 0 0 #ff9f43; font-weight:800; }
+  body.ktdk tr.trungSbd.tr1 td { background:#ffe3c2 !important; } body.ktdk tr.trungSbd.tr2 td { background:#ffd3dc !important; }
+  body.ktdk tr.trungSbd td:first-child { box-shadow:inset 4px 0 0 #e67e22; }
   td.diem { font-weight:900; font-size:15px; color:var(--vang); }
   table.ke th, table.ke td { border:1px solid #27407f; }
   table.ke input { width:100%; border:0; background:none; padding:2px 4px; border-radius:6px; }
@@ -450,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.1</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.2</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -462,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.2 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -491,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.5.1 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.5.2 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -3369,6 +3374,10 @@ var QUET = (function () {
       return String(x || '').localeCompare(String(y || ''), 'vi', { numeric: true });
     });
     if (sapXep.nguoc) ds.reverse();
+    if (c === 'sbd') {                                 // sắp theo SBD: các bài trùng SBD đưa lên đầu (vẫn theo thứ tự SBD) để dễ thấy
+      var so = demSbd(), trung = function (r) { return /^\d+$/.test(r.sbd) && so[r.sbd] > 1; };
+      ds = ds.filter(trung).concat(ds.filter(function (r) { return !trung(r); }));
+    }
     return ds;
   }
   function veBaiLam(k) {
@@ -3399,8 +3408,14 @@ var QUET = (function () {
         return '<th data-c="' + c[0] + '" class="sx' + (c[2] ? ' p' : '') + '" title="Bấm để sắp xếp">' + c[1] + mt + '</th>' +
           (c[0] === 'ten' ? '<th class="cotAnh" title="Ảnh bài làm đã lên web chưa: ✓ đã lên · ⏳ đang gửi">Ảnh</th>' : '');
       }).join('') + '<th></th></tr>';
+    var nhomTr = 0, sbdTruoc = null;
     ds.forEach(function (r) {
-      var co2 = '';
+      var co2 = '', lopTr = '';
+      if (/^\d+$/.test(r.sbd) && soSbd[r.sbd] > 1) {   // tô màu bài trùng SBD, mỗi nhóm SBD xen kẽ 2 màu để tách nhóm
+        if (r.sbd !== sbdTruoc) nhomTr++;
+        lopTr = ' trungSbd ' + (nhomTr % 2 ? 'tr1' : 'tr2');
+      }
+      sbdTruoc = r.sbd;
       if (r.chuaGui) co2 += '<span class="nhan">đang gửi…</span> ';
       if (/^\d+$/.test(r.sbd) && soSbd[r.sbd] > 1) co2 += '<span class="nhan do" title="Xem trong thẻ TKCS › Trùng SBD">trùng SBD (' + soSbd[r.sbd] + ' bài)</span> ';
       var kt = CHAM.kiemTra({ sbd: r.sbd, p1: r.p1, p2: r.p2, p3: r.p3 }, k, r.made);
@@ -3410,7 +3425,7 @@ var QUET = (function () {
       if (kt.trong.length) co2 += '<span class="nhan" title="' + esc(kt.trong.join(', ')) + '">' + kt.trong.length + ' câu bỏ trống</span> ';
       var ng = CHAM.moTaNghi(r.nghi, k, r.made);
       if (ng.length) co2 += '<span class="nhan" title="' + esc(ng.join('; ')) + '">' + ng.length + ' chỗ cần xem lại</span>';
-      h += '<tr class="bam" data-id="' + esc(r.id) + '"><td>' + esc(r.sbd) + '</td><td>' + esc(r.ten) + '</td>' +
+      h += '<tr class="bam' + lopTr + '" data-id="' + esc(r.id) + '"><td>' + esc(r.sbd) + '</td><td>' + esc(r.ten) + '</td>' +
         // ảnh bài làm đã lên web chưa (ảnh gửi sau điểm; ✓ tự hiện khi ảnh lên)
         (r.anh && !r.chuaGui ? '<td class="cotAnh co" title="Ảnh đã lên web">✓</td>' : '<td class="cotAnh chua" title="Ảnh đang được gửi lên">⏳</td>') +
         '<td>' + esc(r.lop) + '</td><td>' + esc(r.made) +
