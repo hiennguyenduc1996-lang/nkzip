@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.5.0';</script>
+<script>window.NK_BAN = '1.5.1';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -196,6 +196,22 @@
   table.xh td.h1 { background:#ff0000; color:#000; } table.xh td.h2 { background:#00b0f0; } table.xh td.h3 { background:#548235; color:#fff; }
   table.xh tr.dauNhom td { border-top:3px solid #000; }
   .xhGhi { margin-top:8px; font-size:13.5px; line-height:1.55; max-width:1100px; } .xhGhi ul { margin:4px 0 0; padding-left:20px; }
+  /* bảng điểm theo lớp (mẫu Excel của tổ) */
+  .bdGiay { background:#fff; color:#000; padding:12px 14px; font-family:"Times New Roman",Times,serif; width:max-content; }
+  table.bd { border-collapse:collapse; font-size:19px; font-weight:700; }
+  table.bd th, table.bd td { border:1px solid #000; padding:5px 10px; text-align:center; color:#000; background:#fff; position:static; cursor:default; min-width:62px; }
+  table.bd thead th { background:#ffff00; font-size:20px; line-height:1.15; }
+  table.bd th.td { font-size:22px; } table.bd th.mt { font-size:19px; padding:3px 6px; }
+  table.bd th.gh { font-size:15px; font-weight:700; padding:2px 6px; white-space:nowrap; }
+  table.bd th.h10 { background:#00b0f0; font-size:19px; }
+  table.bd td.lop { background:#dce6f1; min-width:80px; } table.bd td.sb { background:#fde4d6; } table.bd td.ss { background:#ff66ff; }
+  table.bd td.m10.co { background:#ffff00; color:#0070c0; }
+  table.bd td.yco { background:#ffc7ce; color:#c00000; }
+  table.bd td.tb { background:#ffffcc; font-weight:400; }
+  table.bd tr.nh td { background:#9bc2e6; } table.bd tr.nh td.nhTen, table.bd tr.nh td.m10 { background:#ffff00; } table.bd tr.nh td.m10 { color:#ff0000; }
+  table.bd tr.nh td.tb { font-weight:400; }
+  table.bd tr.tat td { background:#d9e1f2; font-weight:400; } table.bd tr.tat td.lop, table.bd tr.tat td.sb, table.bd tr.tat td.ss { font-weight:700; }
+  table.bd tr.tat td.m10 { background:#00b0f0; color:#000; font-weight:700; }
   /* trang in KTDK: đúng khổ A4 ngang, bảng giãn hết bề ngang (cỡ chữ, chiều cao hàng đặt theo từng trang) */
   .ctGiay.trangKT { padding:0; border-radius:0; min-width:0; overflow:hidden; box-sizing:border-box; }
   .trangKT .ctDau { margin-bottom:4px; } .trangKT .ctDau h3 { font-size:1.35em; } .trangKT .ctDau span { font-size:1.05em; }
@@ -252,6 +268,20 @@
   .tkGhi .docSai { color:var(--do); font-weight:700; } .tkGhi .daDung { color:var(--xanh); font-weight:700; }
   .tkGhi img.anhSoSanh { display:block; width:100%; max-height:150px; object-fit:cover; object-position:top; margin-top:4px; border-radius:8px; border:1px solid #7a5c1c; background:#fff; }
   .tkGhi button.goiY { text-align:left; margin-top:4px; border-color:#7a5c1c; }
+  /* TKCS › Trùng SBD: danh sách trường hợp + các phiếu cùng SBD đặt cạnh nhau */
+  .trDs { display:flex; flex-wrap:wrap; gap:6px; }
+  .trDs button { display:flex; flex-direction:column; align-items:flex-start; padding:7px 12px; line-height:1.25; }
+  .trDs button small { font-size:11.5px; color:var(--mo); font-weight:500; }
+  .trDs button.chon { border-color:var(--vang2); color:var(--vang); background:var(--the2); }
+  .trTD { margin:12px 0 10px; font-size:14px; }
+  .trLuoi { display:flex; gap:12px; overflow-x:auto; align-items:stretch; padding-bottom:4px; }
+  .trThe { flex:1 1 0; min-width:280px; max-width:560px; display:flex; flex-direction:column; gap:8px; padding:10px; border:1.5px solid var(--vien); border-radius:14px; background:var(--the2); }
+  .trThe.xn { border-color:var(--xanh); }
+  .trDau b { display:block; font-size:16px; } .trDau span { font-size:13px; color:var(--mo); }
+  .trAnh { display:flex; align-items:center; justify-content:center; background:#fff; border-radius:8px; overflow:hidden; cursor:zoom-in; height:calc(100vh - 530px); min-height:300px; }
+  .trAnh img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
+  .trNut { display:flex; gap:6px; flex-wrap:wrap; align-items:center; } .trNut button { flex:1; padding:8px 6px; font-size:13.5px; white-space:nowrap; }
+  .trXN { flex:1; text-align:center; white-space:nowrap; color:var(--xanh); font-weight:800; font-size:13.5px; }
   /* bảng mã đề tương ứng (dán từ Excel) */
   #khungTU { outline:none; } #khungTU:focus-within, #khungTU:focus { border-color:var(--vang); }
   .tuTD { text-align:center; font:700 17px "Times New Roman",Times,serif; color:#000; background:#f2f2f2; padding:8px; border-radius:8px 8px 0 0; }
@@ -330,6 +360,10 @@
   #qTren button { padding:8px 12px; background:#0009; border-color:#fff3; }
   #qTT0 { position:absolute; left:0; right:0; top:54px; text-align:center; font-size:14px; pointer-events:none; }
   #qTT0 span { background:#000a; padding:4px 12px; border-radius:20px; }
+  /* nút tự chụp: bắt buộc chấm khung hình hiện tại (cho các tờ máy không tự chấm được) */
+  #qTuChup { position:absolute; left:50%; bottom:max(14px, env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:3px; padding:0; background:none; border:none; color:#fff; font-size:12px; font-weight:700; text-shadow:0 1px 3px #000; z-index:2; }
+  #qTuChup i { width:52px; height:52px; border-radius:50%; border:4px solid #fff; background:#ffffff40; box-shadow:0 2px 10px #0009; }
+  #qTuChup:active i, #qTuChup.dang i { background:#fff; }
   /* thẻ kết quả bài vừa chấm: nằm giữa màn hình */
   /* thẻ kết quả: luôn hiện trên nền camera tới khi chấm bài tiếp theo; vẫn quét được phía sau */
   #qThe { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:calc(100% - 32px); max-width:460px; background:#0d1a44e0; border:1.5px solid var(--vien); border-radius:18px; padding:14px 16px; display:none; flex-direction:column; gap:10px; box-shadow:0 10px 40px #000a; }
@@ -416,7 +450,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.0</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.1</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -428,7 +462,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.0 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -457,7 +491,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.5.0 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.5.1 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -474,6 +508,7 @@
   <div id="qChop"></div>
   <div id="qTren"><button id="qLui">‹ Xong</button><div class="ten" id="qTen"></div><button id="qDen" style="display:none">Đèn</button><span id="qDem" style="font-weight:700;white-space:nowrap"></span><button id="qChup" title="Chấm bằng ảnh chụp có sẵn" style="padding:6px 10px">Ảnh</button></div>
   <div id="qTT0"><span id="qTT"></span></div>
+  <button id="qTuChup" title="Bắt buộc chụp và chấm ngay khung hình này"><i></i><span>Tự chụp</span></button>
   <div id="qThe">
     <div class="dong1"><div style="min-width:0;flex:1"><div class="ten2" id="qkTen"></div><div class="mo" id="qkPhu"></div></div><div class="d" id="qkDiem"></div></div>
     <div id="qkCanh"></div>
@@ -2385,7 +2420,7 @@ var QUET = (function () {
   function motKhung(w, h) {
     var bay = Date.now();
     // tạm dừng khi đang hỏi, đang xem lại bài hoặc đang chọn học sinh để gán
-    if (dangHoi || lonHien || $('qChon').classList.contains('hien')) return;
+    if (dangHoi || lonHien || dangChup || $('qChon').classList.contains('hien')) return;
     var k = Math.max(1, Math.max(w, h) / 960), wn = Math.round(w / k), hn = Math.round(h / k);
     if (cvL.width !== w || cvL.height !== h) { cvL.width = w; cvL.height = h; }
     cxL.drawImage(video, 0, 0, w, h);
@@ -2451,6 +2486,32 @@ var QUET = (function () {
     chot(kq, khung[0].G, khung[0].H, bay, goc);
   }
   function phieuMoi() { return { mat: 0, ds: [], on: null, truoc: null, dong: false, xong: null }; }
+  // Nút "Tự chụp": BẮT BUỘC chấm tờ đang ở trước camera, bỏ qua các điều kiện chờ của chế độ tự động (giữ yên, độ nét,
+  // vật che, tờ vừa chấm). Cách đọc giữ nguyên: lấy 3 khung hình liền nhau × các mức ngưỡng rồi bỏ phiếu, như khi tự chấm.
+  // Chỉ cần thấy 4 ô vuông ở góc phiếu.
+  var dangChup = false;
+  function tuChup() {
+    if (dangChup || !dangQuet || lonHien || dangHoi || !video.videoWidth) return;
+    dangChup = true; $('qTuChup').classList.add('dang'); tt('Đang chụp…');
+    var w = video.videoWidth, h = video.videoHeight, ds = [], lan = 0;
+    var xong = function () { dangChup = false; $('qTuChup').classList.remove('dang'); };
+    (function mot() {
+      try {
+        if (cvL.width !== w || cvL.height !== h) { cvL.width = w; cvL.height = h; }
+        cxL.drawImage(video, 0, 0, w, h);
+        var G = OMR.xam(cxL.getImageData(0, 0, w, h)), t = theoDoi ? OMR.tinhChinh(G, theoDoi, TPL) : null;
+        if (!t || t.soMoc < 4) { var d = OMR.docAnh(G, TPL, OMR.thuNho(G, 960)); t = d ? { H: d.H, den: d.den, soMoc: d.soMoc } : null; }
+        if (t && t.H) ds.push({ M: OMR.doCacO(G, t.H, TPL, t.den), net: OMR.doNet(G, t.H, TPL), G: G, H: t.H });
+      } catch (e) { /* khung hình lỗi: bỏ qua */ }
+      if (++lan < 3) return setTimeout(mot, 90);
+      xong();
+      if (!ds.length) { tt('Chưa thấy 4 ô vuông đen ở góc phiếu – đưa cả tờ phiếu vào khung rồi bấm lại'); return; }
+      ds.sort(function (a, b) { return a.net - b.net; });
+      var docs = [];
+      ds.forEach(function (f) { HE_TOI_UU.forEach(function (he) { docs.push(OMR.quyetDinh(f.M, TPL, he)); }); });
+      chot(OMR.bauChon(docs, TPL), ds[0].G, ds[0].H, Date.now(), gocPhieu(ds[0].H));
+    })();
+  }
   // đã chấm xong tờ này: nhớ kết quả + vị trí để không chấm lại khi tờ phiếu vẫn nằm yên trong khung
   function chot(doc, G, H, bay, goc) {
     khoaVua = doc.khoa; phieu = phieuMoi(); phieu.xong = { doc: doc, goc: goc }; phieu.mat = bay; tgCham = bay;
@@ -2733,6 +2794,7 @@ var QUET = (function () {
     $('qDem').onclick = function () { hienCho(false); };
     $('qDen').onclick = function () { denBat = !denBat; if (ranh) ranh.applyConstraints({ advanced: [{ torch: denBat }] }).catch(function () {}); };
     $('qChup').onclick = function () { $('qTep').click(); };
+    $('qTuChup').onclick = tuChup;
     $('qTep').onchange = function () {
       var f = this.files[0]; this.value = '';
       if (!f) return;
@@ -2775,7 +2837,8 @@ var QUET = (function () {
     $('qDem').style.display = tc.cheDo === 'dapan' ? 'none' : '';
     $('manQuet').classList.add('hien');
     MOI = tc.cheDo === 'dapan' ? 'Đưa phiếu đã tô đáp án vào các ô trên màn hình' : 'Đưa các ô vuông đen của phiếu vào các ô trên màn hình';
-    return moCamera().then(function () { dangQuet = true; tt(MOI); buoc(); })
+    $('qTuChup').style.display = 'none';
+    return moCamera().then(function () { dangQuet = true; $('qTuChup').style.display = ''; tt(MOI); buoc(); })
       .catch(function (e) {
         tt('Không mở được camera (' + e.message + '). Dùng nút "Chụp ảnh".');
         $('qThe').classList.add('hien'); $('qkTen').textContent = 'Chấm bằng ảnh chụp'; $('qkPhu').textContent = 'Bấm nút “Ảnh” ở góc trên để chọn ảnh phiếu'; $('qkDiem').textContent = '';
@@ -2794,6 +2857,7 @@ var QUET = (function () {
     mo: mo, dong: dong, choGui: choGui, xuLyAnh: xuLyAnh, boKy: boKy,
     thuKhung: function (w, h) { kichThu = { w: w, h: h }; veKhung(null, 1, '#3d8bfd'); },
     // chỉ để thử (tests): xử lí một "khung hình camera" lấy từ canvas / ảnh nguồn
+    thuTuChup: function (nguon) { var v = video, q = dangQuet; video = nguon; dangQuet = true; tuChup(); setTimeout(function () { video = v; dangQuet = q; }, 600); },
     thuMotKhung: function (nguon, w, h) { var v = video; video = nguon; try { motKhung(w, h); } finally { video = v; } return { tt: $('qTT').textContent, soBai: soBai }; }
   };
 })();
@@ -3020,7 +3084,9 @@ var QUET = (function () {
         var n = doi(+a, +b, +c); return m.replace(/\(\s*\d+[\s,]+\d+[\s,]+\d+/, '(' + n.join(', '));
       });
     };
-    var BO_QUA = /#manQuet|#q[A-Z]|\.qHop|#lk[A-Z]|\.ktdk/;        // máy quét: giữ nền tối; quy tắc .ktdk đã viết sẵn cho nền trắng
+    // máy quét: giữ nền tối; quy tắc .ktdk đã viết sẵn cho nền trắng; các bảng kiểu giấy in (Bảng chi tiết, xếp hạng, bảng điểm
+    // theo lớp, bảng mã đề tương ứng) giữ đúng màu như Excel – đổi màu ở đây làm nền trắng thành đen, chữ đen thành trắng
+    var BO_QUA = /#manQuet|#q[A-Z]|\.qHop|#lk[A-Z]|\.ktdk|\.ct\.tn|\.ctGiay|\.ctDau|\.xhGiay|\.xhTD|table\.xh|\.trangKT|\.kt-cuoi|\.tuTD|\.bangTU|\.bdGiay|table\.bd|\.trAnh/;
     var duyet = function (rules) {
       Array.prototype.forEach.call(rules, function (ru) {
         if (ru.cssRules && !ru.selectorText) return duyet(ru.cssRules);     // @media
@@ -3572,9 +3638,12 @@ var QUET = (function () {
     veAnhXem();
   }
   // Chọn học sinh trong các lớp (tìm theo tên, SBD, lớp) để gán cho bài làm
-  function chonHocSinh(xong) {
-    var tat = [];
-    DL.lop.forEach(function (l) { (l.hs || []).forEach(function (s) { tat.push({ sbd: s.sbd, ten: s.ten, lop: l.ten }); }); });
+  // uuTien (tuỳ chọn): học sinh chưa có bài – xếp lên đầu danh sách
+  function chonHocSinh(xong, uuTien) {
+    var tat = [], dau = {};
+    (uuTien || []).forEach(function (s) { dau[String(s.sbd)] = 1; });
+    DL.lop.forEach(function (l) { (l.hs || []).forEach(function (s) { tat.push({ sbd: s.sbd, ten: s.ten, lop: l.ten, chua: !!dau[String(s.sbd)] }); }); });
+    if (uuTien) { var vt = {}; uuTien.forEach(function (s, i) { vt[String(s.sbd)] = i; }); tat.sort(function (a, b) { return (a.chua ? vt[String(a.sbd)] : 1e6) - (b.chua ? vt[String(b.sbd)] : 1e6); }); }
     if (!tat.length) return bao('Chưa có lớp nào có học sinh. Vào thẻ “Lớp” để thêm.', 5000);
     var o = document.createElement('div');
     o.id = 'hopChonHS';
@@ -3584,7 +3653,7 @@ var QUET = (function () {
     var ve = function () {
       var tu = $('#chTim').value.trim().toLowerCase();
       $('#chDs').innerHTML = tat.filter(function (s) { return !tu || (s.ten + ' ' + s.sbd + ' ' + s.lop).toLowerCase().indexOf(tu) >= 0; }).slice(0, 100).map(function (s) {
-        return '<button data-i="' + tat.indexOf(s) + '"><b>' + esc(s.ten) + '</b><span>SBD ' + esc(s.sbd) + ' · ' + esc(s.lop) + '</span></button>';
+        return '<button data-i="' + tat.indexOf(s) + '"><b>' + esc(s.ten) + '</b><span>SBD ' + esc(s.sbd) + ' · ' + esc(s.lop) + (s.chua ? ' · chưa có bài' : '') + '</span></button>';
       }).join('') || '<div class="mo" style="padding:12px">Không có học sinh nào khớp.</div>';
       $$('#chDs button').forEach(function (b) { b.onclick = function () { dong(); xong(tat[+b.getAttribute('data-i')]); }; });
     };
@@ -3806,6 +3875,7 @@ var QUET = (function () {
       '<button id="ctXuat" class="vang">Xuất Excel</button><button id="ctData" title="Tệp dữ liệu theo mẫu xuất của ZipGrade, dùng cho bảng tính TKCS">Xuất DATA TKCS</button><button id="ctIn" class="anDT">In bảng</button>' +
       '<button id="ctTU" class="anDT' + (moTU ? ' chon' : '') + '" title="Bảng số câu tương ứng giữa các mã đề (dán từ Excel)">Mã đề</button><button id="ctKT" class="anDT" title="Quy mọi mã đề về mã gốc, xuất 2 tệp PDF (theo SBD, theo điểm), mỗi lớp 1 trang">In bảng KTDK</button>' +
       '<button id="ctXH" class="anDT" title="Xếp hạng các lớp theo tỉ lệ câu sai từng phần (cần mật khẩu)">🔒 Thống kê xếp hạng</button>' +
+      '<button id="ctBD" class="anDT" title="Số bài / sĩ số, số bài 10 điểm, giỏi – khá – trung bình – yếu, điểm trung bình, cao nhất, thấp nhất của từng lớp">📊 Bảng điểm theo lớp</button>' +
       '<span class="mo anDT" style="margin-left:auto">Ô tô màu = câu sai, ghi câu trả lời của học sinh · ô trống = đúng</span></div>' +
       '<div class="ctBoc" style="overflow:auto;max-height:75vh;margin-top:10px"><div class="ctGiay' + (mauCT ? '' : ' bw') + '"><div class="ctDau"><span>LỚP <b>' + esc(lop) + '</b></span><h3>' + esc(tieuDe) + '</h3></div>';
     var r1 = '<tr><th rowspan="3">STT</th><th rowspan="3">SBD</th><th rowspan="3">MÃ<br>ĐỀ</th><th rowspan="3" colspan="2">HỌ VÀ TÊN</th><th rowspan="2">ĐIỂM</th>' +
@@ -3837,6 +3907,7 @@ var QUET = (function () {
     $('#ctTU').onclick = function () { moTU = !moTU; veChinh(); };
     $('#ctKT').onclick = function () { inKTDK(k); };
     $('#ctXH').onclick = function () { moXepHang(k); };
+    $('#ctBD').onclick = function () { moBangDiem(k); };
     ganChonMa('ctMa', function (m) { maCT = m; veChinh(); });
     $('#ctXep').onchange = function () { xepCT = this.value; try { localStorage.setItem('nkzip_xepCT', xepCT); } catch (e) { /* bỏ qua */ } veChinh(); };
     $('#ctMau').onchange = function () { mauCT = this.value === '1'; try { localStorage.setItem('nkzip_mauCT', mauCT ? '1' : '0'); } catch (e) { /* bỏ qua */ } $('#noiDung .ctGiay').classList.toggle('bw', !mauCT); };
@@ -4262,13 +4333,93 @@ var QUET = (function () {
       });
     };
   }
+  // ----- Bảng điểm theo lớp (mẫu của tổ): số bài / sĩ số, số bài 10 điểm, XS–G–K–TB–Y, điểm TB, max, min -----
+  // Lớp xếp theo nhóm A → E → B → khác (như mẫu), sau mỗi nhóm có dòng "TB KHỐI …" (lớp E gọi là khối A1), cuối cùng là cả khối (K12).
+  var MUC_BD = [{ ten: 'XS', ghi: '10 > x ≥ 9', tu: 9 }, { ten: 'G', ghi: '9 > x ≥ 8', tu: 8 }, { ten: 'K', ghi: '8 > x ≥ 7', tu: 7 }, { ten: 'TB', ghi: '7 > x ≥ 5', tu: 5 }, { ten: 'Y', ghi: 'x < 5', tu: -1e9 }];
+  function thongKeBD(diem) {
+    var dem = MUC_BD.map(function () { return 0; }), muoi = 0;
+    diem.forEach(function (d) {
+      if (d >= 10) { muoi++; return; }
+      for (var i = 0; i < MUC_BD.length; i++) if (d >= MUC_BD[i].tu - 1e-9) { dem[i]++; break; }
+    });
+    return { n: diem.length, muoi: muoi, dem: dem, tb: diem.length ? diem.reduce(function (a, b) { return a + b; }, 0) / diem.length : null,
+      max: diem.length ? Math.max.apply(null, diem) : null, min: diem.length ? Math.min.apply(null, diem) : null };
+  }
+  function duLieuBD(k) {
+    var theoLop = {}, siSo = {};
+    KQ.forEach(function (r) { if (r.diem == null || r.chuaGui) return; var l = r.lop || 'Chưa rõ lớp'; (theoLop[l] = theoLop[l] || []).push(+r.diem); });
+    (DL.lop || []).forEach(function (l) {             // sĩ số = số học sinh trong danh sách lớp (gộp các danh sách cùng tên lớp)
+      var t = String(l.ten || '').trim(), s = siSo[t] = siSo[t] || {};
+      (l.hs || []).forEach(function (h) { s[h.sbd || h.ten] = 1; });
+    });
+    var thuTu = function (l) { var n = nhomLop(l), i = ['A', 'E', 'B'].indexOf(n.chu); return i < 0 ? 3 : i; };
+    var ds = Object.keys(theoLop).sort(function (a, b) { var x = nhomLop(a), y = nhomLop(b); return x.khoi.localeCompare(y.khoi) || thuTu(a) - thuTu(b) || x.chu.localeCompare(y.chu) || x.so - y.so || soMa(a, b); });
+    var nhom = [], cuoi = null;
+    ds.forEach(function (l) {
+      var n = nhomLop(l), kh = l === 'Chưa rõ lớp' ? '?' : n.khoi + '|' + n.chu;
+      if (!cuoi || cuoi.kh !== kh) { cuoi = { kh: kh, chu: n.chu, khoi: n.khoi, lop: [] }; nhom.push(cuoi); }
+      var ss = siSo[l] ? Object.keys(siSo[l]).length : null;
+      cuoi.lop.push({ lop: l, ss: ss, tk: thongKeBD(theoLop[l]), diem: theoLop[l] });
+    });
+    nhom.forEach(function (g) {
+      g.ten = g.kh === '?' ? 'CHƯA RÕ LỚP' : 'TB KHỐI ' + (g.chu === 'E' ? 'A1' : g.chu);
+      g.tk = thongKeBD([].concat.apply([], g.lop.map(function (x) { return x.diem; })));
+      g.ss = g.lop.every(function (x) { return x.ss != null; }) ? g.lop.reduce(function (a, x) { return a + x.ss; }, 0) : null;
+    });
+    var khoi = Object.keys(nhom.reduce(function (o, g) { if (g.khoi) o[g.khoi] = 1; return o; }, {}));
+    var tat = thongKeBD([].concat.apply([], ds.map(function (l) { return theoLop[l]; })));
+    return { nhom: nhom, tat: tat, tenTat: khoi.length === 1 ? 'K' + khoi[0] : 'TOÀN TRƯỜNG', ssTat: nhom.every(function (g) { return g.ss != null; }) ? nhom.reduce(function (a, g) { return a + g.ss; }, 0) : null };
+  }
+  function htmlBD(k, D) {
+    var s2 = function (x) { return x == null ? '' : x.toFixed(2); }, o = function (n) { return n ? n : ''; };
+    var cot = function (tk, kieu) {               // 10 điểm, 5 mức, ĐTB, MAX, MIN
+      return '<td class="m10' + (tk.muoi ? ' co' : '') + '">' + o(tk.muoi) + '</td>' +
+        tk.dem.map(function (n, i) { return '<td class="' + (i === MUC_BD.length - 1 && n ? 'yco' : 'mu') + '">' + o(n) + '</td>'; }).join('') +
+        '<td class="tb">' + s2(tk.tb) + '</td><td class="tb">' + s2(tk.max) + '</td><td class="tb">' + s2(tk.min) + '</td>';
+    };
+    var h = '<div class="bdGiay"><table class="bd"><thead><tr><th rowspan="3" class="l">LỚP</th><th rowspan="3" colspan="2" class="l">SỐ BÀI \\ SĨ SỐ</th>' +
+      '<th colspan="' + (MUC_BD.length + 2) + '" class="td">' + esc(tenK(k).toUpperCase()) + '</th><th rowspan="3" class="l">MAX</th><th rowspan="3" class="l">MIN</th></tr>' +
+      '<tr><th rowspan="2" class="h10">10<br>điểm</th>' + MUC_BD.map(function (m) { return '<th class="mt">' + m.ten + '</th>'; }).join('') + '<th rowspan="2" class="mt">ĐTB</th></tr>' +
+      '<tr>' + MUC_BD.map(function (m) { return '<th class="gh">' + esc(m.ghi) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    D.nhom.forEach(function (g) {
+      g.lop.forEach(function (x) {
+        h += '<tr><td class="lop">' + esc(x.lop) + '</td><td class="sb">' + x.tk.n + '</td><td class="ss">' + (x.ss == null ? '' : x.ss) + '</td>' + cot(x.tk) + '</tr>';
+      });
+      h += '<tr class="nh"><td colspan="3" class="nhTen">' + esc(g.ten) + '</td>' + cot(g.tk) + '</tr>';
+    });
+    h += '<tr class="tat"><td class="lop">' + esc(D.tenTat) + '</td><td class="sb">' + D.tat.n + '</td><td class="ss">' + (D.ssTat == null ? '' : D.ssTat) + '</td>' + cot(D.tat) + '</tr>';
+    return h + '</tbody></table></div>';
+  }
+  function moBangDiem(k) {
+    var D = duLieuBD(k);
+    if (!D.tat.n) return bao('Chưa có bài nào để thống kê.');
+    var o = document.createElement('div'); o.id = 'hopXH';
+    o.innerHTML = '<div class="xhKhung"><div class="hang khongIn" style="margin-bottom:10px"><b style="font-size:18px;flex:1">Bảng điểm theo lớp · ' + esc(tenK(k)) + '</b>' +
+      '<button id="bdCopy" class="vang">📋 Copy ảnh</button><button id="bdDong">Đóng</button></div><div class="xhCuon">' + htmlBD(k, D) + '</div></div>';
+    document.body.appendChild(o);
+    $('#bdDong').onclick = function () { o.remove(); };
+    o.onclick = function (e) { if (e.target === o) o.remove(); };
+    $('#bdCopy').onclick = function () { copyAnh(this, $('.bdGiay', o), 'Bang diem - ' + tenK(k), 'bảng điểm'); };
+  }
+  function copyAnh(nut, el, tenTep, ten) {
+    nut.disabled = true; nut.textContent = 'Đang chụp…';
+    var xong = function (s, lau) { nut.disabled = false; nut.textContent = '📋 Copy ảnh'; bao(s, lau || 4000); }, anh = null;
+    chupAnh(el, 2).then(function (blob) {
+      anh = window.XH_ANH = blob;                    // để chạy thử
+      if (!navigator.clipboard || !window.ClipboardItem) throw new Error('Trình duyệt không cho chép ảnh');
+      return navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(function () { xong('Đã chép ảnh ' + ten + ' – bấm Ctrl+V để dán vào Word, Zalo, Excel…', 6000); });
+    }).catch(function (e) {
+      if (anh) { var a = document.createElement('a'); a.href = URL.createObjectURL(anh); a.download = tenTep + '.png'; a.click(); xong('Không chép được vào clipboard (' + e.message + '), đã tải ảnh PNG về.', 7000); }
+      else xong('Không chụp được ảnh: ' + e.message, 7000);
+    });
+  }
   // Chụp một phần tử HTML thành ảnh PNG (vẽ qua SVG foreignObject, kèm các luật CSS của phần tử đó)
   function chupAnh(el, tiLe) {
     tiLe = tiLe || 2;
     var w = el.scrollWidth, h = el.scrollHeight, css = '';
     Array.prototype.forEach.call(document.styleSheets, function (s) {
       var luat; try { luat = s.cssRules; } catch (e) { return; }
-      Array.prototype.forEach.call(luat || [], function (r) { if (r.selectorText && /\.xh|table\.xh/.test(r.selectorText)) css += r.cssText + '\n'; });
+      Array.prototype.forEach.call(luat || [], function (r) { if (r.selectorText && /\.xh|table\.xh|\.bdGiay|table\.bd/.test(r.selectorText)) css += r.cssText + '\n'; });
     });
     var nd = new XMLSerializer().serializeToString(el);
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">' +
@@ -4499,6 +4650,69 @@ var QUET = (function () {
     var theoSbd = function (a, b) { return String(a.r.sbd).localeCompare(String(b.r.sbd), 'vi', { numeric: true }); };
     return ds.sort(theoSbd);
   }
+  // ----- Trùng SBD: mỗi trường hợp = một SBD có từ 2 bài; còn hiện khi còn bài chưa được xác nhận "đúng SBD này" -----
+  var vtTrung = 0;
+  function nhomTrung() {
+    var g = {};
+    KQ.forEach(function (r) { if (!r.chuaGui && /^\d+$/.test(r.sbd)) (g[r.sbd] = g[r.sbd] || []).push(r); });
+    return Object.keys(g).filter(function (s) { return g[s].length > 1 && g[s].some(function (r) { return !daBoQua(r, 'trung'); }); })
+      .sort(function (a, b) { return a.localeCompare(b, 'vi', { numeric: true }); })
+      .map(function (s) { return { sbd: s, ds: g[s].sort(function (a, b) { return String(a.luc).localeCompare(String(b.luc)); }) }; });
+  }
+  // gán bài cho học sinh khác (đổi SBD, tính lại điểm); ảnh giữ nguyên
+  function ganLaiBai(k, goc, hs) {
+    var m = tinhLai(k, goc, String(hs.sbd), goc.made);
+    m = boTam(m); m.tenKy = k.ten; m.ghiDe = true;
+    if (m.boQua) { m.boQua = sao(m.boQua); delete m.boQua.trung; delete m.boQua.thieu; }
+    var idCu = goc.id, idMoi = k.id + '_' + m.sbd, truoc = Promise.resolve(), them = '';
+    if (idMoi !== idCu && KQ.some(function (x) { return x.id === idMoi; })) {
+      var g0 = idMoi, n = 2;
+      while (KQ.some(function (x) { return x.id === g0 + '_' + n; })) n++;
+      idMoi = g0 + '_' + n; them = ' · SBD ' + m.sbd + ' cũng đã có bài';
+    }
+    if (idMoi !== idCu) truoc = API.goi('xoaKetQua', { id: idCu, kyThi: k.id, giuAnh: true });
+    m.id = idMoi;
+    var hien = sao(m); delete hien.tenKy; delete hien.ghiDe; if (!hien.anh) hien.anh = goc.anh;
+    KQ = KQ.filter(function (x) { return x.id !== idCu && x.id !== idMoi; }); KQ.push(hien); KQC[k.id] = KQ;
+    bao('Đã gán bài cho ' + (m.ten || 'SBD ' + m.sbd) + them, them ? 6000 : 3000);
+    veChinh();
+    truoc.then(function () { return API.goi('luuKetQua', { dl: m }); }).catch(loi);
+  }
+  function veTrung(k) {
+    var ds = nhomTrung();
+    if (!ds.length) return '<div class="the mo">Không có bài nào trùng SBD. 👍</div>';
+    if (vtTrung >= ds.length) vtTrung = ds.length - 1;
+    var g = ds[vtTrung];
+    var h = '<div class="the trBoc"><div class="trDs">' + ds.map(function (x, i) {
+      return '<button data-tr="' + i + '"' + (i === vtTrung ? ' class="chon"' : '') + '>Trường hợp ' + (i + 1) + ' <small>SBD ' + esc(x.sbd) + ' · ' + x.ds.length + ' bài</small></button>';
+    }).join('') + '</div>' +
+      '<div class="trTD">Trường hợp ' + (vtTrung + 1) + '/' + ds.length + ': <b>' + g.ds.length + ' bài</b> cùng SBD <b>' + esc(g.sbd) + '</b> – so họ tên viết tay trên từng phiếu, gán lại bài của học sinh tô nhầm, xoá bài bị chấm 2 lần.</div>' +
+      '<div class="trLuoi">' + g.ds.map(function (r) {
+        var anh = anhUrl(anhSachCua(r) || r.anh), xn = daBoQua(r, 'trung');
+        return '<div class="trThe' + (xn ? ' xn' : '') + '"><div class="trDau"><b>' + esc(r.ten || 'Chưa rõ học sinh') + '</b><span>SBD ' + esc(r.sbd) + (r.lop ? ' · Lớp ' + esc(r.lop) : '') + ' · Mã đề ' + esc(r.made || '?') + '</span></div>' +
+          '<div class="trAnh" data-xem="' + esc(r.id) + '" title="Bấm để mở bài">' + (anh ? '<img src="' + esc(anh) + '" alt="Phiếu">' : '<span class="mo">Chưa có ảnh</span>') + '</div>' +
+          '<div class="trNut"><button data-gan="' + esc(r.id) + '">Gán học sinh</button><button class="nguy" data-xoa="' + esc(r.id) + '">Xoá bài</button>' +
+          (xn ? '<span class="trXN">✓ Đúng SBD này</span>' : '<button class="vang" data-bq="' + esc(r.id) + '" title="Bài này đúng là của học sinh SBD ' + esc(r.sbd) + '">✓ Đúng SBD này</button>') + '</div></div>';
+      }).join('') + '</div></div>';
+    return h;
+  }
+  function ganTrung(k) {
+    var tim = function (id) { return KQ.filter(function (x) { return x.id === id; })[0]; };
+    $$('#noiDung [data-tr]').forEach(function (b) { b.onclick = function () { vtTrung = +b.getAttribute('data-tr'); veChinh(); }; });
+    $$('#noiDung [data-xem]').forEach(function (b) { b.onclick = function () { var r = tim(b.getAttribute('data-xem')); if (r) moBai(r.id, nhomTrung()[vtTrung].ds.map(function (x) { return x.id; })); }; });
+    $$('#noiDung [data-gan]').forEach(function (b) {
+      b.onclick = function () { var r = tim(b.getAttribute('data-gan')); if (r) chonHocSinh(function (hs) { ganLaiBai(k, r, hs); }, hsChuaCoBai(r)); };
+    });
+    $$('#noiDung [data-bq]').forEach(function (b) { b.onclick = function () { var r = tim(b.getAttribute('data-bq')); if (r) boQuaBai(k, r); }; });
+    $$('#noiDung [data-xoa]').forEach(function (b) {
+      b.onclick = function () {
+        var r = tim(b.getAttribute('data-xoa')); if (!r || !confirm('Xoá bài này (SBD ' + r.sbd + (r.ten ? ' · ' + r.ten : '') + ')?\nẢnh bài vào thùng rác Google Drive.')) return;
+        KQ = KQ.filter(function (x) { return x.id !== r.id; }); KQC[k.id] = KQ;
+        veBen(); veChinh();
+        API.goi('xoaKetQua', { id: r.id, kyThi: k.id }).then(function () { bao('Đã xoá bài'); }).catch(loi);
+      };
+    });
+  }
   function boQuaBai(k, r) {
     if (cheTK === 'gt') { boQuaTam['gt|' + r.id] = 1; veChinh(); return; }
     var m = sao(r); m.boQua = sao(r.boQua || {}); m.boQua[cheTK] = 1;
@@ -4509,7 +4723,7 @@ var QUET = (function () {
   }
   function veTKCS(k) {
     var ds = dsTK(k, cheTK), dem = {};
-    CHE_TK.forEach(function (c) { dem[c[0]] = c[0] === cheTK ? ds.length : dsTK(k, c[0]).length; });
+    CHE_TK.forEach(function (c) { dem[c[0]] = c[0] === 'trung' ? nhomTrung().length : c[0] === cheTK ? ds.length : dsTK(k, c[0]).length; });
     if (vtTK >= ds.length) vtTK = Math.max(0, ds.length - 1);
     var soChac = 0;
     if (cheTK === 'nghi') ds.forEach(function (b) { b.cua.forEach(function (c) { if (c.chac && c.goiY) soChac++; }); });
@@ -4521,13 +4735,21 @@ var QUET = (function () {
     if (cheTK === 'thieu') h += '<span class="mo" style="font-size:13px">Bài chưa gán được học sinh: SBD tô thiếu, tô 2 ô trong một cột hoặc không có trong danh sách lớp. Gợi ý là học sinh chưa có bài, khớp nhiều chữ số SBD nhất.</span>';
     if (cheTK === 'trung') {
       var giongHet = nhomGiongHet();
-      h += '<span class="mo" style="font-size:13px;flex:1;min-width:260px">Các bài có cùng SBD (một tờ bị chấm 2 lần, hai máy cùng chấm, hoặc học sinh tô nhầm SBD của bạn khác). Giống hệt / gần giống thì xoá bớt một bài; khác nhiều thì gán lại đúng học sinh.</span>' +
+      h += '<span class="mo" style="font-size:13px;flex:1;min-width:260px">Các bài có cùng SBD (một tờ bị chấm 2 lần, hai máy cùng chấm, hoặc học sinh tô nhầm SBD của bạn khác). Bấm từng trường hợp để xem các phiếu cạnh nhau.</span>' +
         (giongHet.length ? '<button id="tkXoaTrung">🧹 Tự xoá ' + giongHet.length + ' bài trùng giống hệt</button>' : '');
     }
     if (cheTK === 'sot') h += '<label class="mo" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="tkChiMo"' + (chiMoTK ? ' checked' : '') + '> Chỉ câu máy thấy có vết tô mờ (bỏ chọn để xem mọi câu bỏ trống)</label>';
     if (cheTK === 'gt') h += '<span class="mo" style="font-size:13px">Gộp mọi mã đề. Mỗi cột một câu: ô xanh là đáp án đúng, bên dưới là các câu trả lời sai và số bài. Bấm một ô đỏ để xem bài ở khung bên phải.</span>' +
       '<div class="o" style="margin-left:auto"><label>Xếp câu trả lời sai</label><select id="gtXep"><option value="gt"' + (xepGT === 'gt' ? ' selected' : '') + '>Theo giá trị (lớn → nhỏ)</option><option value="so"' + (xepGT === 'so' ? ' selected' : '') + '>Theo số bài (nhiều → ít)</option></select></div>';
     h += '</div></div>';
+    if (cheTK === 'trung') {                          // trùng SBD: các phiếu cùng SBD hiện cạnh nhau, không mở từng bài
+      XEM = null;
+      $('#noiDung').innerHTML = h + veTrung(k);
+      $$('#noiDung [data-che]').forEach(function (b) { b.onclick = function () { cheTK = b.getAttribute('data-che'); vtTK = 0; XEM = null; veChinh(); }; });
+      if ($('#tkXoaTrung')) $('#tkXoaTrung').onclick = xoaTrungGiong;
+      ganTrung(k);
+      return;
+    }
     var khung = !ds.length ? '<div class="the mo">' + (cheTK === 'gt' ? (gtTK ? 'Không còn bài nào.' : 'Bấm vào một câu trả lời sai (ô đỏ) để xem những học sinh đã tô câu trả lời đó.') :
       cheTK === 'nghi' ? 'Không có bài nào nghi do máy đọc sai. 👍' : 'Không có bài nào trong danh sách này. 👍') + '</div>' : '<div class="tkKhung" id="tkKhung"></div>';
     // lọc Phần III: bảng câu trả lời bên trái, bài làm + gợi ý sửa ngay bên phải (không phải cuộn xuống)
@@ -4538,7 +4760,8 @@ var QUET = (function () {
     if ($('#gtXep')) $('#gtXep').onchange = function () { xepGT = this.value; veChinh(); };
     $$('#noiDung [data-che]').forEach(function (b) { b.onclick = function () { cheTK = b.getAttribute('data-che'); vtTK = 0; XEM = null; veChinh(); }; });
     if ($('#tkChiMo')) $('#tkChiMo').onchange = function () { chiMoTK = this.checked; vtTK = 0; veChinh(); };
-    if ($('#tkXoaTrung')) $('#tkXoaTrung').onclick = function () {
+    if ($('#tkXoaTrung')) $('#tkXoaTrung').onclick = xoaTrungGiong;
+    function xoaTrungGiong() {
       var xoa = nhomGiongHet();
       if (!xoa.length || !confirm('Xoá ' + xoa.length + ' bài trùng GIỐNG HỆT (cùng SBD, cùng mã đề, cùng bài làm)?\nMỗi nhóm giữ lại 1 bài; ảnh bài bị xoá vào thùng rác Google Drive.')) return;
       var ids = xoa.map(function (r) { return r.id; });
@@ -4547,7 +4770,7 @@ var QUET = (function () {
       bao('Đang xoá ' + ids.length + ' bài trùng…', 30000);
       ids.reduce(function (p, id) { return p.then(function () { return API.goi('xoaKetQua', { id: id, kyThi: k.id }); }); }, Promise.resolve())
         .then(function () { bao('Đã xoá ' + ids.length + ' bài trùng giống hệt', 5000); }).catch(loi);
-    };
+    }
     $$('#noiDung [data-gt]').forEach(function (b) {
       b.onclick = function () {
         var p = b.getAttribute('data-gt').split('|'), i = +p[0], v = p.slice(1).join('|');
