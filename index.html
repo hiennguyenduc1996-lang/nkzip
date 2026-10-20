@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.4.1';</script>
+<script>window.NK_BAN = '1.4.2';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -22,15 +22,16 @@
   @font-face { font-family:"Be Vietnam Pro"; font-weight:900; src:local("Be Vietnam Pro Black"), url(/font/BeVietnamPro-Black.ttf); }
   :root { --nen:#081029; --the:#101f4d; --the2:#152a63; --vien:#27407f; --chu:#fff; --mo:#a9b7d9;
           --vang:#ffd98a; --vang2:#edb85c; --xanh:#2ed47a; --do:#ff6b81; --cam:#ffb454; }
-  /* KTDK Zip: cùng giao diện, tông xanh lá */
-  body.ktdk { --nen:#061f17; --the:#0b3326; --the2:#104332; --vien:#1f6b50; --mo:#a3d4bf; --vang:#9af5bd; --vang2:#3fcf86; --xanh:#7fe3ff;
-    background:radial-gradient(1200px 700px at 100% 0,#0f5a3f 0,transparent 60%),radial-gradient(900px 600px at 0 100%,#0c4a33 0,transparent 55%),var(--nen) !important; background-attachment:fixed !important; }
-  body.ktdk button.vang, body.ktdk .doan button.chon, body.ktdk .bong.co { color:#032514; }
-  body.ktdk .logo i { background:linear-gradient(180deg,#14583f,#06261a); }
-  body.ktdk .khoa { background:#0a3a2e; }
+  /* KTDK Zip: nền trắng, điểm nhấn xanh lá – bảng màu được đổi lúc chạy (ql.js › nhuomSang); máy quét giữ nền tối.
+     Các thẻ nổi trên camera giữ chữ sáng. */
+  body.ktdk #qTren, body.ktdk #qTT0, body.ktdk #qThe, body.ktdk #qLon, body.ktdk #qDem { color:#fff; --chu:#fff; --mo:#c9e8da; }
+  html.ktdk, body.ktdk, body.ktdk #dangNhap { background:#f3f7f5 !important; }
   button.cheDo { margin-left:10px; padding:6px 12px; border-radius:999px; font-size:12.5px; font-weight:600; white-space:nowrap;
     color:var(--mo); background:var(--the2); border:1px solid var(--vien); }
   button.cheDo span { color:var(--vang); font-weight:800; }
+  th.cotAnh, td.cotAnh { width:44px; text-align:center; padding-left:4px; padding-right:4px; }
+  td.cotAnh.co { color:var(--xanh); font-weight:900; font-size:16px; } td.cotAnh.chua { color:var(--cam); }
+  .anhBoc .choAnh { display:grid; place-items:center; height:100%; min-height:240px; padding:24px; text-align:center; color:var(--mo); font-size:15px; line-height:1.5; }
   @media (max-width:820px) { button.cheDo { margin-left:6px; padding:5px 9px; font-size:11.5px; } }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { margin:0; height:100%; color:var(--chu); font:500 14px/1.45 "Be Vietnam Pro","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
@@ -414,7 +415,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.4.1</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.4.2</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -426,7 +427,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.4.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.4.2 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -455,7 +456,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.4.1 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.4.2 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -2030,7 +2031,8 @@ var QUET = (function () {
   function chonLo(ds, bay, laAnh) {
     var lo = ds.filter(function (m) { return (laAnh ? m.buoc === 'anh' : !m.buoc) && san(m, bay); });
     if (lo.length) { var che = lo[0].che || 'lop'; lo = lo.filter(function (m) { return (m.che || 'lop') === che; }); }   // một lượt chỉ gửi bài cùng chế độ (NKZip / KTDK Zip)
-    lo = lo.slice(0, khongGop ? 1 : laAnh ? GOP_ANH : GOP_DL);
+    // KTDK Zip (Firebase): mỗi lượt ảnh chỉ 4 tấm để ảnh bài vừa chấm lên sớm, không phải đợi cả lô 8
+    lo = lo.slice(0, khongGop ? 1 : laAnh ? (lo.length && lo[0].che === 'ktdk' ? 4 : GOP_ANH) : GOP_DL);
     lo.forEach(function (m) { DANG[m.id] = 1; });
     return lo.length ? { ds: lo, anh: laAnh } : null;
   }
@@ -2044,7 +2046,9 @@ var QUET = (function () {
       if (khongGop) { while (chay < 1 && (lo = chonLo(ds, bay, false) || chonLo(ds, bay, true))) guiLo(lo.ds, lo.anh); }   // máy chủ rất cũ: từng bài một
       else {
         while (chayDL < capDL && (lo = chonLo(ds, bay, false))) guiLo(lo.ds, false);
-        if (!choAnh) while (chayAnh < capAnh && (lo = chonLo(ds, bay, true))) guiLo(lo.ds, true);
+        // KTDK Zip: 4 luồng × 4 ảnh (cùng tổng 16 ảnh đang gửi như 2 × 8) – luồng xong là nhận ảnh mới ngay, ảnh bài vừa chấm lên sớm
+        var kt = ds.some(function (m) { return m.buoc === 'anh' && m.che === 'ktdk'; });
+        if (!choAnh) while (chayAnh < (kt ? capAnh * 2 : capAnh) && (lo = chonLo(ds, bay, true))) guiLo(lo.ds, true);
       }
       if (!chay) baoXong();
       if (ds.length) {                                 // bài đang đợi tới lượt gửi lại / ảnh đang tạm dừng: hẹn giờ gửi tiếp
@@ -2289,6 +2293,14 @@ var QUET = (function () {
     cv.width = id.width; cv.height = id.height;
     var c = cv.getContext('2d'); c.putImageData(id, 0, 0);
     var sach = kq ? cv.toDataURL('image/jpeg', 0.72) : '';
+    if (kq && API.cheDo() === 'ktdk') {
+      // KTDK Zip: ảnh gửi lên gọn khoảng một nửa (36 điểm ảnh/cm, nén 0,62 – vẫn đọc rõ từng ô khi phóng to)
+      // để điện thoại tải lên nhanh khi chấm dồn; ảnh có dấu hiện trên máy quét vẫn giữ nét như cũ
+      var nho = document.createElement('canvas'), tl = 36 / px;
+      nho.width = Math.round(cv.width * tl); nho.height = Math.round(cv.height * tl);
+      var cn = nho.getContext('2d'); cn.imageSmoothingQuality = 'high'; cn.drawImage(cv, 0, 0, nho.width, nho.height);
+      sach = nho.toDataURL('image/jpeg', 0.62);
+    }
     if (kq) {
       // độ sáng giấy của ảnh (để khi sửa bài, phần xoá nét tô cũ cùng màu với giấy)
       var dl = id.data, mau = [];
@@ -2792,37 +2804,63 @@ var QUET = (function () {
     $('#tenNg').title = CUC_BO ? '' : 'Bấm để đổi mật khẩu';
     veCheDo();
   }
-  // ---- hai chế độ: Chấm trong lớp (NKZip, xanh navy) / KTDK Zip (xanh lá, dữ liệu trên Firebase) ----
-  // KTDK Zip: đổi các màu xanh navy ghi cứng trong bảng kiểu sang xanh lá cùng độ sáng (vàng / đỏ / ảnh bài giữ nguyên)
+  // ---- hai chế độ: Chấm trong lớp (NKZip, xanh navy) / KTDK Zip (nền trắng + xanh lá, dữ liệu trên Firebase) ----
+  // KTDK Zip: NỀN TRẮNG, ĐIỂM NHẤN XANH LÁ (người dùng thấy xanh lá toàn bộ thì rối mắt). Đổi bảng màu lúc chạy qua CSSOM:
+  //  - xanh navy / xám: tối → sáng (nền, khung), sáng → tối (chữ); ngả xanh lá rất nhẹ;
+  //  - vàng nhấn (nút chính, thẻ đang chọn, điểm) → xanh lá vừa; chữ tối trên nút vàng → chữ trắng;
+  //  - xanh "đúng", đỏ, cam… giữ màu nhưng đậm hơn cho rõ trên nền trắng.
+  // Máy quét (nằm trên camera) giữ nguyên nền tối.
   var daNhuom = false;
-  function nhuomXanhLa() {
+  function nhuomSang() {
     if (daNhuom) return; daNhuom = true;
-    // đổi một màu (r, g, b 0–255) navy → xanh lá; không phải màu xanh dương thì trả null
+    var hsl = function (R, G, B) {
+      var r = R / 255, g = G / 255, b = B / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn, h = 0;
+      var s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+      if (d) h = (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60;
+      return [h < 0 ? h + 360 : h, Math.min(1, s), l];
+    };
+    var rgb = function (h, s, l) {
+      var c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), o = l - c / 2, k = Math.floor(h / 60) % 6;
+      return [[c, x, 0, 0, x, c][k], [x, c, c, x, 0, 0][k], [0, 0, x, c, c, x][k]].map(function (v) { return Math.max(0, Math.min(255, Math.round((v + o) * 255))); });
+    };
     var doi = function (R, G, B) {
-      var r = R / 255, g = G / 255, b = B / 255;
-      var mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn, s = d ? d / (1 - Math.abs(2 * l - 1)) : 0, hu = 0;
-      if (d) hu = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
-      hu *= 60; if (hu < 0) hu += 360;
-      if (s < 0.2 || hu < 195 || hu > 265) return null;              // chỉ đổi màu xanh dương / navy
-      hu -= 75;                                                       // ~225° (navy) → ~150° (xanh lá)
-      var c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((hu / 60) % 2 - 1)), o = l - c / 2, k = Math.floor(hu / 60);
-      return [[c, x, 0, 0, x, c][k], [x, c, c, x, 0, 0][k], [0, 0, x, c, c, x][k]].map(function (v) { return Math.round((v + o) * 255); });
+      var t = hsl(R, G, B), h = t[0], s = t[1], l = t[2];
+      if (h >= 25 && h <= 65 && s >= 0.3) return l < 0.25 ? [255, 255, 255] : rgb(148, 0.6, l > 0.6 ? 0.42 : 0.34);   // vàng nhấn
+      if (s < 0.18 || (h >= 190 && h <= 270)) {                                                                          // navy / xám
+        return l < 0.5 ? rgb(150, Math.min(s, 0.4) * 0.45, 1 - l * 0.55) : rgb(155, Math.min(s, 0.4) * 0.6, 0.12 + (1 - l) * 0.45);
+      }
+      if (h > 80 && h < 175) return rgb(h, s, Math.min(l, 0.36));                                                        // xanh "đúng"
+      return rgb(h, s, Math.min(l, 0.48));                                                                               // đỏ, cam…
     };
     var hx = function (v) { return ('0' + v.toString(16)).slice(-2); };
-    $$('style').forEach(function (st) {
-      st.textContent = st.textContent
-        .replace(/#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?\b/gi, function (m, a, b, c, al) {
-          var n = doi(parseInt(a, 16), parseInt(b, 16), parseInt(c, 16)); return n ? '#' + n.map(hx).join('') + (al || '') : m;
-        })
-        .replace(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/gi, function (m, a, b, c) {
-          var n = doi(+a, +b, +c); return n ? m.replace(/\(\s*\d+\s*,\s*\d+\s*,\s*\d+/, '(' + n.join(',')) : m;
-        });
-    });
+    var thay = function (v) {
+      return v.replace(/#([0-9a-f]{3,8})\b/gi, function (m, h) {
+        if ([3, 4, 6, 8].indexOf(h.length) < 0) return m;
+        var d = h.length <= 4 ? h.split('').map(function (c) { return c + c; }) : h.match(/../g);
+        var n = doi(parseInt(d[0], 16), parseInt(d[1], 16), parseInt(d[2], 16));
+        return '#' + n.map(hx).join('') + (d[3] || '');
+      }).replace(/rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/gi, function (m, a, b, c) {
+        var n = doi(+a, +b, +c); return m.replace(/\(\s*\d+[\s,]+\d+[\s,]+\d+/, '(' + n.join(', '));
+      });
+    };
+    var BO_QUA = /#manQuet|#q[A-Z]|\.qHop|#lk[A-Z]|\.ktdk/;        // máy quét: giữ nền tối; quy tắc .ktdk đã viết sẵn cho nền trắng
+    var duyet = function (rules) {
+      Array.prototype.forEach.call(rules, function (ru) {
+        if (ru.cssRules && !ru.selectorText) return duyet(ru.cssRules);     // @media
+        if (!ru.style || BO_QUA.test(ru.selectorText || '')) return;
+        // đổi trên cả khối (cssText): thuộc tính gộp có biến, vd. background: radial-gradient(…), var(--nen), không đọc được từng phần
+        var v = ru.style.cssText;
+        if (!/#|rgb/i.test(v)) return;
+        var nv = thay(v);
+        if (nv !== v) ru.style.cssText = nv;
+      });
+    };
+    Array.prototype.forEach.call(document.styleSheets, function (sh) { try { duyet(sh.cssRules); } catch (e) { /* bảng kiểu ngoài */ } });
   }
   function veCheDo() {
     var kt = laKTDK();
-    document.body.classList.toggle('ktdk', kt);
-    if (kt) nhuomXanhLa();
+    document.body.classList.toggle('ktdk', kt); document.documentElement.classList.toggle('ktdk', kt);
+    if (kt) nhuomSang();
     $$('.logo .tenApp').forEach(function (e) { e.innerHTML = kt ? 'KTDK <b>Zip</b>' : 'NK<b>Zip</b>'; });
     $$('.logo i').forEach(function (e) { e.textContent = kt ? 'KT' : 'NK'; });
     document.title = kt ? 'KTDK Zip' : 'NKZip';
@@ -2846,6 +2884,11 @@ var QUET = (function () {
     var hen = 0;
     nghe.huy = FBK.nghe(id, function (ds) {
       if (!datKQ(id, ds)) return;
+      // đang xem một bài mà ảnh của bài đó vừa lên (ảnh gửi sau điểm): gắn ảnh vào và vẽ lại ngay
+      if (XEM && XEM.goc && !XEM.goc.anh) {
+        var moi = ds.filter(function (x) { return x.id === XEM.goc.id; })[0];
+        if (moi && moi.anh) { XEM.goc.anh = moi.anh; XEM.goc.sach = moi.sach; XEM.r.anh = moi.anh; XEM.r.sach = moi.sach; veXem(); }
+      }
       clearTimeout(hen);
       hen = setTimeout(function () {           // gom các thay đổi dồn dập, đừng vẽ lại khi đang sửa / xem một bài
         veBen();
@@ -3107,7 +3150,8 @@ var QUET = (function () {
     h += '<div style="overflow:auto;margin-top:10px"><table><tr>' +
       [['sbd', 'SBD'], ['ten', 'Họ và tên'], ['lop', 'Lớp'], ['made', 'Mã đề'], ['diem', 'Điểm', 1], ['d1', 'Phần I', 1], ['d2', 'Phần II', 1], ['d3', 'Phần III', 1]].map(function (c) {
         var mt = sapXep.cot === c[0] ? '<span class="mui">' + (sapXep.nguoc ? '▼' : '▲') + '</span>' : '<span class="mui nhat">▲▼</span>';
-        return '<th data-c="' + c[0] + '" class="sx' + (c[2] ? ' p' : '') + '" title="Bấm để sắp xếp">' + c[1] + mt + '</th>';
+        return '<th data-c="' + c[0] + '" class="sx' + (c[2] ? ' p' : '') + '" title="Bấm để sắp xếp">' + c[1] + mt + '</th>' +
+          (c[0] === 'ten' ? '<th class="cotAnh" title="Ảnh bài làm đã lên web chưa: ✓ đã lên · ⏳ đang gửi">Ảnh</th>' : '');
       }).join('') + '<th></th></tr>';
     ds.forEach(function (r) {
       var co2 = '';
@@ -3120,7 +3164,10 @@ var QUET = (function () {
       if (kt.trong.length) co2 += '<span class="nhan" title="' + esc(kt.trong.join(', ')) + '">' + kt.trong.length + ' câu bỏ trống</span> ';
       var ng = CHAM.moTaNghi(r.nghi, k, r.made);
       if (ng.length) co2 += '<span class="nhan" title="' + esc(ng.join('; ')) + '">' + ng.length + ' chỗ cần xem lại</span>';
-      h += '<tr class="bam" data-id="' + esc(r.id) + '"><td>' + esc(r.sbd) + '</td><td>' + esc(r.ten) + '</td><td>' + esc(r.lop) + '</td><td>' + esc(r.made) +
+      h += '<tr class="bam" data-id="' + esc(r.id) + '"><td>' + esc(r.sbd) + '</td><td>' + esc(r.ten) + '</td>' +
+        // ảnh bài làm đã lên web chưa (ảnh gửi sau điểm; ✓ tự hiện khi ảnh lên)
+        (r.anh && !r.chuaGui ? '<td class="cotAnh co" title="Ảnh đã lên web">✓</td>' : '<td class="cotAnh chua" title="Ảnh đang được gửi lên">⏳</td>') +
+        '<td>' + esc(r.lop) + '</td><td>' + esc(r.made) +
         '</td><td class="p diem">' + vn(r.diem) + '</td><td class="p">' + vn(r.d1) + '</td><td class="p">' + vn(r.d2) + '</td><td class="p">' + vn(r.d3) +
         '</td><td>' + co2 + '</td></tr>';
     });
@@ -3226,10 +3273,13 @@ var QUET = (function () {
   var xemGoc = false;                                // "Ảnh gốc": xem ảnh chụp thật, không vẽ dấu / không vẽ phần đã sửa
   function veXem() {
     var sach = anhSachCua(XEM.goc), a = anhUrl(sach || XEM.goc.anh), nd = khungXem();
-    nd.classList.toggle('don', !a);
+    // KTDK Zip: ảnh gửi lên sau điểm (hoặc đang tải) – báo rõ thay vì để trống; ảnh lên xong sẽ tự hiện
+    var choAnh = !a && laKTDK() && !XEM.goc.chuaGui ? (String(XEM.goc.anh || '').indexOf('fs:') === 0 ? 'Đang tải ảnh bài làm…' : 'Ảnh bài làm đang được gửi lên từ điện thoại – sẽ tự hiện khi xong.') : '';
+    nd.classList.toggle('don', !a && !choAnh);
     nd.innerHTML = (a ? '<div class="anhBoc"><div id="xemAnh" class="vua">' + (sach ? '<canvas title="Ảnh bài làm"></canvas>' : '<img src="' + esc(a) + '" alt="Ảnh bài làm" draggable="false">') + '</div>' +
       '<div class="thuPhong"><button id="zTru" title="Thu nhỏ">−</button><button id="zVua" class="dai" title="Vừa khung">Vừa khung</button><button id="zCong" title="Phóng to">+</button>' +
-      (sach ? '<button id="zGoc" class="dai' + (xemGoc ? ' chon' : '') + '" title="Xem ảnh chụp thật, không có dấu chấm và phần đã sửa">' + (xemGoc ? 'Ảnh có dấu' : 'Ảnh gốc') + '</button>' : '') + '</div></div>' : '') +
+      (sach ? '<button id="zGoc" class="dai' + (xemGoc ? ' chon' : '') + '" title="Xem ảnh chụp thật, không có dấu chấm và phần đã sửa">' + (xemGoc ? 'Ảnh có dấu' : 'Ảnh gốc') + '</button>' : '') + '</div></div>' :
+      choAnh ? '<div class="anhBoc"><div class="choAnh">' + choAnh + '</div></div>' : '') +
       '<div id="xemBen"></div>';
     veXemBen();
     if (a) {
@@ -3306,7 +3356,7 @@ var QUET = (function () {
       dung = CHAM.bangNhau(r.p3[i] || '', a3[i]);
       h += '<div class="cau' + (dung ? '' : ' sai2') + '"><span>' + (i + 1) + '</span><b class="khoa" style="min-width:70px">' + esc(a3[i].replace(/\|/g, ' / ')) + '</b><input data-p="3" data-i="' + i + '" value="' + esc(r.p3[i] || '') + '" maxlength="4" style="width:90px;padding:5px 8px;border-color:' + (dung ? 'var(--xanh)' : 'var(--do)') + '"></div>';
     }
-    h += '<div class="hang" style="margin-top:16px;position:sticky;bottom:-14px;background:#0d1a44;padding:10px 0"><button class="vang" id="sLuu">' + (moi ? 'Lưu bài' : 'Lưu thay đổi') + '</button>' + (moi ? '<button id="sDong">Đóng</button>' : '<button class="nguy" id="sXoa" style="margin-left:auto">Xoá bài</button>') + '</div>';
+    h += '<div class="hang" style="margin-top:16px;position:sticky;bottom:-14px;background:var(--the);padding:10px 0"><button class="vang" id="sLuu">' + (moi ? 'Lưu bài' : 'Lưu thay đổi') + '</button>' + (moi ? '<button id="sDong">Đóng</button>' : '<button class="nguy" id="sXoa" style="margin-left:auto">Xoá bài</button>') + '</div>';
     var ben = $('#xemBen', khungXem()), cuon = ben.scrollTop;
     ben.innerHTML = h; ben.scrollTop = cuon;
     if ($('#sDong')) $('#sDong').onclick = dongHop;
