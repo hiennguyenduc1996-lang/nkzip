@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.5.3';</script>
+<script>window.NK_BAN = '1.5.4';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.3</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.4</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.3 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.4 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.5.3 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.5.4 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1232,11 +1232,16 @@ var CHAM = (function () {
   function diemToiDa(ky, de) { return tron(diemGoc(ky, de) * heSo(ky)); }
 
   function cham(doc, ky, madeChon) {
-    var ma = timDe(ky, madeChon != null ? madeChon : doc.made);
-    if (ma === null) return { loi: 'made', made: doc.made };
+    var ma = timDe(ky, madeChon != null ? madeChon : doc.made), tam = false;
+    // học sinh quên tô / tô sai mã đề: tạm chấm theo mã nhỏ nhất (mã A, mã gốc), đánh dấu tamMa để giáo viên sửa sau
+    if (ma === null) {
+      var cac = Object.keys(ky.de || {}).sort(function (a, b) { return a.localeCompare(b, 'vi', { numeric: true }); });
+      if (!cac.length) return { loi: 'made', made: doc.made };
+      ma = cac[0]; tam = true;
+    }
     var de = ky.de[ma], d = ky.diem, i, j, a = k1(de), b = k2(de), c = k3(de);
     var p1 = doc.p1 || '', p2 = doc.p2 || '', p3 = doc.p3 || [];
-    var kq = { made: ma, d1: 0, d2: 0, d3: 0, dung1: 0, so1: 0, dung3: 0, so3: 0, ct1: [], ct2: [], ct3: [], diem2: [] };
+    var kq = { made: ma, tamMa: tam, d1: 0, d2: 0, d3: 0, dung1: 0, so1: 0, dung3: 0, so3: 0, ct1: [], ct2: [], ct3: [], diem2: [] };
     // Phần I
     for (i = 0; i < a.length; i++) {
       if (!a[i]) { kq.ct1.push(-1); continue; }
@@ -2574,6 +2579,7 @@ var QUET = (function () {
         id: KY.id + '_' + (/^\d+$/.test(sbd) ? sbd : 'x' + Date.now()),
         kyThi: KY.id, tenKy: KY.ten, sbd: sbd, ten: hs ? hs.ten : '', lop: hs ? hs.lop : '',
         made: c.loi ? (doc.made || '') : c.made, loiMade: !!c.loi,
+        maTam: !!c.tamMa,                           // không đọc được mã đề: đang tạm chấm theo mã nhỏ nhất (mã A)
         diem: c.loi ? null : c.diem, d1: c.d1 || 0, d2: c.d2 || 0, d3: c.d3 || 0, toiDa: c.toiDa || 0,
         dung1: c.dung1 || 0, so1: c.so1 || 0, dung3: c.dung3 || 0, so3: c.so3 || 0,
         p1: doc.p1, p2: doc.p2, p3: doc.p3, nghi: doc.nghi || [], luc: new Date().toISOString(), anh: '',
@@ -2614,7 +2620,8 @@ var QUET = (function () {
     var guiAnh = kq.sach && sach ? sach : anh;
     HC.them({ id: kq.id, kq: kq, anh: guiAnh.split(',')[1], sach: '', che: API.cheDo() }).then(dayHangCho);
     DA[kq.id] = { ten: kq.ten, diem: kq.diem, vanTay: vanTay(kq) };
-    cuoi = kq.id; BAI_CUOI = { kq: kq, anh: anh, sach: sach }; soBai++;
+    // đếm số BÀI khác nhau (ghi đè / chấm lại cùng học sinh không đếm thêm) để khớp với danh sách Bài làm trên web
+    cuoi = kq.id; BAI_CUOI = { kq: kq, anh: anh, sach: sach }; soBai = Object.keys(DA).length;
     if (TC.them) TC.them(kq, guiAnh);
     hienThe(kq);                                     // chỉ hiện thẻ trên nền camera, vẫn quét tiếp được
     var tot = !kq.loiMade && !!kq.ten && !canhBao(kq).length;
@@ -2667,7 +2674,7 @@ var QUET = (function () {
   }
   // gán lại / xoá bài vừa chấm xong (đang hiện trên màn hình)
   function boBai(kq) {
-    HC.xoa(kq.id); delete DA[kq.id]; soBai = Math.max(0, soBai - 1);
+    HC.xoa(kq.id); delete DA[kq.id]; soBai = Object.keys(DA).length;
     API.goi('xoaKetQua', { id: kq.id, kyThi: kq.kyThi }).catch(function () {});
     if (TC.xoa) TC.xoa(kq.id);
     capNhatDem();
@@ -2696,6 +2703,7 @@ var QUET = (function () {
     if (kq.ten) kt.sbd = '';
     var ds = CHAM.loiBao(kt, !!kq.ten);
     if (kq.loiMade && !kt.made) ds.push('Chưa xác định được mã đề');
+    if (kq.maTam) ds.push('Không đọc được mã đề – tạm chấm theo mã ' + kq.made + ', sửa lại sau nếu sai');
     return ds;
   }
   function hienLon(kq, anh, giu) {
@@ -3391,7 +3399,7 @@ var QUET = (function () {
       var cot = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], lon = 1;
       d.forEach(function (x) { var i = Math.min(9, Math.floor(x)); cot[i]++; if (cot[i] > lon) lon = cot[i]; });
       h += '<div class="the"><div class="o2" style="align-items:flex-end">' +
-        [['Số bài', co.length], ['Điểm trung bình', vn2(tb(co, function (r) { return r.diem; })), 1], ['Cao nhất', vn(d[d.length - 1])], ['Thấp nhất', vn(d[0])],
+        [['Số bài', ds.length], ['Điểm trung bình', vn2(tb(co, function (r) { return r.diem; })), 1], ['Cao nhất', vn(d[d.length - 1])], ['Thấp nhất', vn(d[0])],
           ['TB Phần I', vn2(tb(co, function (r) { return r.d1; }))], ['TB Phần II', vn2(tb(co, function (r) { return r.d2; }))], ['TB Phần III', vn2(tb(co, function (r) { return r.d3; }))],
           ['Từ 5 trở lên', Math.round(d.filter(function (x) { return x >= 5; }).length * 100 / d.length) + '%']].map(function (x) {
           return '<div class="so"><small>' + x[0] + '</small><b' + (x[2] ? ' class="v"' : '') + '>' + x[1] + '</b></div>';
@@ -3424,6 +3432,7 @@ var QUET = (function () {
       var kt = CHAM.kiemTra({ sbd: r.sbd, p1: r.p1, p2: r.p2, p3: r.p3 }, k, r.made);
       if (!r.ten) co2 += '<span class="nhan do">' + (kt.sbd === 'hai' ? 'SBD tô 2 ô' : kt.sbd === 'thiếu' ? 'SBD tô thiếu' : 'SBD không có trong lớp') + '</span> ';
       if (r.loiMade) co2 += '<span class="nhan do">chưa rõ mã đề</span> ';
+      if (r.maTam) co2 += '<span class="nhan do" title="Học sinh không tô / tô sai mã đề: đang tạm chấm theo mã ' + esc(r.made) + '. Mở bài, chọn đúng mã đề rồi Lưu.">tạm chấm mã ' + esc(r.made) + '</span> ';
       if (kt.kep.length) co2 += '<span class="nhan do" title="' + esc(kt.kep.join(', ')) + '">' + kt.kep.length + ' câu tô 2 ô</span> ';
       if (kt.trong.length) co2 += '<span class="nhan" title="' + esc(kt.trong.join(', ')) + '">' + kt.trong.length + ' câu bỏ trống</span> ';
       var ng = CHAM.moTaNghi(r.nghi, k, r.made);
@@ -3468,6 +3477,7 @@ var QUET = (function () {
     m.loiMade = !!c.loi; m.made = c.loi ? (made || r.made || '') : c.made;
     m.diem = c.loi ? null : c.diem; m.d1 = c.d1 || 0; m.d2 = c.d2 || 0; m.d3 = c.d3 || 0; m.toiDa = c.toiDa || 0;
     m.dung1 = c.dung1 || 0; m.so1 = c.so1 || 0; m.dung3 = c.dung3 || 0; m.so3 = c.so3 || 0;
+    if (c.tamMa) m.maTam = true;                     // vẫn chưa rõ mã đề: tạm theo mã nhỏ nhất (giáo viên chọn mã đề thì bỏ dấu này)
     return m;
   }
   function boTam(m) { m = sao(m); delete m.chuaGui; if (String(m.anh || '').indexOf('data:') === 0) m.anh = ''; return m; }
@@ -3477,6 +3487,7 @@ var QUET = (function () {
     m.loiMade = !!c.loi; m.made = c.loi ? (r.made || '') : c.made;
     m.diem = c.loi ? null : c.diem; m.d1 = c.d1 || 0; m.d2 = c.d2 || 0; m.d3 = c.d3 || 0; m.toiDa = c.toiDa || 0;
     m.dung1 = c.dung1 || 0; m.so1 = c.so1 || 0; m.dung3 = c.dung3 || 0; m.so3 = c.so3 || 0;
+    if (c.tamMa) m.maTam = true;
     return m;
   }
   // Chấm lại mọi bài của kỳ thi theo đáp án / điểm hiện tại. tuDong: gọi ngay sau khi lưu bài thi, không hỏi lại.
@@ -3603,7 +3614,7 @@ var QUET = (function () {
       (function () { var cb = CHAM.loiBao(CHAM.kiemTra(r, k, r.made), !!hs); return cb.length ? '<div class="canhXem">' + cb.map(function (x) { return '<div>⚠ ' + esc(x) + '</div>'; }).join('') + '</div>' : ''; })() +
       (function () { var ng = CHAM.moTaNghi(XEM.goc.nghi, k, r.made); return ng.length ? '<div><span class="nhan">Máy đọc chưa chắc, nên xem lại: ' + esc(ng.join('; ')) + '</span></div>' : ''; })() +
       '<div class="hang" style="margin-top:8px"><div class="o" style="flex:1"><label>Số báo danh</label><input id="sSbd" value="' + esc(r.sbd) + '" inputmode="numeric" style="width:100%"></div>' +
-      '<div class="o" style="flex:1"><label>Mã đề</label><select id="sMade" style="width:100%">' + Object.keys(k.de).map(function (m) { return '<option' + (m === r.made ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '</select></div></div>';
+      '<div class="o" style="flex:1"><label>Mã đề' + (r.maTam ? ' <b style="color:var(--do)">(tạm – học sinh không tô mã đề: chọn đúng mã rồi Lưu)</b>' : '') + '</label><select id="sMade" style="width:100%">' + Object.keys(k.de).map(function (m) { return '<option' + (m === r.made ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '</select></div></div>';
     // Phần I
     var L = MAU[k.mau].madeNhan.length === 5 && k.mau === 'zip50' ? 'ABCD' : 'ABCD', co1 = false;
     for (i = 0; i < a1.length; i++) if (a1[i]) {
@@ -3639,7 +3650,7 @@ var QUET = (function () {
     $('#sSbd').oninput = function () { r.sbd = this.value.trim(); };
     $('#sSbd').onchange = function () { r.sbd = this.value.trim(); veXemBen(); };
     $('#sGan').onclick = function () { chonHocSinh(function (s) { r.sbd = String(s.sbd); luuBai(); }); };      // gán xong là tự lưu
-    $('#sMade').onchange = function () { r.made = this.value; veXemBen(); };
+    $('#sMade').onchange = function () { r.made = this.value; r.maTam = false; veXemBen(); };     // giáo viên đã chọn mã đề: hết "tạm chấm"
     $$('#xemBen .bong').forEach(function (b) {
       b.onclick = function () {
         var p = b.getAttribute('data-p'), i2 = +b.getAttribute('data-i'), v = b.getAttribute('data-v'), s = p === '1' ? r.p1 : r.p2;
@@ -3686,6 +3697,7 @@ var QUET = (function () {
     if (moi && !/^\d+$/.test(sbd)) return bao('Cần nhập số báo danh.');
     if (XEM.goc.chuaGui) return bao('Bài này còn đang gửi lên web – đợi gửi xong (bấm ⟳ Tải lại) rồi hãy sửa.', 6000);
     var m = tinhLai(k, r, sbd, r.made);
+    delete m.maTam;                                  // giáo viên đã xem và lưu: mã đề coi như đã xác nhận
     m.nghi = []; m = boTam(m); m.tenKy = k.ten; m.ghiDe = true;
     if (!m.anh && XEM.goc.anh && String(XEM.goc.anh).indexOf('data:') !== 0) m.anh = XEM.goc.anh;
     var idCu = XEM.goc.id, idMoi = /^\d+$/.test(m.sbd) ? k.id + '_' + m.sbd : (idCu || k.id + '_x' + Date.now()), truoc = Promise.resolve(), baoTrung = '';
@@ -4431,17 +4443,26 @@ var QUET = (function () {
       else xong('Không chụp được ảnh: ' + e.message, 7000);
     });
   }
-  // Chụp một phần tử HTML thành ảnh PNG (vẽ qua SVG foreignObject, kèm các luật CSS của phần tử đó)
+  // Chụp một phần tử HTML thành ảnh PNG (vẽ qua SVG foreignObject). Mỗi ô được chép NGUYÊN kiểu dáng đang hiển thị
+  // (getComputedStyle) và kích thước thật, nên ảnh giống hệt trên màn hình, không bị cắt cột (MAX, MIN…) dù khung đang cuộn.
+  var KIEU_CHUP = ['display', 'box-sizing', 'width', 'height', 'min-width', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+    'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-collapse',
+    'border-spacing', 'background-color', 'color', 'font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'letter-spacing',
+    'text-align', 'vertical-align', 'white-space', 'text-transform', 'text-decoration', 'table-layout', 'list-style-type', 'list-style-position'];
   function chupAnh(el, tiLe) {
     tiLe = tiLe || 2;
-    var w = el.scrollWidth, h = el.scrollHeight, css = '';
-    Array.prototype.forEach.call(document.styleSheets, function (s) {
-      var luat; try { luat = s.cssRules; } catch (e) { return; }
-      Array.prototype.forEach.call(luat || [], function (r) { if (r.selectorText && /\.xh|table\.xh|\.bdGiay|table\.bd/.test(r.selectorText)) css += r.cssText + '\n'; });
+    var w = Math.ceil(Math.max(el.scrollWidth, el.getBoundingClientRect().width)), h = Math.ceil(Math.max(el.scrollHeight, el.getBoundingClientRect().height));
+    var ban = el.cloneNode(true), goc = [el].concat(Array.prototype.slice.call(el.querySelectorAll('*'))),
+      moi = [ban].concat(Array.prototype.slice.call(ban.querySelectorAll('*')));
+    goc.forEach(function (g, i) {
+      var cs = getComputedStyle(g), s = KIEU_CHUP.map(function (p) { return p + ':' + cs.getPropertyValue(p); }).join(';');
+      if (/^(TD|TH)$/.test(g.tagName)) { var b = g.getBoundingClientRect(); s += ';width:' + b.width + 'px;height:' + b.height + 'px'; }
+      moi[i].setAttribute('style', s); moi[i].removeAttribute('class');
     });
-    var nd = new XMLSerializer().serializeToString(el);
+    ban.style.width = w + 'px'; ban.style.margin = '0';
+    var nd = new XMLSerializer().serializeToString(ban);
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">' +
-      '<style>' + css.replace(/</g, '') + '</style>' + nd + '</div></foreignObject></svg>';
+      nd + '</div></foreignObject></svg>';
     return new Promise(function (ok, hong) {
       var im = new Image();
       im.onload = function () {
@@ -4581,7 +4602,7 @@ var QUET = (function () {
     }
     return cot || '<div class="mo">Bài thi này không có Phần III.</div>';
   }
-  var CHE_TK = [['nghi', 'Nghi máy quét nhầm'], ['thieu', 'Tô thiếu / sai SBD'], ['trung', 'Trùng SBD'], ['sot', 'Tô sót đáp án'], ['gt', 'Lọc theo đáp án Phần III']];
+  var CHE_TK = [['nghi', 'Nghi máy quét nhầm'], ['thieu', 'Tô thiếu / sai SBD'], ['ma', 'Thiếu mã đề'], ['trung', 'Trùng SBD'], ['sot', 'Tô sót đáp án'], ['gt', 'Lọc theo đáp án Phần III']];
   // số chỗ khác nhau giữa hai bài (mã đề, từng câu / ý, từng kí tự Phần III)
   function soKhacBai(a, b) {
     var s = [a.made, a.p1, a.p2, (a.p3 || []).join(';')].join('|'), t = [b.made, b.p1, b.p2, (b.p3 || []).join(';')].join('|'), n = Math.abs(s.length - t.length);
@@ -4643,6 +4664,11 @@ var QUET = (function () {
         var kt = CHAM.kiemTra({ sbd: r.sbdDoc || r.sbd }, k, r.made);
         ds.push({ r: r, hs: true, ghi: [kt.sbd === 'hai' ? 'Số báo danh có cột tô 2 ô (máy đọc <b>' + esc(sbdMay(r)) + '</b>)' :
           kt.sbd === 'thiếu' ? 'Số báo danh tô thiếu (máy đọc <b>' + esc(sbdMay(r)) + '</b>, ? = cột không tô)' : 'SBD <b>' + esc(r.sbd) + '</b> không có trong danh sách lớp'] });
+      } else if (che === 'ma') {
+        // không đọc được mã đề: đang tạm chấm theo mã nhỏ nhất – xem ảnh, chọn đúng mã đề rồi Lưu (hoặc Bỏ qua nếu đúng)
+        if (!r.maTam && !r.loiMade) return;
+        ds.push({ r: r, ghi: ['Không đọc được mã đề (máy đọc <b>' + esc(String(r.madeDoc || '').replace(/_/g, '?') || 'trống') + '</b>) – ' +
+          (r.maTam ? 'đang <b>tạm chấm theo mã ' + esc(r.made) + '</b>. Xem ảnh, chọn đúng mã đề ở ô “Mã đề” rồi bấm Lưu.' : 'chưa có điểm. Chọn mã đề rồi bấm Lưu.')] });
       } else if (che === 'trung') {
         if (!/^\d+$/.test(r.sbd) || !(soSbd[r.sbd] > 1)) return;
         var khac = KQ.filter(function (x) { return x !== r && x.sbd === r.sbd; });
@@ -4750,6 +4776,7 @@ var QUET = (function () {
     }).join('') + '</div><div class="hang" style="align-items:center;margin-top:10px">';
     if (cheTK === 'nghi') h += '<span class="mo" style="font-size:13px;flex:1;min-width:260px">Chỗ có lí do để nghi <b>máy</b> đọc sai: Phần III máy đọc dư 1 kí tự hoặc thấy 2 ô trong một cột so với đáp án; câu máy “chưa chắc” mà kết quả là bỏ trống / tô 2 ô.</span>' +
       (soChac ? '<button id="tkApTat">✓ Cập nhật tất cả gợi ý chắc chắn (' + soChac + ')</button>' : '');
+    if (cheTK === 'ma') h += '<span class="mo" style="font-size:13px">Học sinh không tô / tô sai mã đề: app tạm chấm theo mã nhỏ nhất để có điểm. Chọn đúng mã đề rồi Lưu – bài tự rời khỏi danh sách.</span>';
     if (cheTK === 'thieu') h += '<span class="mo" style="font-size:13px">Bài chưa gán được học sinh: SBD tô thiếu, tô 2 ô trong một cột hoặc không có trong danh sách lớp. Gợi ý là học sinh chưa có bài, khớp nhiều chữ số SBD nhất.</span>';
     if (cheTK === 'trung') {
       var giongHet = nhomGiongHet();
