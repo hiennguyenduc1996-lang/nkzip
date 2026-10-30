@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.5.4';</script>
+<script>window.NK_BAN = '1.5.5';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.4</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.5</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.4 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.5.4 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.5.5 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -2015,8 +2015,20 @@ var FBK = (function () {
     }).catch(function () {});
     return function () { dung = true; if (huy) huy(); };
   }
+  // theo dõi chính bài thi (đáp án, thang điểm): máy khác sửa thì máy này nhận bản mới ngay, không chấm / sửa bài theo bản cũ
+  function ngheKy(kyThi, cb) {
+    var huy = null, dung = false;
+    sanSang().then(function () {
+      if (dung) return;
+      huy = db.collection('kyThi').doc(kyThi).onSnapshot(function (s) {
+        if (!s.metadata.hasPendingWrites && s.exists) cb(moDong(s.data()));
+      }, function () { /* mất quyền / mạng: vẫn dùng bản đang có */ });
+    }).catch(function () {});
+    return function () { dung = true; if (huy) huy(); };
+  }
   return { goi: goi, goiLop: goiLop, lopFB: lopFB, sanSang: sanSang, dangXuat: dangXuat, anhNgay: anhNgay, coCauHinh: function () { return !!CAU_HINH; },
-    nghe: function (kyThi, cb) { return API.cheDo() === 'lop' ? ngheLop(kyThi, cb) : nghe(kyThi, cb); } };
+    nghe: function (kyThi, cb) { return API.cheDo() === 'lop' ? ngheLop(kyThi, cb) : nghe(kyThi, cb); },
+    ngheKy: function (kyThi, cb) { return API.cheDo() === 'lop' ? function () {} : ngheKy(kyThi, cb); } };
 })();
 
 </script>
@@ -2868,9 +2880,15 @@ var QUET = (function () {
     if (f) f(suaId);
   }
 
+  // bài thi vừa được sửa trên máy khác (đáp án, thang điểm): máy quét đang mở chấm tiếp theo bản mới
+  function doiKy(k) {
+    if (!KY || !k || KY.id !== k.id || TC.cheDo !== 'cham' || !MAU[k.mau]) return;
+    KY = k; TPL = MAU[k.mau];
+  }
+
   dayHangCho();
   return {
-    mo: mo, dong: dong, choGui: choGui, xuLyAnh: xuLyAnh, boKy: boKy,
+    mo: mo, dong: dong, choGui: choGui, xuLyAnh: xuLyAnh, boKy: boKy, doiKy: doiKy,
     thuKhung: function (w, h) { kichThu = { w: w, h: h }; veKhung(null, 1, '#3d8bfd'); },
     // chỉ để thử (tests): xử lí một "khung hình camera" lấy từ canvas / ảnh nguồn
     thuTuChup: function (nguon) { var v = video, q = dangQuet; video = nguon; dangQuet = true; tuChup(); setTimeout(function () { video = v; dangQuet = q; }, 600); },
@@ -3133,16 +3151,33 @@ var QUET = (function () {
     }
   }
   // KTDK Zip: theo dõi kết quả của bài thi đang mở – bài vừa chấm trên điện thoại hiện lên ngay, không cần tải lại
-  var nghe = { id: null, huy: null };
+  var nghe = { id: null, huy: null, huyKy: null };
   function theoDoiKy() {
     var id = (laKTDK() || API.lopFB()) && window.FBK && tabBen === 'ky' && ky() ? ky().id : null;
     if (id === nghe.id) return;
     if (nghe.huy) nghe.huy();
-    nghe = { id: id, huy: null };
+    if (nghe.huyKy) nghe.huyKy();
+    nghe = { id: id, huy: null, huyKy: null, kq: false, ky: false };
     if (!id) return;
-    var hen = 0;
+    var hen = 0, n = nghe;
+    // bài thi (đáp án, thang điểm) do máy khác sửa: nhận bản mới ngay – trước đây máy mở app từ trước vẫn giữ bản cũ đến khi
+    // tải lại, nên bài sửa trên máy đó bị chấm theo thang điểm cũ (vd. Phần III 0,25 thay vì 0,5)
+    nghe.huyKy = FBK.ngheKy(id, function (k) {
+      n.ky = true;
+      for (var i = 0; i < DL.kyThi.length; i++) if (DL.kyThi[i].id === id) break;
+      if (i >= DL.kyThi.length) return;
+      if (JSON.stringify(DL.kyThi[i]) !== JSON.stringify(k)) {
+        DL.kyThi[i] = k; ls(khoaDem(), DL); QUET.doiKy(k);
+        clearTimeout(hen);
+        hen = setTimeout(function () { veBen(); if (!SUA && !$('#hop').classList.contains('hien') && tabBen === 'ky' && ky() && ky().id === id) veChinh(); }, 400);
+      }
+      if (n.kq) suaDiemLech(k);
+    });
     nghe.huy = FBK.nghe(id, function (ds) {
-      if (!datKQ(id, ds)) return;
+      n.kq = true;
+      var doi = datKQ(id, ds);
+      if (n.ky) suaDiemLech(DL.kyThi.filter(function (k) { return k.id === id; })[0]);
+      if (!doi) return;
       // đang xem một bài mà ảnh của bài đó vừa lên (ảnh gửi sau điểm): gắn ảnh vào và vẽ lại ngay
       if (XEM && XEM.goc && !XEM.goc.anh) {
         var moi = ds.filter(function (x) { return x.id === XEM.goc.id; })[0];
@@ -3500,10 +3535,28 @@ var QUET = (function () {
     });
     if (!doi.length) { if (!tuDong) bao('Không có bài nào thay đổi điểm.'); return Promise.resolve(0); }
     if (!tuDong && !confirm('Có ' + doi.length + ' bài thay đổi sau khi chấm lại. Lưu?')) return Promise.resolve(0);
+    return guiDiemMoi(k, doi, tuDong);
+  }
+  // KTDK Zip: điểm đã lưu lệch với đáp án / thang điểm hiện tại (bài sửa trên máy còn giữ bản bài thi cũ, kể cả máy dùng bản app cũ)
+  // → tự chấm lại đúng các bài đó. Chỉ chạy khi cả bài thi lẫn danh sách bài đều vừa nhận từ máy chủ (không dùng bản lưu trên máy).
+  var lechDaGui = {};
+  function suaDiemLech(k) {
+    if (!k || !laKTDK()) return;
+    var doi = [];
+    (KQC[k.id] || []).forEach(function (r) {
+      if (r.chuaGui || r.kyThi !== k.id) return;
+      var m = tinhDiem(k, r), khoa = r.id + '|' + m.diem + '|' + m.d3 + '|' + m.toiDa;
+      if (['diem', 'd1', 'd2', 'd3', 'toiDa'].every(function (f) { return m[f] === r[f]; }) || lechDaGui[khoa]) return;
+      lechDaGui[khoa] = 1;                         // mỗi bài chỉ thử một lần (máy chủ từ chối thì đừng gửi lại mãi)
+      doi.push(m);
+    });
+    if (doi.length) guiDiemMoi(k, doi, true);
+  }
+  function guiDiemMoi(k, doi, tuDong) {
     // cập nhật ngay trên máy để bảng điểm, phân tích hiện điểm mới
-    var moi = {}; doi.forEach(function (m) { moi[m.id] = m; });
-    KQ = KQ.map(function (r) { return moi[r.id] || r; });
-    var giu = KQ; datKQ(k.id, KQ.filter(function (r) { return !r.chuaGui; })); KQ = giu;
+    var moi = {}, dang = ky() && ky().id === k.id; doi.forEach(function (m) { moi[m.id] = m; });
+    var ds = (dang ? KQ : KQC[k.id] || []).map(function (r) { return moi[r.id] || r; });
+    datKQ(k.id, ds.filter(function (r) { return !r.chuaGui; })); if (dang) KQ = ds;
     if (!tuDong) veChinh();
     var goi = doi.map(function (m) { m = boTam(m); delete m.tenKy; return m; }), i = 0;
     bao('Đang cập nhật điểm ' + doi.length + ' bài…', 60000);
