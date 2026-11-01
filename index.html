@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.5.5';</script>
+<script>window.NK_BAN = '1.5.6';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.5</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.6</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.5.5 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.5.6 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1760,6 +1760,18 @@ var FBK = (function () {
 
   function taiKyThi() { return db.collection('kyThi').get().then(function (s) { return s.docs.map(function (d) { return moDong(d.data()); }).sort(function (a, b) { return String(a.tao || a.id) < String(b.tao || b.id) ? -1 : 1; }); }); }
   function taiKQ(kyThi) { return db.collection('kq').where('kyThi', '==', kyThi).get().then(function (s) { return s.docs.map(function (d) { return moDong(d.data()); }); }); }
+  // Bài thi đang được theo dõi trực tiếp thì đã có sẵn danh sách mới nhất: dùng luôn, khỏi đọc lại cả bài thi (mỗi bài = 1 lượt đọc Firestore).
+  // ep: người dùng bấm tải lại thì vẫn đọc thật. Theo dõi chưa nhận được gì sau 8 giây (mạng chậm, lỗi) cũng đọc thật.
+  var KQ_NGHE = {};
+  function docKQ(kyThi, ep) {
+    var c = KQ_NGHE[kyThi];
+    if (ep || !c) return taiKQ(kyThi);
+    if (c.du) return Promise.resolve(c.du.map(moDong));
+    return new Promise(function (ok) {
+      var t = setTimeout(function () { ok(false); }, 8000);
+      c.doi.push(function (co) { clearTimeout(t); ok(co); });
+    }).then(function (co) { return co && c.du ? c.du.map(moDong) : taiKQ(kyThi); });
+  }
   var LOP = null;                  // lớp / học sinh lấy từ Apps Script (dùng chung với chế độ chấm trong lớp)
 
   function goi(viec, y, lan) {
@@ -1772,7 +1784,7 @@ var FBK = (function () {
             if (y.kemKQ && a[0].some(function (k) { return k.id === y.kemKQ; })) { r.kemKQ = y.kemKQ; r.ketQua = a[2] || []; }
             return r;
           });
-        case 'taiKetQua': return taiKQ(y.kyThi).then(function (ds) { return { ok: true, ketQua: ds }; });
+        case 'taiKetQua': return docKQ(y.kyThi, y.ep).then(function (ds) { return { ok: true, ketQua: ds }; });
         case 'luuKyThi':
           var ref = db.collection('kyThi').doc(y.dl.id);
           return ref.get().then(function (s) {
@@ -1825,7 +1837,7 @@ var FBK = (function () {
   // Apps Script (khoLop, 5 phút một lần) lưu các bài đã đủ ảnh vào Sheet + Drive (giữ quy tắc trùng SBD) rồi xoá ở đây.
   // Máy đọc kết quả = Sheet (Apps Script) + bài đang chờ ở đây (bản ở đây mới hơn). Firebase không dùng được (chưa
   // ghi danh, luật chưa cho phép, hết hạn mức miễn phí…) thì làm thẳng với Apps Script như trước, không báo lỗi.
-  var CHU = ls('nkzip_lq_chu') || {}, tatLop = 0, GAS_KQ = {};
+  var CHU = ls('nkzip_lq_chu') || {}, tatLop = 0, GAS_KQ = {}, LQ_NGHE = {}, quaGio = 0;
   function lopFB() { return !!CAU_HINH && !window.API_GIA && Date.now() > tatLop; }
   function chuKy(kyThi) { return CHU[kyThi] || API.toi(); }
   function nhoChu(kys) { (kys || []).forEach(function (k) { if (k.chu) CHU[k.id] = k.chu; }); ls('nkzip_lq_chu', CHU); }
@@ -1835,8 +1847,9 @@ var FBK = (function () {
     return d;
   }
   function moLq(d) { var o = moDong(d); if (d.cho) { o.anh = ''; o.choKho = true; } delete o.ghiDe; return o; }
-  function choLq(kyThi) {                     // bài đang chờ của một bài thi (lỗi thì coi như không có)
+  function choLq(kyThi, ep) {                 // bài đang chờ của một bài thi (lỗi thì coi như không có)
     if (!lopFB()) return Promise.resolve([]);
+    if (!ep && LQ_NGHE[kyThi] && LQ_NGHE[kyThi].cho) return Promise.resolve(LQ_NGHE[kyThi].cho.map(moLq));   // đang theo dõi: khỏi đọc lại
     return sanSang().then(function () {
       return db.collection('lq').where('kyThi', '==', kyThi).where('chu', '==', chuKy(kyThi)).get();
     }).then(function (s) { return s.docs.map(function (d) { return moLq(d.data()); }); }, function () { return []; });
@@ -1952,7 +1965,7 @@ var FBK = (function () {
     }
     if (viec === 'taiKetQua') {
       if (!lopFB()) return API.goiGas(viec, y);
-      return Promise.all([gasKQ(y.kyThi), choLq(y.kyThi)]).then(function (a) { return { ok: true, ketQua: tron(a[0].ds, a[1]), v: a[0].v }; });
+      return Promise.all([gasKQ(y.kyThi), choLq(y.kyThi, y.ep)]).then(function (a) { return { ok: true, ketQua: tron(a[0].ds, a[1]), v: a[0].v }; });
     }
     if (viec === 'layAnh' && String(y.id || '').indexOf('fs:') !== 0) return API.goiGas(viec, y);
     if (!lopFB() && viec !== 'layAnh') return API.goiGas(viec, y);
@@ -1961,28 +1974,35 @@ var FBK = (function () {
     return lam().catch(function (e) {
       if (e && e.code === 'permission-denied') return ghiDanhLai().catch(kd).then(function () { return lamLop(viec, y); });
       throw e;
-    }).catch(function (e) {
+    }).then(function (r) { quaGio = 0; return r; }, function (e) {
       // chỉ lỗi của Firebase mới chuyển sang Apps Script; lỗi của chính Apps Script / không có ảnh thì báo như cũ
       if (!e || viec === 'layAnh' || e.ma === 'dangnhap' || !(e.khoiDong || typeof e.code === 'string')) throw e;
-      if (/unavailable|deadline|aborted|network/i.test(String(e.code || ''))) { e.quaTai = true; throw e; }   // mất mạng: hàng chờ tự gửi lại
+      if (/unavailable|deadline|aborted|network/i.test(String(e.code || ''))) {       // mất mạng: hàng chờ tự gửi lại
+        // Firebase hết hạn mức có thể làm lệnh treo tới quá giờ: quá giờ liên tiếp thì lượt gửi lại đi thẳng Apps Script, khỏi đứng mãi
+        if (++quaGio >= 3) { quaGio = 0; tatLop = Date.now() + 10 * 60000; }
+        e.quaTai = true; throw e;
+      }
       tatLop = Date.now() + (e.khoiDong ? 2 : 10) * 60000;                          // Firebase không dùng được: tạm đi thẳng Apps Script
       return API.goiGas(viec, y);
     });
   }
   // theo dõi bài đang chờ của một bài thi: bài mới lên ngay; bài vừa chuyển vào Sheet thì tải lại danh sách từ Sheet
   function ngheLop(kyThi, cb) {
-    var huy = null, dung = false;
+    var huy = null, dung = false, g = {};
     if (!lopFB()) return function () {};
+    LQ_NGHE[kyThi] = g;
+    var thoi = function () { if (LQ_NGHE[kyThi] === g) delete LQ_NGHE[kyThi]; };
     sanSang().then(function () {
       if (dung) return;
       huy = db.collection('lq').where('kyThi', '==', kyThi).where('chu', '==', chuKy(kyThi)).onSnapshot(function (s) {
+        g.cho = s.docs.map(function (d) { return d.data(); });
         if (s.metadata.hasPendingWrites) return;
-        var cho = s.docs.map(function (d) { return moLq(d.data()); });
+        var cho = g.cho.map(moLq);
         var di = s.docChanges().some(function (c) { return c.type === 'removed'; });
         (di || !GAS_KQ[kyThi] ? gasKQ(kyThi) : Promise.resolve(GAS_KQ[kyThi])).then(function (g) { if (!dung) cb(tron(g.ds, cho)); }, function () {});
-      }, function () { /* chưa có quyền / mất mạng: vẫn còn làm mới định kì */ });
-    }).catch(function () {});
-    return function () { dung = true; if (huy) huy(); };
+      }, thoi /* chưa có quyền / mất mạng: vẫn còn làm mới định kì */);
+    }).catch(thoi);
+    return function () { dung = true; thoi(); if (huy) huy(); };
   }
 
   function xoaKy(id) {
@@ -2006,14 +2026,19 @@ var FBK = (function () {
   }
   // theo dõi kết quả của một bài thi: bài mới chấm trên điện thoại hiện lên máy tính ngay (không cần tải lại)
   function nghe(kyThi, cb) {
-    var huy = null, dung = false;
+    var huy = null, dung = false, g = { du: null, doi: [] };
+    KQ_NGHE[kyThi] = g;
+    var bao = function (co) { var d = g.doi; g.doi = []; d.forEach(function (f) { f(co); }); };
+    var thoi = function () { if (KQ_NGHE[kyThi] === g) delete KQ_NGHE[kyThi]; bao(false); };
     sanSang().then(function () {
       if (dung) return;
       huy = db.collection('kq').where('kyThi', '==', kyThi).onSnapshot(function (s) {
+        // bản đầu tiên phải từ máy chủ (bản từ bộ nhớ có thể thiếu bài); giữ cả thay đổi của chính máy này để đọc lại không bị bản cũ
+        if (g.du || !s.metadata.fromCache) { g.du = s.docs.map(function (d) { return d.data(); }); bao(true); }
         if (!s.metadata.hasPendingWrites) cb(s.docs.map(function (d) { return moDong(d.data()); }));
-      }, function () { /* mất quyền / mạng: thôi theo dõi, vẫn tải lại thủ công được */ });
-    }).catch(function () {});
-    return function () { dung = true; if (huy) huy(); };
+      }, thoi /* mất quyền / mạng: thôi theo dõi, vẫn tải lại thủ công được */);
+    }).catch(thoi);
+    return function () { dung = true; thoi(); if (huy) huy(); };
   }
   // theo dõi chính bài thi (đáp án, thang điểm): máy khác sửa thì máy này nhận bản mới ngay, không chấm / sửa bài theo bản cũ
   function ngheKy(kyThi, cb) {
@@ -2223,7 +2248,7 @@ var QUET = (function () {
   var choXong = [], conCho = 0, conDL = 0, DS_CHO = [], HOAN = {}, henGui = 0, khongGop = false, khongTach = false;
   var DANG = {}, chay = 0, chayDL = 0, chayAnh = 0, dangDoc = false, docLai = false, SONG_DL = 3, SONG_ANH = 2, GOP_DL = 25, GOP_ANH = 8;
   // tự điều chỉnh tốc độ: capDL / capAnh = số lượt được chạy cùng lúc lúc này; dungAnh = tạm dừng gửi ảnh tới thời điểm này
-  var capDL = SONG_DL, capAnh = SONG_ANH, dungAnh = 0, tot = 0;
+  var capDL = SONG_DL, capAnh = SONG_ANH, dungAnh = 0, tot = 0, lucGuiDuoc = 0;
   function sao(o) { return JSON.parse(JSON.stringify(o)); }
   function baoXong() { var c = choXong; choXong = []; c.forEach(function (f) { f(); }); }
   // lỗi do Google / Apps Script đang bận (tạm thời), không phải máy chủ từ chối bài
@@ -2240,7 +2265,8 @@ var QUET = (function () {
   function hoan(m, e, kieu) {
     var h = HOAN[m.id] || { lan: 0 }, mang = !kieu && (e instanceof TypeError || !e || !e.message);
     h.lan++;
-    h.loi = kieu === 'tai' ? 'Máy chủ đang bận – tự gửi lại' : mang ? 'Mất mạng / chưa kết nối được' : e && e.ma === 'dangnhap' ? 'Cần đăng nhập lại' : String(e && e.message || e);
+    h.loi = /resource-exhausted|quota/i.test(String(e && (e.code + ' ' + e.message))) ? 'Firebase hết hạn mức hôm nay – bài vẫn giữ trên máy, tự gửi khi có lại'
+      : kieu === 'tai' ? 'Máy chủ đang bận – tự gửi lại' : mang ? 'Mất mạng / chưa kết nối được' : e && e.ma === 'dangnhap' ? 'Cần đăng nhập lại' : String(e && e.message || e);
     h.sau = Date.now() + (kieu === 'tai' ? Math.min(15000, 2000 * h.lan) * (0.7 + Math.random() * 0.6)
       : kieu ? 120000 : Math.min(60000, 5000 * Math.pow(2, h.lan - 1)) * (0.75 + Math.random() * 0.5));
     HOAN[m.id] = h;
@@ -2319,7 +2345,7 @@ var QUET = (function () {
       var viec = [], tuChoi = 0, tai = false;
       lo.forEach(function (m, i) {
         var r = kq[i];
-        if (r && r.ok) viec.push(daLuu(m, r, laAnh).catch(function () {}));
+        if (r && r.ok) { lucGuiDuoc = Date.now(); viec.push(daLuu(m, r, laAnh).catch(function () {})); }
         else {
           var e = new Error(r && r.loi || 'Máy chủ không lưu được bài');
           if (laAnh || laQuaTai(e)) { hoan(m, e, 'tai'); tai = true; }        // ảnh lỗi / máy chủ bận: tự gửi lại, không báo
@@ -2345,6 +2371,8 @@ var QUET = (function () {
   }
   function choGui() { return new Promise(function (ok) { choXong.push(ok); dayHangCho(); setTimeout(ok, 15000); }); }
   window.addEventListener('online', dayHangCho);
+  // còn bài chưa lên (kể cả ảnh) mà đóng cửa sổ / thẻ: trình duyệt hỏi lại (điện thoại có thể không hỏi; bài vẫn nằm trên máy)
+  window.addEventListener('beforeunload', function (e) { if (conCho > 0) { e.preventDefault(); e.returnValue = ''; } });
   // điện thoại tạm dừng trang khi chuyển sang ứng dụng khác: quay lại NKZip là gửi tiếp ngay (bài vẫn nằm an toàn trong máy)
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { HOAN = {}; dayHangCho(); } });
   window.addEventListener('pageshow', function () { dayHangCho(); });
@@ -2766,30 +2794,37 @@ var QUET = (function () {
   // Đối chiếu trên thanh trên cùng: "40 bài · ⏳ 3 chưa lên web" (cam) / "40 bài · ✓ đã lên web đủ" (xanh). Bấm vào để xem danh sách.
   function capNhatDem() {
     var e = $('qDem'); if (!e) return;
-    e.className = conDL ? 'cho' : soBai ? 'du' : '';
-    e.textContent = soBai + ' bài' + (conDL ? ' · ⏳ ' + conDL + ' chưa lên web' : soBai ? ' · ✓ đã lên web đủ' : '');   // ảnh gửi ngầm phía sau: không báo
+    e.className = conCho ? 'cho' : soBai ? 'du' : '';
+    e.textContent = soBai + ' bài' + (conDL ? ' · ⏳ ' + conDL + ' chưa lên web' : conCho ? ' · ⏳ ' + conCho + ' ảnh đang gửi' : soBai ? ' · ✓ đã lên web đủ' : '');
     if ($('qCho') && $('qCho').classList.contains('hien')) veCho();
   }
   function escQ(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   // Danh sách bài chưa lên web (+ lý do). khiThoat: đang bấm "Xong" mà còn bài chưa gửi (không dùng confirm(): iPhone làm camera đứng hình)
-  var choThoat = false;
+  var choThoat = false, lucHoi = 0, henKet = 0, daKet = false;
+  // còn bài mà 1 phút không gửi được bài nào (mất mạng, hết hạn mức): mới cho thoát, tránh giữ người chấm ở đây hàng giờ
+  function ketGui() { return conCho > 0 && Date.now() - Math.max(lucGuiDuoc, lucHoi) > 60000; }
   function hienCho(khiThoat) {
     var o = $('qCho');
     if (!o) { o = document.createElement('div'); o.id = 'qCho'; o.className = 'qHop'; $('manQuet').appendChild(o); }
-    choThoat = !!khiThoat; dangHoi = true; o.classList.add('hien'); veCho();
+    choThoat = !!khiThoat; dangHoi = true; lucHoi = Date.now(); daKet = false; o.classList.add('hien'); veCho();
+    clearInterval(henKet);
+    henKet = setInterval(function () {
+      if (!o.classList.contains('hien')) return clearInterval(henKet);
+      if (choThoat && ketGui() !== daKet) veCho();
+    }, 2000);
   }
   function veCho() {
-    var o = $('qCho'), bay = Date.now();
-    var ds = DS_CHO.filter(function (m) { return !m.buoc; }).map(function (m) {      // chỉ liệt kê bài chưa có điểm trên web
+    var o = $('qCho'), bay = Date.now(), ket = daKet = ketGui();
+    var ds = DS_CHO.map(function (m) {
       var h = HOAN[m.id], kq = m.kq || {};
       return '<div class="choDong"><b>' + escQ(kq.ten || 'SBD ' + (kq.sbd || '?')) + '</b><span>' +
         (m.buoc === 'anh' ? 'điểm đã lên web · ' : '') + (h ? escQ(h.loi) + ' · gửi lại sau ' + Math.max(0, Math.round((h.sau - bay) / 1000)) + ' giây' : m.buoc === 'anh' ? 'đang gửi ảnh…' : 'đang gửi…') + '</span></div>';
     }).join('');
-    o.innerHTML = '<div class="the"><h3 style="font-size:18px">' + (conDL ? '⏳ Còn ' + conDL + ' bài chưa lên web' : '✓ Đã lên web đủ') + '</h3>' +
-      '<p class="mo" style="margin:0">' + (conDL ? 'Các bài này vẫn nằm trên máy và đang tự gửi lại. Giữ trang mở, có mạng để gửi xong' + (choThoat ? '; nếu thoát, lần sau mở NKZip trên máy này sẽ gửi tiếp.' : '.') : 'Mọi bài đã chấm trên máy này đều đã lưu lên web.') + '</p>' +
+    o.innerHTML = '<div class="the"><h3 style="font-size:18px">' + (conCho ? '⏳ Còn ' + conCho + ' bài chưa lên đủ điểm và ảnh' : '✓ Đã lên web đủ') + '</h3>' +
+      '<p class="mo" style="margin:0">' + (conCho ? 'Các bài này vẫn nằm trên máy và đang tự gửi. Giữ trang mở, có mạng để gửi xong' + (choThoat ? (ket ? '. Chưa gửi được: nếu thoát, bài vẫn lưu trên máy này, mở lại NKZip trên đúng máy này sẽ gửi tiếp.' : '. Có thể ẩn màn hình trên máy tính; gửi xong mới thoát được.') : '.') : 'Mọi bài đã chấm trên máy này đều đã lưu lên web, kể cả ảnh.') + '</p>' +
       (ds ? '<div class="choDs">' + ds + '</div>' : '') +
-      (conDL ? '<button class="vang" id="qcGuiLai">Gửi lại ngay</button>' : '') +
-      (choThoat ? '<button id="qcO">' + (conDL ? 'Ở lại chờ gửi' : 'Ở lại chấm tiếp') + '</button><button class="' + (conDL ? 'nguy' : 'vang') + '" id="qcThoat">' + (conDL ? 'Vẫn thoát' : 'Thoát') + '</button>' : '<button id="qcO">Đóng</button>') + '</div>';
+      (conCho ? '<button class="vang" id="qcGuiLai">Gửi lại ngay</button>' : '') +
+      (choThoat ? '<button id="qcO">' + (conCho ? 'Ở lại chờ gửi' : 'Ở lại chấm tiếp') + '</button>' + (conCho && !ket ? '' : '<button class="' + (conCho ? 'nguy' : 'vang') + '" id="qcThoat">' + (conCho ? 'Thoát, bài vẫn lưu trên máy' : 'Thoát') + '</button>') : '<button id="qcO">Đóng</button>') + '</div>';
     if ($('qcGuiLai')) $('qcGuiLai').onclick = function () { HOAN = {}; dayHangCho(); };
     $('qcO').onclick = function () { o.classList.remove('hien'); dangHoi = false; };
     if ($('qcThoat')) $('qcThoat').onclick = function () { o.classList.remove('hien'); dangHoi = false; dong(); };
@@ -2818,7 +2853,7 @@ var QUET = (function () {
     if (daGan) return; daGan = true;
     video = $('qVideo'); lop = $('qLop');
     // còn bài chưa lên web: hỏi lại trước khi thoát
-    $('qLui').onclick = function () { if (conDL > 0 && TC.cheDo !== 'dapan') return hienCho(true); dong(); };
+    $('qLui').onclick = function () { if (conCho > 0 && TC.cheDo !== 'dapan') return hienCho(true); dong(); };
     $('qDem').onclick = function () { hienCho(false); };
     $('qDen').onclick = function () { denBat = !denBat; if (ranh) ranh.applyConstraints({ advanced: [{ torch: denBat }] }).catch(function () {}); };
     $('qChup').onclick = function () { $('qTep').click(); };
@@ -2888,7 +2923,7 @@ var QUET = (function () {
 
   dayHangCho();
   return {
-    mo: mo, dong: dong, choGui: choGui, xuLyAnh: xuLyAnh, boKy: boKy, doiKy: doiKy,
+    mo: mo, dong: dong, choGui: choGui, xuLyAnh: xuLyAnh, boKy: boKy, doiKy: doiKy, conLai: function () { return conCho; },
     thuKhung: function (w, h) { kichThu = { w: w, h: h }; veKhung(null, 1, '#3d8bfd'); },
     // chỉ để thử (tests): xử lí một "khung hình camera" lấy từ canvas / ảnh nguồn
     thuTuChup: function (nguon) { var v = video, q = dangQuet; video = nguon; dangQuet = true; tuChup(); setTimeout(function () { video = v; dangQuet = q; }, 600); },
@@ -3015,7 +3050,7 @@ var QUET = (function () {
   function taiDL() {
     var dem = ls(khoaDem());
     if (dem && !DL.kyThi.length && !DL.lop.length) { DL = dem; chonMacDinh(); veBen(); veChinh(); }
-    var kem = chon.ky || kyCuoi();
+    var kem = laKTDK() ? '' : chon.ky || kyCuoi();     // KTDK Zip: kết quả đến từ theo dõi trực tiếp, không tải kèm để khỏi đọc hai lần
     return API.goi('taiDuLieu', kem ? { kemKQ: kem } : {}).then(function (r) {
       DL = { kyThi: r.kyThi || [], lop: r.lop || [] };
       if (r.kemKQ) { datKQ(r.kemKQ, r.ketQua || []); if (r.v) KQV[r.kemKQ] = r.v; }
@@ -3044,7 +3079,7 @@ var QUET = (function () {
     var k = ky();
     if (!k) { KQ = []; return Promise.resolve(false); }
     KQ = napKQ(k.id);
-    return API.goi('taiKetQua', { kyThi: k.id, v: KQV[k.id] || '' }).then(function (r) {
+    return API.goi('taiKetQua', { kyThi: k.id, v: KQV[k.id] || '', ep: !im }).then(function (r) {   // ep: người dùng bấm tải lại
       if (r.khongDoi) return false;                  // máy chủ báo không có gì mới: khỏi tải lại cả danh sách
       if (r.v) KQV[k.id] = r.v;
       return datKQ(k.id, r.ketQua || []);
@@ -3151,15 +3186,36 @@ var QUET = (function () {
     }
   }
   // KTDK Zip: theo dõi kết quả của bài thi đang mở – bài vừa chấm trên điện thoại hiện lên ngay, không cần tải lại
-  var nghe = { id: null, huy: null, huyKy: null };
+  var nghe = { id: null, huy: null, huyKy: null }, dangCham = false, anLau = false, henAn = 0;
+  // Theo dõi danh sách bài tốn lượt đọc Firebase mỗi khi có bài mới, nên tắt lúc không ai xem: máy đang quét (chỉ cần gửi bài lên),
+  // cửa sổ ẩn quá 5 phút. Bật lại thì nhận đủ bài ngay. Theo dõi đáp án / thang điểm vẫn giữ để máy quét chấm theo bản mới nhất.
+  document.addEventListener('visibilitychange', function () {
+    clearTimeout(henAn);
+    if (document.hidden) henAn = setTimeout(function () { anLau = true; theoDoiKy(); }, 300000);
+    else if (anLau) { anLau = false; theoDoiKy(); }
+  });
   function theoDoiKy() {
     var id = (laKTDK() || API.lopFB()) && window.FBK && tabBen === 'ky' && ky() ? ky().id : null;
-    if (id === nghe.id) return;
-    if (nghe.huy) nghe.huy();
-    if (nghe.huyKy) nghe.huyKy();
-    nghe = { id: id, huy: null, huyKy: null, kq: false, ky: false };
-    if (!id) return;
-    var hen = 0, n = nghe;
+    if (id !== nghe.id) {
+      if (nghe.huy) nghe.huy();
+      if (nghe.huyKy) nghe.huyKy();
+      nghe = { id: id, huy: null, huyKy: null, kq: false, ky: false };
+      if (id) ngheBaiThi(id);
+    }
+    var can = id && !dangCham && !anLau;
+    if (can && !nghe.huy) ngheBaiLam(id);
+    else if (!can && nghe.huy) { nghe.huy(); nghe.huy = null; nghe.kq = false; }
+  }
+  var henVe = 0;
+  function veSauNhan(id) {     // gom các thay đổi dồn dập, đừng vẽ lại khi đang sửa / xem một bài
+    clearTimeout(henVe);
+    henVe = setTimeout(function () {
+      veBen();
+      if (!SUA && !$('#hop').classList.contains('hien') && tabBen === 'ky' && ky() && ky().id === id) veChinh();
+    }, 400);
+  }
+  function ngheBaiThi(id) {
+    var n = nghe;
     // bài thi (đáp án, thang điểm) do máy khác sửa: nhận bản mới ngay – trước đây máy mở app từ trước vẫn giữ bản cũ đến khi
     // tải lại, nên bài sửa trên máy đó bị chấm theo thang điểm cũ (vd. Phần III 0,25 thay vì 0,5)
     nghe.huyKy = FBK.ngheKy(id, function (k) {
@@ -3168,11 +3224,13 @@ var QUET = (function () {
       if (i >= DL.kyThi.length) return;
       if (JSON.stringify(DL.kyThi[i]) !== JSON.stringify(k)) {
         DL.kyThi[i] = k; ls(khoaDem(), DL); QUET.doiKy(k);
-        clearTimeout(hen);
-        hen = setTimeout(function () { veBen(); if (!SUA && !$('#hop').classList.contains('hien') && tabBen === 'ky' && ky() && ky().id === id) veChinh(); }, 400);
+        veSauNhan(id);
       }
       if (n.kq) suaDiemLech(k);
     });
+  }
+  function ngheBaiLam(id) {
+    var n = nghe;
     nghe.huy = FBK.nghe(id, function (ds) {
       n.kq = true;
       var doi = datKQ(id, ds);
@@ -3183,11 +3241,7 @@ var QUET = (function () {
         var moi = ds.filter(function (x) { return x.id === XEM.goc.id; })[0];
         if (moi && moi.anh) { XEM.goc.anh = moi.anh; XEM.goc.sach = moi.sach; XEM.r.anh = moi.anh; XEM.r.sach = moi.sach; veXem(); }
       }
-      clearTimeout(hen);
-      hen = setTimeout(function () {           // gom các thay đổi dồn dập, đừng vẽ lại khi đang sửa / xem một bài
-        veBen();
-        if (!SUA && !$('#hop').classList.contains('hien') && tabBen === 'ky' && ky() && ky().id === id) veChinh();
-      }, 400);
+      veSauNhan(id);
     });
   }
   function veLaiVungAnh() {                    // ảnh KTDK vừa tải xong: vẽ lại khung đang hiện ảnh
@@ -3380,6 +3434,7 @@ var QUET = (function () {
       var co = {}; (KQC[k.id] || []).forEach(function (r) { co[r.id] = { ten: r.ten, diem: r.diem }; });
       if (moTabQuet({ cheDo: 'cham', ky: k, lop: DL.lop, co: co })) return;
     }
+    dangCham = true; theoDoiKy();
     QUET.mo({
       ky: k, lop: DL.lop, cheDo: 'cham', daCo: daCoBai(k),
       xoa: function (id) { KQC[k.id] = (KQC[k.id] || []).filter(function (r) { return r.id !== id; }); if (ky() && ky().id === k.id) KQ = KQC[k.id]; },
@@ -3391,7 +3446,7 @@ var QUET = (function () {
         if (ky() && ky().id === k.id) KQ = ds;
       },
       dong: function (suaId) {
-        tabKy = 'bai'; veBen(); veChinh();
+        dangCham = false; tabKy = 'bai'; veBen(); veChinh();
         QUET.choGui().then(function () { return taiKQ(true); }).then(function () { veBen(); if (!$('#hop').classList.contains('hien')) veChinh(); });
         if (suaId) moBai(suaId);
       }
@@ -5509,10 +5564,16 @@ var QUET = (function () {
       doc: function (doc) { gui({ loai: 'dapan', ky: ch.ky.id, doc: doc }); },
       dong: function () {
         gui({ loai: 'xong' });
-        QUET.choGui().then(function () {
+        var xong = function () {
+          var con = QUET.conLai();
+          if (con) {                     // chỉ báo "Đã xong" khi bài đã lên đủ, kể cả ảnh
+            document.body.innerHTML = '<div style="padding:40px 22px;text-align:center"><h2>Còn ' + con + ' bài đang gửi</h2><p class="mo">Giữ thẻ này mở và có mạng. Nếu phải đóng, bài vẫn nằm trên máy này, mở lại NKZip sẽ gửi tiếp.</p></div>';
+            return setTimeout(function () { QUET.choGui().then(xong); }, 3000);
+          }
           document.body.innerHTML = '<div style="padding:40px 22px;text-align:center"><h2>Đã xong</h2><p class="mo">' + (ch.cheDo === 'dapan' ? 'Đáp án đã được gửi về thẻ NKZip.' : 'Các bài đã chấm được lưu lên Google.') + ' Đóng thẻ này và quay lại thẻ NKZip.</p><button class="vang" onclick="window.close()">Đóng thẻ này</button></div>';
           setTimeout(function () { window.close(); }, 600);
-        });
+        };
+        QUET.choGui().then(xong);
       }
     });
   }
