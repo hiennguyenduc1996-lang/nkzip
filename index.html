@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.5.9';</script>
+<script>window.NK_BAN = '1.6';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.9</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.6</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.9 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.5.9 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.6 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -2898,11 +2898,26 @@ var QUET = (function () {
     o.innerHTML = '<div class="the"><h3 style="font-size:18px">' + (conCho ? '⏳ Còn ' + conCho + ' bài chưa lên đủ điểm và ảnh' : '✓ Đã lên web đủ') + '</h3>' +
       '<p class="mo" style="margin:0">' + (conCho ? 'Các bài này vẫn nằm trên máy và đang tự gửi. Giữ trang mở, có mạng để gửi xong' + (choThoat ? (ket ? '. Chưa gửi được: nếu thoát, bài vẫn lưu trên máy này, mở lại NKZip trên đúng máy này sẽ gửi tiếp.' : '. Có thể ẩn màn hình trên máy tính; gửi xong mới thoát được.') : '.') : 'Mọi bài đã chấm trên máy này đều đã lưu lên web, kể cả ảnh.') + '</p>' +
       (ds ? '<div class="choDs">' + ds + '</div>' : '') +
-      (conCho ? '<button class="vang" id="qcGuiLai">Gửi lại ngay</button>' : '') +
+      (conCho ? '<button class="vang" id="qcGuiLai">Gửi lại ngay</button><button id="qcXuat">Xuất Excel bài đang chờ</button>' : '') +
       (choThoat ? '<button id="qcO">' + (conCho ? 'Ở lại chờ gửi' : 'Ở lại chấm tiếp') + '</button>' + (conCho && !ket ? '' : '<button class="' + (conCho ? 'nguy' : 'vang') + '" id="qcThoat">' + (conCho ? 'Thoát, bài vẫn lưu trên máy' : 'Thoát') + '</button>') : '<button id="qcO">Đóng</button>') + '</div>';
     if ($('qcGuiLai')) $('qcGuiLai').onclick = function () { HOAN = {}; dayHangCho(); };
+    if ($('qcXuat')) $('qcXuat').onclick = xuatCho;
     $('qcO').onclick = function () { o.classList.remove('hien'); dangHoi = false; };
     if ($('qcThoat')) $('qcThoat').onclick = function () { o.classList.remove('hien'); dangHoi = false; dong(); };
+  }
+
+  // Lấy điểm các bài còn trong hàng chờ ra Excel (mất mạng, hết hạn mức): chỉ đọc hàng chờ trên máy, không gửi, không xoá
+  function xuatCho() {
+    HC.tat().then(function (ds) {
+      var d = [['STT', 'SBD', 'Họ và tên', 'Lớp', 'Mã đề', 'Phần I', 'Phần II', 'Phần III', 'Điểm', 'Bài thi', 'Tình trạng']], ten = {};
+      (ds || []).forEach(function (m, i) {
+        var k = m.kq || {}; ten[k.tenKy || ''] = 1;
+        d.push([i + 1, k.sbd, k.ten, k.lop, k.made, k.d1, k.d2, k.d3, k.diem, k.tenKy || '', m.buoc === 'anh' ? 'Điểm đã lên, ảnh chưa lên' : 'Chưa lên']);
+      });
+      var ks = Object.keys(ten);
+      XLSX.taiVe('Bai dang cho' + (ks.length === 1 && ks[0] ? ' - ' + ks[0] : ''), d, [6, 10, 28, 10, 8, 9, 9, 9, 9, 22, 24]);
+      tt('Đã xuất ' + (d.length - 1) + ' bài đang chờ ra Excel');
+    }).catch(function (e) { tt('Không đọc được hàng chờ: ' + (e && e.message || e)); });
   }
 
   // ---------- chấm bằng ảnh chụp (dự phòng khi không mở được camera) ----------
