@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.5.6';</script>
+<script>window.NK_BAN = '1.5.7';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.6</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.7</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.7 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.5.6 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.5.7 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -670,6 +670,9 @@ var OMR = (function () {
     return ds;
   }
 
+  // số ô vuông tối thiểu để nhận một tờ phiếu: phiếu 12 ô thiếu được 3 ô (mực dính vào ô), phiếu 9 ô thiếu được 2
+  function mocToiThieu(tpl) { var n = tpl.moc.length; return n >= 12 ? n - 3 : n - 2; }
+
   // ---------- tìm mốc trên ảnh (nên dùng ảnh đã thu nhỏ ~700px) ----------
   // Thứ tự mốc trong mẫu: TL, TR, BR, BL, ML, MR, T1, T2, M1, M2, B1, B2.
   // Thử từng cặp khối làm (TL, TR); cặp đúng phải có T1, T2 ở đúng chỗ, rồi lần ra
@@ -745,13 +748,13 @@ var OMR = (function () {
       if (A.c < cg * 0.55 || A.c > cg * 1.8 || B.c < cg * 0.55 || B.c > cg * 1.8) continue;
       // phép đồng dạng (số phức): z = (B-A)/(TR-TL)
       var zr = (ux * bx + uy * by) / b2, zi = (uy * bx - ux * by) / b2;
-      var cap0 = [diem(TL, A), diem(TR, B)], ok = true, t, m, k, p;
-      for (var ti = 0; ti < dsT.length && ok; ti++) {   // T1, T2 phải có ở đúng chỗ
+      var cap0 = [diem(TL, A), diem(TR, B)], thieuT = 0, m, k, p;
+      for (var ti = 0; ti < dsT.length; ti++) {         // T1, T2 phải có ở đúng chỗ; thiếu một ô vẫn được (họ tên viết dài dính vào ô)
         m = M[dsT[ti]]; p = [A.x + zr * (m.x - TL.x) - zi * (m.y - TL.y), A.y + zi * (m.x - TL.x) + zr * (m.y - TL.y)];
         k = gan(p[0], p[1], (0.38 + 0.13 * Math.abs(m.y - TL.y)) * pxcm, m.s * pxcm);
-        if (k) cap0.push(diem(m, k)); else ok = false;
+        if (k) cap0.push(diem(m, k)); else thieuT++;
       }
-      if (!ok) continue;
+      if (thieuT > (dsT.length > 1 ? 1 : 0)) continue;
       var rM = (0.45 + 0.1 * Math.abs(M[4].y - TL.y)) * pxcm, pL, pR;
       m = M[4]; pL = [A.x + zr * (m.x - TL.x) - zi * (m.y - TL.y), A.y + zi * (m.x - TL.x) + zr * (m.y - TL.y)];
       m = M[5]; pR = [A.x + zr * (m.x - TL.x) - zi * (m.y - TL.y), A.y + zi * (m.x - TL.x) + zr * (m.y - TL.y)];
@@ -760,20 +763,47 @@ var OMR = (function () {
         var kk = (M[3].y - TL.y) / (M[4].y - TL.y);
         var cB = capHang(M[3], doc(A, cM[a][0], kk, pxcm), doc(B, cM[a][1], kk, pxcm), pxcm, ux, uy, d, 0.62, 1.45, 0.16);
         for (var c = 0; c < cB.length; c++) {
-          var cap = cap0.concat([diem(M[4], cM[a][0]), diem(M[5], cM[a][1]), diem(M[3], cB[c][0]), diem(M[2], cB[c][1])]);
-          var H = chieu(cap);
-          if (!H) continue;
-          // khớp lại mọi mốc theo phép chiếu, sai lệch cho phép nhỏ (mốc góc + hàng trên chặt hơn); thiếu tối đa 2 mốc
-          var nk = 0, lech = 0, cap2 = [], du;
-          for (t = 0; t < nM; t++) {
-            m = M[t]; du = ap(H, m.x, m.y);
-            k = gan(du[0], du[1], (t < 6 || dsT.indexOf(t) >= 0 ? 0.25 : 0.4) * pxcm, m.s * pxcm);
-            if (k) { nk++; lech += Math.hypot(k.x - du[0], k.y - du[1]); cap2.push(diem(m, k)); }
-          }
-          if (nk >= nM - 2 && (!tot || nk > tot.nk || (nk === tot.nk && lech / nk < tot.lech))) {
-            tot = { nk: nk, lech: lech / nk, cap: cap2, pxcm: pxcm, xoay: Math.atan2(zi, zr) };
-          }
+          khop(cap0.concat([diem(M[4], cM[a][0]), diem(M[5], cM[a][1]), diem(M[3], cB[c][0]), diem(M[2], cB[c][1])]), pxcm, Math.atan2(zi, zr));
         }
+      }
+    }
+    // Không thấy cặp ô góc trên (họ tên viết dài dính vào ô TL / TR): lần từ hàng mốc giữa xuống hàng dưới rồi khớp lại cả tờ
+    var dsG = [];
+    for (i = 0; i < nM; i++) if (/^M\d/.test(M[i].ten || '')) dsG.push(i);
+    if (!tot && dsG.length > 1) {
+      var ML = M[4], MR = M[5], gx = MR.x - ML.x, gy = MR.y - ML.y, g2 = gx * gx + gy * gy, dayG = Math.sqrt(g2);
+      for (i = 0; i < N; i++) for (j = 0; j < N; j++) {
+        if (i === j) continue;
+        A = ks[i]; B = ks[j]; ux = B.x - A.x; uy = B.y - A.y; d = Math.hypot(ux, uy);
+        if (d < dMin) continue;
+        pxcm = d / dayG; cg = ML.s * pxcm;
+        if (A.c < cg * 0.55 || A.c > cg * 1.8 || B.c < cg * 0.55 || B.c > cg * 1.8) continue;
+        zr = (ux * gx + uy * gy) / g2; zi = (uy * gx - ux * gy) / g2;
+        var veG = function (q) { return [A.x + zr * (q.x - ML.x) - zi * (q.y - ML.y), A.y + zi * (q.x - ML.x) + zr * (q.y - ML.y)]; };
+        cap0 = [diem(ML, A), diem(MR, B)]; thieuT = 0;
+        for (ti = 0; ti < dsG.length; ti++) {
+          m = M[dsG[ti]]; p = veG(m);
+          k = gan(p[0], p[1], 0.4 * pxcm, m.s * pxcm);
+          if (k) cap0.push(diem(m, k)); else thieuT++;
+        }
+        if (thieuT) continue;
+        var rB = (0.45 + 0.1 * Math.abs(M[3].y - ML.y)) * pxcm;
+        cB = capHang(M[3], tron(veG(M[3]), rB), tron(veG(M[2]), rB), pxcm, ux, uy, d, 0.62, 1.45, 0.16);
+        for (c = 0; c < cB.length; c++) khop(cap0.concat([diem(M[3], cB[c][0]), diem(M[2], cB[c][1])]), pxcm, Math.atan2(zi, zr));
+      }
+    }
+    // khớp lại mọi mốc theo phép chiếu, sai lệch cho phép nhỏ (mốc góc + hàng trên chặt hơn)
+    function khop(cap, pxcm, xoay) {
+      var H = chieu(cap);
+      if (!H) return;
+      var nk = 0, lech = 0, cap2 = [], du, t, m, k;
+      for (t = 0; t < nM; t++) {
+        m = M[t]; du = ap(H, m.x, m.y);
+        k = gan(du[0], du[1], (t < 6 || dsT.indexOf(t) >= 0 ? 0.25 : 0.4) * pxcm, m.s * pxcm);
+        if (k) { nk++; lech += Math.hypot(k.x - du[0], k.y - du[1]); cap2.push(diem(m, k)); }
+      }
+      if (nk >= mocToiThieu(tpl) && (!tot || nk > tot.nk || (nk === tot.nk && lech / nk < tot.lech))) {
+        tot = { nk: nk, lech: lech / nk, cap: cap2, pxcm: pxcm, xoay: xoay };
       }
     }
     if (!tot) return null;
@@ -810,13 +840,35 @@ var OMR = (function () {
         ok = tl > 0.5 && tl < 1.45;
       }
       if (ok && Math.hypot(cx - c[0], cy - c[1]) < 0.45 * pxcm) {
-        cap.push([[m.x, m.y], [cx, cy]]); den += tb; nden++;
+        cap.push([[m.x, m.y], [cx, cy], pxcm, i < 4]); den += tb; nden++;
         if (i < 4) soGoc++;
       }
     }
     if (cap.length < 7 || soGoc < 3) return null;
     var H2 = phepChieu(cap.map(function (c) { return c[0]; }), cap.map(function (c) { return c[1]; }));
     if (!H2) return null;
+    // ô bị mực dính một ít vẫn được nhận nhưng tâm lệch làm lệch cả tờ: thử bỏ từng ô, ô nào bỏ đi mà các ô còn lại khớp nhau nhất là ô hỏng.
+    // Ngưỡng 1,5 mm, bỏ tối đa 2 ô. Vẫn không khớp thì không đọc tờ này (thà báo chụp lại còn hơn chấm sai).
+    function saiNhat(H, ds) {
+      var m = 0;
+      for (var q = 0; q < ds.length; q++) { var du = ap(H, ds[q][0][0], ds[q][0][1]); m = Math.max(m, Math.hypot(du[0] - ds[q][1][0], du[1] - ds[q][1][1]) / ds[q][2]); }
+      return m;
+    }
+    function chieuCap(ds) { return phepChieu(ds.map(function (c) { return c[0]; }), ds.map(function (c) { return c[1]; })); }
+    var xa = saiNhat(H2, cap);
+    for (var bo = 0; bo < 2 && xa > 0.15 && cap.length > 7; bo++) {
+      var tot = null;
+      for (var q = 0; q < cap.length; q++) {
+        if (cap[q][3] && soGoc <= 3) continue;
+        var con = cap.filter(function (c, n) { return n !== q; }), Hc = chieuCap(con);
+        if (!Hc) continue;
+        var s = saiNhat(Hc, con);
+        if (!tot || s < tot.s) tot = { s: s, H: Hc, con: con, goc: cap[q][3] };
+      }
+      if (!tot) break;
+      cap = tot.con; H2 = tot.H; xa = tot.s; if (tot.goc) soGoc--;
+    }
+    if (xa > 0.25) return null;
     return { H: H2, soMoc: cap.length, den: den / nden };
   }
 
@@ -1134,7 +1186,7 @@ var OMR = (function () {
     var m = timMoc(g, tpl);
     if (!m) { OMR.loi = 'moc'; return null; }
     var t = tinhChinh(G, tiLe(m.H, k), tpl);
-    if (!t) { OMR.loi = 'tinhchinh'; return null; }
+    if (!t || t.soMoc < mocToiThieu(tpl)) { OMR.loi = 'tinhchinh'; return null; }
     var doc = docPhieu(G, t.H, tpl, t.den);
     doc.H = t.H; doc.den = t.den; doc.soMoc = t.soMoc; doc.xoay = m.xoay; doc.net = doNet(G, t.H, tpl);
     return doc;
@@ -1154,7 +1206,7 @@ var OMR = (function () {
   }
 
   return {
-    timKhoi: timKhoi, doNet: doNet, xam: xam, phepChieu: phepChieu, ap: ap, tiLe: tiLe, timMoc: timMoc, tinhChinh: tinhChinh,
+    timKhoi: timKhoi, mocToiThieu: mocToiThieu, doNet: doNet, xam: xam, phepChieu: phepChieu, ap: ap, tiLe: tiLe, timMoc: timMoc, tinhChinh: tinhChinh,
     docPhieu: docPhieu, doCacO: doCacO, kiemChe: kiemChe, quyetDinh: quyetDinh, bauChon: bauChon, doO: doO, chon: chon, nan: nan, docAnh: docAnh, thuNho: thuNho
   };
 })();
@@ -2481,7 +2533,7 @@ var QUET = (function () {
     // 1) bám theo phiếu: khung trước đã thấy đủ mốc → chỉ tìm mốc quanh vị trí cũ (nhanh hơn dò lại cả ảnh ~20 lần)
     if (theoDoi) {
       t = OMR.tinhChinh(G, theoDoi, TPL);
-      if (!t || t.soMoc < TPL.moc.length) t = null;
+      if (!t || t.soMoc < OMR.mocToiThieu(TPL)) t = null;
     }
     if (!t) {
       // dò mốc trên ảnh nhỏ
@@ -2502,8 +2554,8 @@ var QUET = (function () {
     // 2) chỉnh mốc trên ảnh đủ phân giải
     if (!t) t = OMR.tinhChinh(G, OMR.tiLe(m.H, w / wn), TPL);
     if (!t) { theoDoi = null; return boQua('Giữ yên máy, phiếu đang mờ'); }
-    if (t.soMoc < TPL.moc.length) { theoDoi = null; return cam('Đưa trọn tờ phiếu vào khung – chưa thấy đủ ' + TPL.moc.length + ' ô vuông đen'); }
-    theoDoi = t.H;
+    if (t.soMoc < OMR.mocToiThieu(TPL)) { theoDoi = null; return cam('Đưa trọn tờ phiếu vào khung – chưa thấy đủ các ô vuông đen'); }
+    theoDoi = t.H; hCuoi = { H: t.H, luc: bay };
     // 3) phiếu có đang bị di chuyển không: so 4 góc với khung hình ngay trước
     var goc = gocPhieu(t.H), dl = phieu.truoc ? lech(goc, phieu.truoc) : 1;
     phieu.truoc = goc;
@@ -2541,22 +2593,31 @@ var QUET = (function () {
   function phieuMoi() { return { mat: 0, ds: [], on: null, truoc: null, dong: false, xong: null }; }
   // Nút "Tự chụp": BẮT BUỘC chấm tờ đang ở trước camera, bỏ qua các điều kiện chờ của chế độ tự động (giữ yên, độ nét,
   // vật che, tờ vừa chấm). Cách đọc giữ nguyên: lấy 3 khung hình liền nhau × các mức ngưỡng rồi bỏ phiếu, như khi tự chấm.
-  // Chỉ cần thấy 4 ô vuông ở góc phiếu.
-  var dangChup = false;
+  // Bấm một lần là chấm: giữ lệnh chụp tới khi đọc được phiếu (tối đa 15 giây, bấm lần nữa để huỷ). Có khung đọc được thì chấm ngay,
+  // không quá nửa giây kể từ khung đó. Không thấy ô vuông thì KHÔNG chấm bừa: không biết vị trí ô tô thì điểm sẽ sai.
+  var dangChup = false, huyChup = false, hCuoi = null;
   function tuChup() {
-    if (dangChup || !dangQuet || lonHien || dangHoi || !video.videoWidth) return;
-    dangChup = true; $('qTuChup').classList.add('dang'); tt('Đang chụp…');
-    var w = video.videoWidth, h = video.videoHeight, ds = [], lan = 0;
+    if (dangChup) { huyChup = true; return; }
+    if (!dangQuet || !video.videoWidth) return;
+    if (lonHien || dangHoi) return tt('Đóng thông báo đang mở rồi bấm lại Tự chụp');
+    dangChup = true; huyChup = false; $('qTuChup').classList.add('dang'); tt('Đang chụp…');
+    var w = video.videoWidth, h = video.videoHeight, ds = [], lan = 0, baDau = Date.now(), lucThay = 0;
     var xong = function () { dangChup = false; $('qTuChup').classList.remove('dang'); };
     (function mot() {
       try {
         if (cvL.width !== w || cvL.height !== h) { cvL.width = w; cvL.height = h; }
         cxL.drawImage(video, 0, 0, w, h);
-        var G = OMR.xam(cxL.getImageData(0, 0, w, h)), t = theoDoi ? OMR.tinhChinh(G, theoDoi, TPL) : null;
-        if (!t || t.soMoc < 4) { var d = OMR.docAnh(G, TPL, OMR.thuNho(G, 960)); t = d ? { H: d.H, den: d.den, soMoc: d.soMoc } : null; }
-        if (t && t.H) ds.push({ M: OMR.doCacO(G, t.H, TPL, t.den), net: OMR.doNet(G, t.H, TPL), G: G, H: t.H });
+        var G = OMR.xam(cxL.getImageData(0, 0, w, h)), goc = theoDoi || (hCuoi && Date.now() - hCuoi.luc < 5000 ? hCuoi.H : null), t = goc ? OMR.tinhChinh(G, goc, TPL) : null;
+        if (!t || t.soMoc < OMR.mocToiThieu(TPL)) { var d = OMR.docAnh(G, TPL, OMR.thuNho(G, 960)); t = d ? { H: d.H, den: d.den, soMoc: d.soMoc } : null; }
+        if (t && t.H) { theoDoi = t.H; lucThay = lucThay || Date.now(); ds.push({ M: OMR.doCacO(G, t.H, TPL, t.den), net: OMR.doNet(G, t.H, TPL), G: G, H: t.H }); }
       } catch (e) { /* khung hình lỗi: bỏ qua */ }
-      if (++lan < 3) return setTimeout(mot, 90);
+      lan++;
+      if (huyChup) { xong(); tt(MOI); return; }
+      var cho = ds.length ? ds.length < 3 && Date.now() - lucThay < 500 : Date.now() - baDau < 15000;
+      if (cho) {
+        if (!ds.length && Date.now() - baDau > 1500) tt('Chưa thấy các ô vuông đen – đưa cả tờ phiếu vào khung, máy sẽ tự chụp ngay');
+        return setTimeout(mot, 90);
+      }
       xong();
       if (!ds.length) { tt('Chưa thấy 4 ô vuông đen ở góc phiếu – đưa cả tờ phiếu vào khung rồi bấm lại'); return; }
       ds.sort(function (a, b) { return a.net - b.net; });
