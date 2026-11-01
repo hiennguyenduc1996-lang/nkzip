@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.6';</script>
+<script>window.NK_BAN = '1.6.1';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.6</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.6.1</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.6.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.6 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.6.1 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -2309,7 +2309,7 @@ var QUET = (function () {
   var choXong = [], conCho = 0, conDL = 0, DS_CHO = [], HOAN = {}, henGui = 0, khongGop = false, khongTach = false;
   var DANG = {}, chay = 0, chayDL = 0, chayAnh = 0, dangDoc = false, docLai = false, SONG_DL = 3, SONG_ANH = 2, GOP_DL = 25, GOP_ANH = 8;
   // tự điều chỉnh tốc độ: capDL / capAnh = số lượt được chạy cùng lúc lúc này; dungAnh = tạm dừng gửi ảnh tới thời điểm này
-  var capDL = SONG_DL, capAnh = SONG_ANH, dungAnh = 0, tot = 0, lucGuiDuoc = 0;
+  var capDL = SONG_DL, capAnh = SONG_ANH, dungAnh = 0, tot = 0;
   function sao(o) { return JSON.parse(JSON.stringify(o)); }
   function baoXong() { var c = choXong; choXong = []; c.forEach(function (f) { f(); }); }
   // lỗi do Google / Apps Script đang bận (tạm thời), không phải máy chủ từ chối bài
@@ -2407,7 +2407,7 @@ var QUET = (function () {
       var viec = [], tuChoi = 0, tai = false;
       lo.forEach(function (m, i) {
         var r = kq[i];
-        if (r && r.ok) { lucGuiDuoc = Date.now(); viec.push(daLuu(m, r, laAnh).catch(function () {})); }
+        if (r && r.ok) viec.push(daLuu(m, r, laAnh).catch(function () {}));
         else {
           var e = new Error(r && r.loi || 'Máy chủ không lưu được bài');
           if (laAnh || laQuaTai(e)) { hoan(m, e, 'tai'); tai = true; }        // ảnh lỗi / máy chủ bận: tự gửi lại, không báo
@@ -2875,31 +2875,24 @@ var QUET = (function () {
   }
   function escQ(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   // Danh sách bài chưa lên web (+ lý do). khiThoat: đang bấm "Xong" mà còn bài chưa gửi (không dùng confirm(): iPhone làm camera đứng hình)
-  var choThoat = false, lucHoi = 0, henKet = 0, daKet = false;
-  // còn bài mà 1 phút không gửi được bài nào (mất mạng, hết hạn mức): mới cho thoát, tránh giữ người chấm ở đây hàng giờ
-  function ketGui() { return conCho > 0 && Date.now() - Math.max(lucGuiDuoc, lucHoi) > 60000; }
+  var choThoat = false;
   function hienCho(khiThoat) {
     var o = $('qCho');
     if (!o) { o = document.createElement('div'); o.id = 'qCho'; o.className = 'qHop'; $('manQuet').appendChild(o); }
-    choThoat = !!khiThoat; dangHoi = true; lucHoi = Date.now(); daKet = false; o.classList.add('hien'); veCho();
-    clearInterval(henKet);
-    henKet = setInterval(function () {
-      if (!o.classList.contains('hien')) return clearInterval(henKet);
-      if (choThoat && ketGui() !== daKet) veCho();
-    }, 2000);
+    choThoat = !!khiThoat; dangHoi = true; o.classList.add('hien'); veCho();
   }
   function veCho() {
-    var o = $('qCho'), bay = Date.now(), ket = daKet = ketGui();
+    var o = $('qCho'), bay = Date.now();
     var ds = DS_CHO.map(function (m) {
       var h = HOAN[m.id], kq = m.kq || {};
       return '<div class="choDong"><b>' + escQ(kq.ten || 'SBD ' + (kq.sbd || '?')) + '</b><span>' +
         (m.buoc === 'anh' ? 'điểm đã lên web · ' : '') + (h ? escQ(h.loi) + ' · gửi lại sau ' + Math.max(0, Math.round((h.sau - bay) / 1000)) + ' giây' : m.buoc === 'anh' ? 'đang gửi ảnh…' : 'đang gửi…') + '</span></div>';
     }).join('');
     o.innerHTML = '<div class="the"><h3 style="font-size:18px">' + (conCho ? '⏳ Còn ' + conCho + ' bài chưa lên đủ điểm và ảnh' : '✓ Đã lên web đủ') + '</h3>' +
-      '<p class="mo" style="margin:0">' + (conCho ? 'Các bài này vẫn nằm trên máy và đang tự gửi. Giữ trang mở, có mạng để gửi xong' + (choThoat ? (ket ? '. Chưa gửi được: nếu thoát, bài vẫn lưu trên máy này, mở lại NKZip trên đúng máy này sẽ gửi tiếp.' : '. Có thể ẩn màn hình trên máy tính; gửi xong mới thoát được.') : '.') : 'Mọi bài đã chấm trên máy này đều đã lưu lên web, kể cả ảnh.') + '</p>' +
+      '<p class="mo" style="margin:0">' + (conCho ? 'Các bài này vẫn nằm trên máy và đang tự gửi. Giữ trang mở, có mạng để gửi xong' + (choThoat ? '; nếu thoát, bài vẫn lưu trên máy này, mở lại NKZip trên đúng máy này sẽ gửi tiếp.' : '.') : 'Mọi bài đã chấm trên máy này đều đã lưu lên web, kể cả ảnh.') + '</p>' +
       (ds ? '<div class="choDs">' + ds + '</div>' : '') +
       (conCho ? '<button class="vang" id="qcGuiLai">Gửi lại ngay</button><button id="qcXuat">Xuất Excel bài đang chờ</button>' : '') +
-      (choThoat ? '<button id="qcO">' + (conCho ? 'Ở lại chờ gửi' : 'Ở lại chấm tiếp') + '</button>' + (conCho && !ket ? '' : '<button class="' + (conCho ? 'nguy' : 'vang') + '" id="qcThoat">' + (conCho ? 'Thoát, bài vẫn lưu trên máy' : 'Thoát') + '</button>') : '<button id="qcO">Đóng</button>') + '</div>';
+      (choThoat ? '<button id="qcO">' + (conCho ? 'Ở lại chờ gửi' : 'Ở lại chấm tiếp') + '</button>' + '<button class="' + (conCho ? 'nguy' : 'vang') + '" id="qcThoat">' + (conCho ? 'Thoát, bài vẫn lưu trên máy' : 'Thoát') + '</button>' :'<button id="qcO">Đóng</button>') + '</div>';
     if ($('qcGuiLai')) $('qcGuiLai').onclick = function () { HOAN = {}; dayHangCho(); };
     if ($('qcXuat')) $('qcXuat').onclick = xuatCho;
     $('qcO').onclick = function () { o.classList.remove('hien'); dangHoi = false; };
@@ -2909,6 +2902,8 @@ var QUET = (function () {
   // Lấy điểm các bài còn trong hàng chờ ra Excel (mất mạng, hết hạn mức): chỉ đọc hàng chờ trên máy, không gửi, không xoá
   function xuatCho() {
     HC.tat().then(function (ds) {
+      var cua = (ds || []).filter(function (m) { return m.kq && KY && m.kq.kyThi === KY.id; }).map(function (m) { return m.kq; });
+      if (TC.xuatCho && cua.length) return tt('Đã xuất ' + TC.xuatCho(cua) + ' bài đang chờ ra Excel (mẫu DATA TKCS)');   // bài của bài thi đang mở
       var d = [['STT', 'SBD', 'Họ và tên', 'Lớp', 'Mã đề', 'Phần I', 'Phần II', 'Phần III', 'Điểm', 'Bài thi', 'Tình trạng']], ten = {};
       (ds || []).forEach(function (m, i) {
         var k = m.kq || {}; ten[k.tenKy || ''] = 1;
@@ -2942,9 +2937,9 @@ var QUET = (function () {
   function gan() {
     if (daGan) return; daGan = true;
     video = $('qVideo'); lop = $('qLop');
-    // còn bài chưa lên web: hỏi lại trước khi thoát
-    $('qLui').onclick = function () { if (conCho > 0 && TC.cheDo !== 'dapan') return hienCho(true); dong(); };
-    $('qDem').onclick = function () { hienCho(false); };
+    // thoát ngay kể cả còn bài chưa lên web: bài vẫn nằm trong hàng chờ trên máy và tự gửi tiếp khi app còn mở
+    $('qLui').onclick = function () { dong(); };
+    $('qDem').onclick = function () { hienCho(true); };
     $('qDen').onclick = function () { denBat = !denBat; if (ranh) ranh.applyConstraints({ advanced: [{ torch: denBat }] }).catch(function () {}); };
     $('qChup').onclick = function () { $('qTep').click(); };
     $('qTuChup').onclick = tuChup;
@@ -3527,6 +3522,7 @@ var QUET = (function () {
     dangCham = true; theoDoiKy();
     QUET.mo({
       ky: k, lop: DL.lop, cheDo: 'cham', daCo: daCoBai(k),
+      xuatCho: function (ds) { return xuatDataTKCS(k, ds); },
       xoa: function (id) { KQC[k.id] = (KQC[k.id] || []).filter(function (r) { return r.id !== id; }); if (ky() && ky().id === k.id) KQ = KQC[k.id]; },
       // máy chủ đã có bài cùng SBD do máy khác chấm: bài này được lưu với mã mới
       daGui: function (kq, anh, id) { if (id && id !== kq.id) (KQC[k.id] || []).forEach(function (r) { if (r.id === kq.id) r.id = id; }); },
@@ -3537,6 +3533,7 @@ var QUET = (function () {
       },
       dong: function (suaId) {
         dangCham = false; tabKy = 'bai'; veBen(); veChinh();
+        if (QUET.conLai()) bao('Còn ' + QUET.conLai() + ' bài đang chờ gửi, bài vẫn lưu trên máy. Giữ app mở hoặc mở lại trên máy này để gửi tiếp', 7000);
         QUET.choGui().then(function () { return taiKQ(true); }).then(function () { veBen(); if (!$('#hop').classList.contains('hien')) veChinh(); });
         if (suaId) moBai(suaId);
       }
@@ -4057,7 +4054,8 @@ var QUET = (function () {
   function namHoc() { var d = new Date(), y = d.getFullYear(); return d.getMonth() >= 7 ? y + ' - ' + (y + 1) : (y - 1) + ' - ' + y; }
   // Tệp "DATA TKCS": đúng cấu trúc tệp xuất chi tiết của ZipGrade (mỗi học sinh 1 dòng, mỗi câu 4 cột Stu/PriKey/Points/Mark)
   // để dán vào bảng tính thống kê câu sai của tổ. Phiếu 18-4-6: 18 câu Phần I, 16 ý Phần II (T/F), 6 câu Phần III.
-  function xuatDataTKCS(k) {
+  // dsCho: bài lấy từ hàng chờ trên máy (chưa lên hệ thống); không truyền thì xuất các bài đã lên
+  function xuatDataTKCS(k, dsCho) {
     // phiếu ZipGrade (18-4-6, 50 câu): xuất đủ số câu của phiếu như ZipGrade; câu không có đáp án để trống
     var s = soCau(k), G = gioiHan(k), co18 = k.mau === 'nk1846' || k.mau === 'zip50', chiTN = !s.p2 && !s.p3;
     var n1 = co18 ? G.p1 : s.p1, n2 = co18 ? G.p2 : s.p2, n3 = co18 ? G.p3 : s.p3;
@@ -4067,7 +4065,7 @@ var QUET = (function () {
     var TF = function (c) { return c === 'D' ? 'T' : c === 'S' ? 'F' : ''; };
     var dau = ['QuizName', 'QuizClass', 'FirstName', 'LastName', 'StudentID', chiTN ? 'CustomID' : 'Điểm theo công thức mới', 'Earned Points', 'Possible Points', 'PercentCorrect', 'QuizCreated', 'DataExported', 'Key Version'];
     for (var q = 1; q <= n1 + n2 * 4 + n3; q++) dau.push('Stu' + q, 'PriKey' + q, 'Points' + q, 'Mark' + q);
-    var bai = KQ.filter(function (r) { return r.diem != null && !r.chuaGui; }).map(function (r) {
+    var bai = (dsCho || KQ.filter(function (r) { return !r.chuaGui; })).filter(function (r) { return r.diem != null; }).map(function (r) {
       var de = k.de[r.made] || {}, a1 = CHAM.k1(de), a2 = CHAM.k2(de), a3 = CHAM.k3(de), o = [], dat = 0, toi = 0, i;
       var them = function (khoa, hs, dung) {
         if (!khoa) { o.push('', '', 0, ''); return; }
@@ -4081,8 +4079,9 @@ var QUET = (function () {
       return [tenK(k), r.lop || '', t[0], t[1], /^\d+$/.test(r.sbd) ? Number(r.sbd) : r.sbd, chiTN ? String(r.sbd) : r.diem, dat, toi, toi ? Math.round(dat * 10000 / toi) / 100 : 0, ngayTao, luc, r.made].concat(o);
     }).sort(function (x, y) { return String(x[3]).localeCompare(String(y[3]), 'vi') || String(x[2]).localeCompare(String(y[2]), 'vi') || String(x[4]).localeCompare(String(y[4]), 'vi', { numeric: true }); });
     if (!bai.length) return bao('Chưa có bài nào để xuất.');
-    XLSX.taiVe('DATA TKCS - ' + tenK(k), [dau].concat(bai), null, { trang: 'Sheet1', thuong: true });
+    XLSX.taiVe('DATA TKCS - ' + (dsCho ? 'bai dang cho - ' : '') + tenK(k), [dau].concat(bai), null, { trang: 'Sheet1', thuong: true });
     bao('Đã xuất DATA TKCS: ' + bai.length + ' bài', 4000);
+    return bai.length;
   }
   function veChiTiet(k) {
     maCT = chonMa(k, maCT);
