@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.5.7';</script>
+<script>window.NK_BAN = '1.5.8';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.7</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.5.8</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.7 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.5.8 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.5.7 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.5.8 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1353,6 +1353,15 @@ var CHAM = (function () {
     return null;
   }
 
+  // Phiếu nhiều cột hơn SBD: cột thừa cuối bị bóng đổ / vết bẩn làm đọc thành một số ("32440" thay vì 3244). SBD đủ số không có trong
+  // danh sách mà bỏ số cuối thì khớp một học sinh: bỏ số đó. SBD đủ số có trong danh sách (trường dùng SBD 5 số) thì giữ nguyên.
+  function boSoThua(dsLop, sbd) {
+    var s = String(sbd == null ? '' : sbd);
+    if (!/^\d{4,}[\d*]$/.test(s) || timHS(dsLop, s)) return s;
+    var c = s.slice(0, -1);
+    return timHS(dsLop, c) ? c : s;
+  }
+
   // Điểm mặc định theo môn (chương trình 2018): Toán 12-4-6, môn khác 18-4-6.
   function diemMacDinh(mau, toan, soCau) {
     if (mau === 'zip50') return { p1: chiaDeu(soCau || 50), p2: 1, p3: 0 };
@@ -1410,7 +1419,7 @@ var CHAM = (function () {
     return ds;
   }
 
-  return { cham: cham, timDe: timDe, timHS: timHS, gonSBD: gonSBD, moTaNghi: moTaNghi, diemToiDa: diemToiDa, diemGoc: diemGoc, heSo: heSo, chiaDeu: chiaDeu, MON: MON, diemMacDinh: diemMacDinh, bangNhau: bangNhau, kiemTra: kiemTra, loiBao: loiBao, soVN: soVN, tron: tron, k1: k1, k2: k2, k3: k3 };
+  return { cham: cham, timDe: timDe, timHS: timHS, gonSBD: gonSBD, moTaNghi: moTaNghi, boSoThua: boSoThua, diemToiDa: diemToiDa, diemGoc: diemGoc, heSo: heSo, chiaDeu: chiaDeu, MON: MON, diemMacDinh: diemMacDinh, bangNhau: bangNhau, kiemTra: kiemTra, loiBao: loiBao, soVN: soVN, tron: tron, k1: k1, k2: k2, k3: k3 };
 })();
 if (typeof module !== 'undefined') module.exports = CHAM;
 
@@ -2672,7 +2681,7 @@ var QUET = (function () {
   }
 
   function taoKQ(doc, sbd) {
-    sbd = CHAM.gonSBD(sbd);
+    sbd = CHAM.boSoThua(LOP, CHAM.gonSBD(sbd));
     var c = CHAM.cham(doc, KY, null), hs = /^\d+$/.test(sbd) ? CHAM.timHS(LOP, sbd) : null;
     if (hs && hs.sbd) sbd = hs.sbd;
     return {
