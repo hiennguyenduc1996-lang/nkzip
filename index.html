@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.8.1';</script>
+<script>window.NK_BAN = '1.8.2';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.1</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.2</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.2 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.8.1 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.8.2 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1843,7 +1843,24 @@ var FBK = (function () {
     if (DU_AN_CU && hopLe(DU_AN_CU) && !ds.some(function (c) { return c.projectId === DU_AN_CU.projectId; })) ds.push(DU_AN_CU);
     return Promise.all(ds.map(function (cfg) {
       var pid = cfg.projectId;
+      var ghi = function (soKy, soBai, soAnh, chuaDem) {
+        var tk = { ok: true, projectId: pid, soKy: soKy, soBai: soBai, soAnh: soAnh, mb: (soKy * 3 + soBai * 4 + soAnh * 105) / 1024, chuaDem: chuaDem || 0, luc: new Date().toLocaleTimeString('vi-VN') };
+        THONG_KE_LUU[pid] = tk;
+        DO_LUU[pid] = { pid: pid, mb: tk.mb, soKy: soKy, soBai: soBai, soAnh: soAnh, luc: Date.now() }; ls('nkzip_do_luu', DO_LUU);
+        return tk;
+      };
       return ketNoiDuAn(cfg).then(function (a) {
+        // Đếm cả số bài thi, số bài làm, số ảnh bằng lệnh ĐẾM: khoảng 3 lượt đọc mỗi dự án (trước đây đọc từng bài thi: hàng trăm lượt)
+        return Promise.all([demTrenMayChu(a, pid, 'kyThi'), demTrenMayChu(a, pid, 'kq'), demTrenMayChu(a, pid, 'anh')]).then(function (n) {
+          return ghi(n[0], n[1], n[2], 0);
+        }, function () { return docDayDu(a); });
+      }).catch(function (e) {
+        var tk = { ok: false, projectId: pid, loi: String(e && (e.code || e.message) || e) };
+        THONG_KE_LUU[pid] = tk;
+        return tk;
+      });
+      // dự phòng khi không dùng được lệnh đếm: đọc danh sách bài thi như trước
+      function docDayDu(a) {
         return a.db.collection('kyThi').get().then(function (sKy) {
           demLuot(pid, 'doc', sKy.size || 1);
           if (!sKy.size) {
@@ -1871,11 +1888,7 @@ var FBK = (function () {
             return xong(soBai, soAnh, chuaDem);
           });
         });
-      }).catch(function (e) {
-        var tk = { ok: false, projectId: pid, loi: String(e && (e.code || e.message) || e) };
-        THONG_KE_LUU[pid] = tk;
-        return tk;
-      });
+      }
     }));
   }
   function layThongKeLuu() { return THONG_KE_LUU; }
@@ -2427,13 +2440,22 @@ var FBK = (function () {
       return new Date(bay.getTime() + conLai).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     } catch (e) { return '15:00'; }
   }
-  // Tải danh sách kỳ thi từ tất cả các dự án Firebase đang hoạt động (chạy song song), lọc theo tài khoản trên máy (cuaToiKy).
+  // Chỉ hỏi máy chủ bài thi của tài khoản đang làm việc (trường 'chu' = người tạo, chữ thường) – mỗi lần mở app tốn số lượt bằng số bài thi
+  // của chính tài khoản đó thay vì của mọi giáo viên. Kết quả giống hệt lọc trên máy (cuaToiKy) vì mỗi tài khoản chỉ thấy bài mình tạo.
+  // Quản trị chọn "Tất cả tài khoản" thì đọc hết.
+  function locChu(col) {
+    var tk = API.tk();
+    if (API.quanTri() && tk === 'tatca') return col;
+    var dang = String(tk || API.toi() || '').toLowerCase();
+    return dang ? col.where('chu', '==', dang) : col;
+  }
+  // Tải danh sách kỳ thi từ tất cả các dự án Firebase đang hoạt động (chạy song song), lọc theo tài khoản (máy chủ + cuaToiKy).
   // (Bản 1.7.2 đầu tiên lọc ngay trên máy chủ theo trường 'chu' và làm mất các bài thi cũ: giữ cách đọc cũ cho chắc.)
   function taiKyThi() {
     var ds = dsHoatDong(false).filter(duocDoc);      // không đọc dự án riêng của tài khoản khác (đỡ lượt đọc)
     return Promise.all(ds.map(function (cfg) {
       return ketNoiDuAn(cfg).then(function (a) {
-        return a.db.collection('kyThi').get().then(function (s) {
+        return locChu(a.db.collection('kyThi')).get().then(function (s) {
           demLuot(cfg.projectId, 'doc', s.size || 1);
           var ds = s.docs.map(function (d) {
             var k = moDong(d.data());
