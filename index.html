@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.6.1';</script>
+<script>window.NK_BAN = '1.7.5';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.6.1</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.7.5</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.6.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.7.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.6.1 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.7.5 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1633,28 +1633,20 @@ var API = (function () {
     });
   }
 
-  // Hai chế độ: 'lop' = chấm trong lớp (dữ liệu trên Google Sheet qua Apps Script); 'ktdk' = KTDK Zip (bài thi, kết quả, ảnh
-  // trên Firebase – nhanh hơn nhiều khi chấm dồn). Tài khoản, đăng nhập, lớp/học sinh luôn dùng chung qua Apps Script.
-  // Mở trang với #ktdk thì vào thẳng chế độ KTDK.
-  if (/^#ktdk\b/.test(location.hash)) ls('nkzip_chedo', 'ktdk');
-  function cheDo(v) { if (v === undefined) return ls('nkzip_chedo') === 'ktdk' ? 'ktdk' : 'lop'; ls('nkzip_chedo', v === 'ktdk' ? 'ktdk' : null); }
+  // Chế độ duy nhất: NKZip chạy trực tiếp trên nhiều dự án Firebase (Firestore), kế thừa tốc độ của KTDK Zip.
+  // Tài khoản, đăng nhập, lớp/học sinh dùng chung qua Apps Script; khi máy tính chạy kho cục bộ (chưa kết nối Google) hoặc
+  // đang chạy bộ thử tự động (window.API_GIA) thì gọi thẳng qua gui().
+  function cheDo() { return 'ktdk'; }
   var VIEC_FB = { taiDuLieu: 1, taiKetQua: 1, luuKyThi: 1, xoaKyThi: 1, xoaNhieuKyThi: 1, luuKetQua: 1, luuNhieuBai: 1, layAnh: 1, luuNhieuKetQua: 1, xoaKetQua: 1 };
-  // Trả về dữ liệu khi ok; ném lỗi (có .ma = 'dangnhap' khi cần đăng nhập lại) khi thất bại.
-  // che: chế độ của dữ liệu (mặc định = chế độ đang dùng; hàng chờ gửi truyền chế độ lúc chấm bài đó)
-  // Chấm trong lớp: bài chấm gửi vào hàng chờ Firebase (nhanh, không kẹt khi đông người), Apps Script chuyển dần vào
-  // Google Sheet / Drive; đọc kết quả = Sheet + hàng chờ. Firebase lỗi thì FBK tự làm thẳng với Apps Script.
-  var VIEC_LQ = { taiDuLieu: 1, taiKetQua: 1, luuNhieuBai: 1, luuKetQua: 1, luuNhieuKetQua: 1, xoaKetQua: 1, layAnh: 1 };
-  function goi(action, dl, che) {
+  function dungFB() { return !!(window.FBK && FBK.coCauHinh() && !window.API_GIA && !(mayTinh() && ls('nkzip_cucbo') === '1')); }
+  function goi(action, dl) {
     if (window.API_GIA) return goiGas(action, dl);
-    if ((che || cheDo()) === 'ktdk' && VIEC_FB[action]) {
-      if (!window.FBK) return Promise.reject(new Error('Chưa tải được KTDK Zip'));
+    if (VIEC_FB[action] && dungFB()) {
       return FBK.goi(action, dl || {});
     }
-    if (VIEC_LQ[action] && lopFB()) return FBK.goiLop(action, dl || {});
     return goiGas(action, dl);
   }
-  // chấm trong lớp đang dùng hàng chờ Firebase (máy tính chạy kho cục bộ chưa nối Google thì không)
-  function lopFB() { return !!(window.FBK && FBK.lopFB() && !window.API_GIA && !(mayTinh() && ls('nkzip_cucbo') === '1')); }
+  function lopFB() { return false; }
   function goiGas(action, dl) {
     var y = { action: action, phien: ls('nkzip_phien') }, t = ls('nkzip_thay');
     if (t) y.thay = t;
@@ -1694,20 +1686,18 @@ var API = (function () {
 
 </script>
 <script data-nk>
-/* KTDK Zip: kho dữ liệu trên Firebase (Firestore) cho chế độ KTDK – nhanh, nhận bài mới tức thì.
- * Nhận các lệnh giống hệt máy chủ Apps Script (taiDuLieu, luuNhieuBai, taiKetQua…) và trả kết quả cùng dạng,
- * nên giao diện / máy quét dùng chung với NKZip. Tài khoản, lớp, học sinh vẫn lấy từ Apps Script.
+/* NKZip: kho dữ liệu trên nhiều dự án Firebase (Firestore) – nhanh, nhận bài mới tức thì, chia tải ngẫu nhiên qua nhiều dự án.
+ * Nhận các lệnh giống hệt máy chủ Apps Script (taiDuLieu, luuNhieuBai, taiKetQua…) và trả kết quả cùng dạng.
+ * Tài khoản, lớp, học sinh vẫn lấy từ Apps Script.
  *
- * Firestore:  kyThi/{id}  bài thi (thêm chu = tài khoản tạo)
- *             kq/{id}     kết quả một bài (kyThi, sbd, ... ; anh = 'fs:<mã ảnh>')
- *             anh/{id}    ảnh sạch của bài: { kyThi, b64 } (cất trong Firestore để khỏi cần Cloud Storage trả phí)
- * Đăng nhập: Apps Script (action veKTDK) kiểm tra tài khoản NKZip đã được duyệt KTDK rồi cấp "vé" (custom token).
+ * Firestore (trên từng dự án):
+ *   kyThi/{id}  bài thi (thêm chu = tài khoản tạo, duAn = projectId của dự án chứa bài thi này)
+ *   kq/{id}     kết quả một bài (kyThi, sbd, ... ; anh = 'fs:<mã ảnh>' hoặc 'fs:<projectId>:<mã ảnh>')
+ *   anh/{id}    ảnh sạch của bài: { kyThi, b64 }
  */
 var FBK = (function () {
   'use strict';
-  // cấu hình công khai của dự án Firebase (Project settings › Your apps › Web app)
-  // dự án Firebase "KTDKZip" (project-1f7b73ae-ae0e-4300-b60), Firestore ở asia-southeast1 (Singapore)
-  var CAU_HINH = window.FB_CONFIG || {
+  var DU_AN_CU = {
     apiKey: 'AIzaSyCUEdfkisGWkJroDfTEKhfBop3aK8UWftk',
     authDomain: 'project-1f7b73ae-ae0e-4300-b60.firebaseapp.com',
     projectId: 'project-1f7b73ae-ae0e-4300-b60',
@@ -1715,12 +1705,323 @@ var FBK = (function () {
     messagingSenderId: '588740194839',
     appId: '1:588740194839:web:a37116f1b61fba1c626252'
   };
-  var BAN_SDK = '10.12.2', db = null, auth = null, san = null, ANH = {}, DANG_ANH = {};
+  // 10 ô cấu hình Firebase mặc định (dán sẵn đầy đủ 7 dự án GV1..GV7 của người dùng, ô 8..10 để trống chờ thêm sau)
+  var MAC_DINH_DS = [
+    {
+      apiKey: 'AIzaSyAUVyQJcgYevkoO6-gY5bQ-RlxSuTujQ6k',
+      authDomain: 'nkzip-gv1.firebaseapp.com',
+      projectId: 'nkzip-gv1',
+      storageBucket: 'nkzip-gv1.firebasestorage.app',
+      messagingSenderId: '596883719399',
+      appId: '1:596883719399:web:4370b408c77d88b33cce42'
+    },
+    {
+      apiKey: 'AIzaSyBxSEcPASlZtZCxAZHAGRXtCc7-Zyip1rk',
+      authDomain: 'nkzip-gv2-3e8fd.firebaseapp.com',
+      projectId: 'nkzip-gv2-3e8fd',
+      storageBucket: 'nkzip-gv2-3e8fd.firebasestorage.app',
+      messagingSenderId: '328082693400',
+      appId: '1:328082693400:web:2743ad11818168d98e926d'
+    },
+    {
+      apiKey: 'AIzaSyDD2VZGLhdk2zOzvoccIOyExZD1lMHG7qs',
+      authDomain: 'nkzip-gv3.firebaseapp.com',
+      projectId: 'nkzip-gv3',
+      storageBucket: 'nkzip-gv3.firebasestorage.app',
+      messagingSenderId: '803864517170',
+      appId: '1:803864517170:web:9a3fa872e73cf95249ba2b'
+    },
+    {
+      apiKey: 'AIzaSyBaWIsZlcANYju6CiUNv6MBseVh9CaRddw',
+      authDomain: 'nkzip-gv4.firebaseapp.com',
+      projectId: 'nkzip-gv4',
+      storageBucket: 'nkzip-gv4.firebasestorage.app',
+      messagingSenderId: '623095391967',
+      appId: '1:623095391967:web:22587bf887337f0861eb6a'
+    },
+    {
+      apiKey: 'AIzaSyD8UT8ZVP6dl2-IChAWcVvU0sL8gOh-6iM',
+      authDomain: 'nkzip-gv5.firebaseapp.com',
+      projectId: 'nkzip-gv5',
+      storageBucket: 'nkzip-gv5.firebasestorage.app',
+      messagingSenderId: '951513094919',
+      appId: '1:951513094919:web:9bcc47d28eb4097dfc43a2'
+    },
+    {
+      apiKey: 'AIzaSyDiZLwSG2GZrD45P_66qYMi_z3KliUS2RI',
+      authDomain: 'nkzip-gv6.firebaseapp.com',
+      projectId: 'nkzip-gv6',
+      storageBucket: 'nkzip-gv6.firebasestorage.app',
+      messagingSenderId: '567246167380',
+      appId: '1:567246167380:web:6187c0524a5485caa0bcc1'
+    },
+    {
+      apiKey: 'AIzaSyCjRTpKNMOXrahTBUk9bfDSAU-DOlZuZ7Q',
+      authDomain: 'nkzip-gv7.firebaseapp.com',
+      projectId: 'nkzip-gv7',
+      storageBucket: 'nkzip-gv7.firebasestorage.app',
+      messagingSenderId: '342509820478',
+      appId: '1:342509820478:web:389bb745729dcbf3cb8f6f'
+    },
+    null,
+    null,
+    null
+  ];
+  var SO_O = 10, BAN_SDK = '10.12.2';
+  var APPS = {}, KY_DU_AN = {}, ANH = {}, DANG_ANH = {};
+
+  // Bộ nhớ đệm ảnh trên ổ cứng (IndexedDB): mỗi ảnh chỉ tải từ Firebase đúng 1 lần duy nhất, F5 hay tắt mở lại app tốn 0 lượt đọc
+  var KHO_ANH = (function () {
+    var dbP = null;
+    function mo() {
+      if (dbP) return dbP;
+      dbP = new Promise(function (ok) {
+        try {
+          var r = indexedDB.open('nkzip_anh_cache', 1);
+          r.onupgradeneeded = function () { r.result.createObjectStore('anh'); };
+          r.onsuccess = function () { ok(r.result); };
+          r.onerror = function () { ok(null); };
+        } catch (e) { ok(null); }
+      });
+      return dbP;
+    }
+    return {
+      lay: function (khoa) {
+        return mo().then(function (db) {
+          if (!db) return '';
+          return new Promise(function (ok) {
+            try {
+              var req = db.transaction('anh', 'readonly').objectStore('anh').get(khoa);
+              req.onsuccess = function () { ok(req.result || ''); };
+              req.onerror = function () { ok(''); };
+            } catch (e) { ok(''); }
+          });
+        });
+      },
+      luu: function (khoa, b64) {
+        if (!khoa || !b64) return;
+        mo().then(function (db) {
+          if (!db) return;
+          try { db.transaction('anh', 'readwrite').objectStore('anh').put(b64, khoa); } catch (e) { /* bỏ qua */ }
+        });
+      }
+    };
+  })();
+
+  function ls(k, v) {
+    try {
+      if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null');
+      if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v));
+    } catch (e) { /* bỏ qua */ }
+    return null;
+  }
+
+  // ---- Bộ đếm lượt đọc / ghi / xoá theo ngày và kiểm tra dung lượng lưu trữ của từng dự án Firebase ----
+  function ngayHomNay() {
+    var d = new Date();
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function docDemNgay() {
+    var d = ls('nkzip_fb_dem'), hn = ngayHomNay();
+    if (!d || d.ngay !== hn) { d = { ngay: hn, duAn: {} }; ls('nkzip_fb_dem', d); }
+    return d;
+  }
+  function demLuot(pid, loai, so) {
+    if (!pid || !so) return;
+    var d = docDemNgay();
+    var m = d.duAn[pid] || (d.duAn[pid] = { doc: 0, ghi: 0, xoa: 0 });
+    m[loai] = (m[loai] || 0) + so;
+    ls('nkzip_fb_dem', d);
+  }
+  function layDemNgay() { return docDemNgay().duAn || {}; }
+  // Kiểm tra thực tế số kỳ thi, số bài chấm, số ảnh đang lưu trên từng dự án Firebase (tối ưu: dự án trống không đọc bảng kq; kỳ thi đã có trong bộ nhớ không đọc lại)
+  var THONG_KE_LUU = {};
+  function kiemTraDungLuong() {
+    var ds = dsCauHinh().filter(hopLe);
+    if (DU_AN_CU && hopLe(DU_AN_CU) && !ds.some(function (c) { return c.projectId === DU_AN_CU.projectId; })) ds.push(DU_AN_CU);
+    return Promise.all(ds.map(function (cfg) {
+      var pid = cfg.projectId;
+      return ketNoiDuAn(cfg).then(function (a) {
+        return a.db.collection('kyThi').get().then(function (sKy) {
+          demLuot(pid, 'doc', sKy.size || 1);
+          if (!sKy.size) {
+            var tk0 = { ok: true, projectId: pid, soKy: 0, soBai: 0, soAnh: 0, mb: 0, luc: new Date().toLocaleTimeString('vi-VN') };
+            THONG_KE_LUU[pid] = tk0;
+            return tk0;
+          }
+          sKy.docs.forEach(function (d) { nhoDuAnKy(d.id, pid); });
+          var xong = function (soBai, soAnh, chuaDem) {
+            var tk = { ok: true, projectId: pid, soKy: sKy.size, soBai: soBai, soAnh: soAnh, mb: (sKy.size * 3 + soBai * 4 + soAnh * 105) / 1024, chuaDem: chuaDem, luc: new Date().toLocaleTimeString('vi-VN') };
+            THONG_KE_LUU[pid] = tk;
+            return tk;
+          };
+          // Đếm số bài / số ảnh bằng lệnh ĐẾM của Firestore: 1 lượt đọc cho mỗi 1.000 bài (trước đây đọc từng bài: hàng chục nghìn lượt)
+          return Promise.all([demTrenMayChu(a, pid, 'kq'), demTrenMayChu(a, pid, 'anh')]).then(function (n) {
+            return xong(n[0], n[1], 0);
+          }, function () {
+            // không đếm được (vd. luật bảo mật không cho truy vấn cả bảng): đếm từ dữ liệu đã có trên máy, kỳ thi chưa mở ghi là "chưa đếm"
+            var soBai = 0, soAnh = 0, chuaDem = 0;
+            sKy.docs.forEach(function (d) {
+              var mem = (KQ_NGHE[d.id] && KQ_NGHE[d.id].du) || ls('nkzip_kq_' + d.id);
+              if (mem && Array.isArray(mem)) { soBai += mem.length; mem.forEach(function (r) { if (r && r.anh) soAnh++; }); }
+              else chuaDem++;
+            });
+            return xong(soBai, soAnh, chuaDem);
+          });
+        });
+      }).catch(function (e) {
+        var tk = { ok: false, projectId: pid, loi: String(e && (e.code || e.message) || e) };
+        THONG_KE_LUU[pid] = tk;
+        return tk;
+      });
+    }));
+  }
+  function layThongKeLuu() { return THONG_KE_LUU; }
+  // Lệnh đếm (aggregation count) qua REST: tính 1 lượt đọc cho mỗi 1.000 tài liệu khớp
+  function demTrenMayChu(a, pid, bang) {
+    var u = a.auth && a.auth.currentUser;
+    if (!u) return Promise.reject(new Error('Chưa đăng nhập Firebase'));
+    return u.getIdToken().then(function (the) {
+      return fetch('https://firestore.googleapis.com/v1/projects/' + encodeURIComponent(pid) + '/databases/(default)/documents:runAggregationQuery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + the },
+        body: JSON.stringify({ structuredAggregationQuery: { structuredQuery: { from: [{ collectionId: bang }] }, aggregations: [{ alias: 'n', count: {} }] } })
+      });
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      var x = Array.isArray(j) ? j[0] : j;
+      if (!x || !x.result || !x.result.aggregateFields) throw new Error((x && x.error && x.error.message) || 'Không đếm được');
+      var n = Number(x.result.aggregateFields.n.integerValue || 0);
+      demLuot(pid, 'doc', Math.max(1, Math.ceil(n / 1000)));
+      return n;
+    });
+  }
+
+  // Phân tích đoạn văn bản dán vào (dạng const firebaseConfig = { ... }; hoặc JSON) thành đối tượng cấu hình
+  function phanTich(chuoi) {
+    var s = String(chuoi || '').trim();
+    if (!s) return null;
+    try {
+      var j = JSON.parse(s);
+      if (j && (j.projectId || j.apiKey)) return chuanCfg(j);
+    } catch (e) { /* thử đọc dạng JS bên dưới */ }
+    var m = /\{[\s\S]*\}/.exec(s);
+    if (!m) return null;
+    var khoi = m[0], ra = {};
+    ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'].forEach(function (k) {
+      var re = new RegExp('["\']?' + k + '["\']?\\s*:\\s*["\']([^"\']+)["\']');
+      var x = re.exec(khoi);
+      if (x) ra[k] = x[1].trim();
+    });
+    return ra.projectId || ra.apiKey ? chuanCfg(ra) : null;
+  }
+  function chuanCfg(c) {
+    if (!c || typeof c !== 'object') return null;
+    var pid = String(c.projectId || '').trim(), key = String(c.apiKey || '').trim();
+    if (!pid && !key) return null;
+    return {
+      apiKey: key,
+      authDomain: String(c.authDomain || (pid ? pid + '.firebaseapp.com' : '')).trim(),
+      projectId: pid,
+      storageBucket: String(c.storageBucket || (pid ? pid + '.firebasestorage.app' : '')).trim(),
+      messagingSenderId: String(c.messagingSenderId || '').trim(),
+      appId: String(c.appId || '').trim()
+    };
+  }
+  // Cấu hình hợp lệ để kết nối thật: có projectId và apiKey đầy đủ (không chứa dấu • hoặc * bị che)
+  function hopLe(c) {
+    return !!(c && c.projectId && c.apiKey && c.apiKey.length >= 20 && !/[•*]/.test(c.apiKey));
+  }
+  // Trả về mảng đúng 10 ô cấu hình (kết hợp mặc định và bản đã lưu trong máy / máy chủ)
+  function dsCauHinh() {
+    var luu = ls('nkzip_fb_ds'), ra = [];
+    for (var i = 0; i < SO_O; i++) {
+      var m = MAC_DINH_DS[i] ? chuanCfg(MAC_DINH_DS[i]) : null;
+      var l = luu && luu[i] !== undefined ? (luu[i] ? chuanCfg(luu[i]) : null) : undefined;
+      // nếu bản lưu trong máy vẫn là apiKey bị che (•••) mà bản mặc định đã có apiKey đầy đủ thì nâng cấp luôn sang bản mặc định
+      if (l !== undefined && !(l && !hopLe(l) && m && hopLe(m))) ra.push(l);
+      else ra.push(m);
+    }
+    return ra;
+  }
+  function napCauHinhTuMayChu(ds) {
+    if (!Array.isArray(ds) || !ds.length) return;
+    var hien = dsCauHinh(), doi = false;
+    for (var i = 0; i < SO_O; i++) {
+      var moi = ds[i] ? chuanCfg(ds[i]) : null;
+      if (moi && (hopLe(moi) || !hien[i])) {
+        if (JSON.stringify(hien[i]) !== JSON.stringify(moi)) { hien[i] = moi; doi = true; }
+      } else if (ds[i] === null && luuRong(ds, i)) {
+        // giữ nguyên nếu chỉ là mặc định trống
+      }
+    }
+    if (doi) ls('nkzip_fb_ds', hien);
+  }
+  function luuRong(ds, i) { return ds[i] === null && !MAC_DINH_DS[i]; }
+  function luuCauHinh(ds) {
+    var chuan = [];
+    for (var i = 0; i < SO_O; i++) chuan.push(ds && ds[i] ? chuanCfg(ds[i]) : null);
+    ls('nkzip_fb_ds', chuan);
+    // xoá kết nối của dự án đã sửa apiKey để kết nối lại bằng khoá mới
+    Object.keys(APPS).forEach(function (pid) {
+      var tim = chuan.filter(function (c) { return c && c.projectId === pid; })[0];
+      if (tim && APPS[pid].cfg && APPS[pid].cfg.apiKey !== tim.apiKey) delete APPS[pid];
+    });
+    return chuan;
+  }
+
+  // Danh sách các cấu hình đang hoạt động (luôn gồm các ô hợp lệ trong 10 ô + dự án cũ để không mất bài đang chấm)
+  function dsHoatDong(boDuAnCu) {
+    var ds = dsCauHinh().filter(hopLe), daCo = {};
+    var ra = [];
+    ds.forEach(function (c) {
+      if (!daCo[c.projectId]) { daCo[c.projectId] = 1; ra.push(c); }
+    });
+    if (!boDuAnCu && DU_AN_CU && hopLe(DU_AN_CU) && !daCo[DU_AN_CU.projectId]) {
+      ra.push(DU_AN_CU);
+    }
+    return ra;
+  }
+  // Chọn dự án xoay vòng (Round-Robin: GV1 → GV2 → ... → GV7 → GV1) kết hợp ưu tiên dự án đang ít kỳ thi nhất
+  function chonDuAn(soLuong) {
+    // chỉ chọn dự án GV đã đọc được trong phiên này (đã có khoá + luật); chưa dự án GV nào sẵn sàng thì dùng dự án gốc như trước
+    var ds = dsHoatDong(true).filter(function (c) { return DU_AN_OK[c.projectId]; });
+    if (!ds.length) ds = [DU_AN_CU];
+    var mapKy = Object.assign({}, ls('nkzip_ky_duan') || {}, KY_DU_AN);
+    var dem = {};
+    ds.forEach(function (c) { dem[c.projectId] = 0; });
+    Object.keys(mapKy).forEach(function (k) {
+      var p = mapKy[k];
+      if (dem[p] != null) dem[p]++;
+    });
+    var rr = Number(ls('nkzip_fb_rr') || 0) || 0;
+    var n = Math.max(1, Number(soLuong) || 1), kq = [];
+    for (var k = 0; k < n; k++) {
+      var totNhat = -1, itNhat = 1e9;
+      for (var i = 0; i < ds.length; i++) {
+        var idx = (rr + i) % ds.length;
+        var pid = ds[idx].projectId;
+        if (dem[pid] < itNhat) { itNhat = dem[pid]; totNhat = idx; }
+      }
+      var chon = ds[totNhat].projectId;
+      kq.push(chon);
+      dem[chon]++;
+      rr = (totNhat + 1) % ds.length;
+    }
+    ls('nkzip_fb_rr', rr);
+    return (!soLuong || soLuong <= 1) ? kq[0] : kq;
+  }
+
+  function timCfg(projectId) {
+    if (!projectId) return dsHoatDong(false)[0] || DU_AN_CU;
+    var tat = dsHoatDong(false);
+    for (var i = 0; i < tat.length; i++) if (tat[i].projectId === projectId) return tat[i];
+    if (projectId === DU_AN_CU.projectId) return DU_AN_CU;
+    return tat[0] || DU_AN_CU;
+  }
 
   function napTep(src) {
     return new Promise(function (ok, loi) {
       var s = document.createElement('script'); s.src = src; s.onload = ok;
-      s.onerror = function () { loi(new Error('Không tải được thư viện Firebase (kiểm tra mạng)')); };
+      s.onerror = function () { loi(new Error('Không kết nối được máy chủ (kiểm tra mạng)')); };
       document.head.appendChild(s);
     });
   }
@@ -1731,126 +2032,328 @@ var FBK = (function () {
       return Promise.all([napTep(g + 'firebase-auth-compat.js'), napTep(g + 'firebase-firestore-compat.js')]);
     });
   }
-  // Sẵn sàng: đã tải thư viện + máy này đã được "ghi danh". Cách ghi danh (không cần khoá bí mật):
-  //  1) đăng nhập Firebase ẩn danh → Firebase cấp cho máy một mã (uid);
-  //  2) gửi uid cho Apps Script NKZip (action veKTDK, kèm phiên đăng nhập NKZip). Tài khoản đã được duyệt KTDK thì
-  //     Apps Script ghi gv/{uid} = { tk, qt, han } vào Firestore; luật bảo mật chỉ cho uid có trong gv và còn hạn.
-  function ls(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* bỏ qua */ } return null; }
-  function ghiDanh(u, ep) {
-    var ve = ls('nkzip_ktdk_ve');
+
+  // Các dự án GV: "thẻ ký tên" (custom token) do Apps Script ký bằng khoá bí mật của dự án – luật bảo mật chỉ cho máy có thẻ còn hạn,
+  // Firebase tự kiểm tra chữ ký nên không tốn lượt đọc. Một lần gọi Apps Script lấy thẻ cho mọi dự án GV đang dùng; thẻ còn hạn thì dùng lại.
+  var XIN_THE = null, HEN_THE = {};
+  function xinThe(ep) {
+    if (XIN_THE && !ep) return XIN_THE;
+    var ds = dsHoatDong(true).map(function (c) { return c.projectId; }).filter(function (p) { return p !== DU_AN_CU.projectId; });
+    XIN_THE = API.goiGas('theFB', { duAn: ds }).catch(function (e) { XIN_THE = null; throw e; });
+    return XIN_THE;
+  }
+  function theGV(pid, auth, u, ep) {
+    var khoa = 'nkzip_the_' + pid, cu = ls(khoa);
+    if (!ep && u && cu && cu.uid === u.uid && cu.tk === API.toi() && cu.han > Date.now() + 2 * 3600 * 1000) { henDoiThe(pid, cu.han); return Promise.resolve(u); }
+    return xinThe(ep).then(function (r) {
+      var tk = r.the && r.the[pid];
+      if (!tk) throw new Error('Apps Script chưa có khoá bí mật của dự án ' + pid);
+      return auth.signInWithCustomToken(tk).then(function (c) {
+        ls(khoa, { uid: c.user.uid, tk: API.toi(), han: r.han });
+        henDoiThe(pid, r.han);
+        return c.user;
+      });
+    }).catch(function (e) { if (u) return u; throw e; });
+  }
+  function henDoiThe(pid, han) {                // app mở liên tục cả ngày: xin thẻ mới 1 giờ trước khi hết hạn
+    clearTimeout(HEN_THE[pid]);
+    HEN_THE[pid] = setTimeout(function () { XIN_THE = null; if (APPS[pid] && APPS[pid].cfg) ketNoiDuAn(APPS[pid].cfg, true).catch(function () {}); },
+      Math.min(2147000000, Math.max(60000, han - Date.now() - 3600000)));
+  }
+
+  function ghiDanh(u, projectId, ep) {
+    // Chỉ dự án cũ (project-1f7b73ae-ae0e-4300-b60) dùng vé ghi danh từ Apps Script; các dự án GV dùng thẻ ký tên (theGV)
+    if (projectId && projectId !== DU_AN_CU.projectId) return Promise.resolve(u);
+    var khoa = 'nkzip_ktdk_ve_' + (projectId || 'mac_dinh');
+    var ve = ls(khoa) || ls('nkzip_ktdk_ve');
     if (!ep && ve && ve.uid === u.uid && ve.tk === API.toi() && ve.han > Date.now() + 2 * 3600 * 1000) return Promise.resolve(u);
-    return API.goiGas('veKTDK', { uid: u.uid }).then(function (r) { ls('nkzip_ktdk_ve', { uid: u.uid, tk: API.toi(), han: r.han }); return u; });
+    return API.goiGas('veKTDK', { uid: u.uid }).then(function (r) {
+      ls(khoa, { uid: u.uid, tk: API.toi(), han: r.han });
+      ls('nkzip_ktdk_ve', { uid: u.uid, tk: API.toi(), han: r.han });
+      return u;
+    }, function () { return u; });
   }
+
+  function ketNoiDuAn(cfg, epGhiDanh) {
+    cfg = chuanCfg(cfg) || DU_AN_CU;
+    var pid = cfg.projectId;
+    var da = APPS[pid];
+    if (da && da.san && !epGhiDanh) return da.san;
+    var p = napSdk().then(function () {
+      var tenApp = pid === DU_AN_CU.projectId ? '[DEFAULT]' : 'nk_' + pid;
+      var app = null;
+      for (var i = 0; i < firebase.apps.length; i++) {
+        if (firebase.apps[i].name === tenApp) { app = firebase.apps[i]; break; }
+      }
+      var moiTao = !app;
+      if (!app) app = tenApp === '[DEFAULT]' ? firebase.initializeApp(cfg) : firebase.initializeApp(cfg, tenApp);
+      var auth = app.auth(), db = app.firestore();
+      if (moiTao && db.enablePersistence) {
+        try { db.enablePersistence({ synchronizeTabs: true }).catch(function () {}); } catch (e) { /* bỏ qua */ }
+      }
+      // giữ nguyên lời hứa 'san' (trước đây gán san = null ở đây nên lần gọi sau lại kết nối + ghi danh lại từ đầu)
+      var o = APPS[pid] || (APPS[pid] = {});
+      o.cfg = cfg; o.app = app; o.auth = auth; o.db = db;
+      return new Promise(function (ok) { var h = auth.onAuthStateChanged(function (u) { h(); ok(u); }); })
+        .then(function (u) {
+          if (pid !== DU_AN_CU.projectId) return theGV(pid, auth, u, epGhiDanh);
+          return (u ? Promise.resolve(u) : auth.signInAnonymously().then(function (c) { return c.user; }))
+            .then(function (u2) { return ghiDanh(u2, pid, epGhiDanh); });
+        })
+        .then(function () { return APPS[pid]; });
+    }).catch(function (e) {
+      if (APPS[pid]) APPS[pid].san = null;
+      throw e;
+    });
+    APPS[pid] = APPS[pid] || { cfg: cfg, san: p };
+    APPS[pid].san = p;
+    return p;
+  }
+
+  function dbCuaKy(kyThiId, duAnGoiY) {
+    var pid = duAnGoiY || (kyThiId && KY_DU_AN[kyThiId]) || '';
+    if (!pid && kyThiId) {
+      var mapLuu = ls('nkzip_ky_duan') || {};
+      pid = mapLuu[kyThiId] || '';
+    }
+    var cfg = timCfg(pid);
+    return ketNoiDuAn(cfg).then(function (a) { return a.db; });
+  }
+  function nhoDuAnKy(kyThiId, projectId) {
+    if (!kyThiId || !projectId) return;
+    KY_DU_AN[kyThiId] = projectId;
+    var m = ls('nkzip_ky_duan') || {};
+    if (m[kyThiId] !== projectId) { m[kyThiId] = projectId; ls('nkzip_ky_duan', m); }
+  }
+
   function sanSang() {
-    if (san) return san;
-    if (!CAU_HINH) return Promise.reject(new Error('KTDK Zip chưa được cấu hình Firebase'));
-    san = napSdk().then(function () {
-      if (!firebase.apps.length) firebase.initializeApp(CAU_HINH);
-      auth = firebase.auth(); db = firebase.firestore();
-      return new Promise(function (ok) { var h = auth.onAuthStateChanged(function (u) { h(); ok(u); }); });
-    }).then(function (u) {
-      return u ? u : auth.signInAnonymously().then(function (c) { return c.user; });
-    }).then(function (u) { return ghiDanh(u); })
-      .catch(function (e) { san = null; throw e; });
-    return san;
+    var ds = dsHoatDong(false);
+    if (!ds.length) return Promise.reject(new Error('Chưa có dự án Firebase nào được cấu hình hợp lệ'));
+    return ketNoiDuAn(ds[0]).then(function (a) { return a.auth.currentUser; });
   }
-  // bị từ chối quyền (vé hết hạn / vừa được duyệt): ghi danh lại một lần
-  function ghiDanhLai() { return sanSang().then(function (u) { return ghiDanh(u, true); }); }
-  function dangXuat() { san = null; ls('nkzip_ktdk_ve', null); if (auth) auth.signOut().catch(function () {}); }
+  function ghiDanhLai() {
+    return Promise.all(dsHoatDong(false).map(function (c) { return ketNoiDuAn(c, true).catch(function () {}); }));
+  }
+  function dangXuat() {
+    ls('nkzip_ktdk_ve', null);
+    XIN_THE = null;
+    Object.keys(HEN_THE).forEach(function (p) { clearTimeout(HEN_THE[p]); ls('nkzip_the_' + p, null); });
+    dsHoatDong(true).forEach(function (c) { ls('nkzip_the_' + c.projectId, null); });
+    Object.keys(APPS).forEach(function (k) {
+      if (APPS[k] && APPS[k].auth) APPS[k].auth.signOut().catch(function () {});
+      delete APPS[k];
+    });
+  }
 
   function vanTay(r) { return [r.made, r.p1, r.p2, (r.p3 || []).join(';')].join('|'); }
   function sach(o) { var m = JSON.parse(JSON.stringify(o)); Object.keys(m).forEach(function (k) { if (m[k] === undefined) delete m[k]; }); return m; }
   function chia(ds, n) { var ra = []; for (var i = 0; i < ds.length; i += n) ra.push(ds.slice(i, i + n)); return ra; }
-  function xoaHet(q) {            // xoá mọi tài liệu của một truy vấn, 400 cái một lượt
+  function xoaHet(db, q, pid) {
     return q.limit(400).get().then(function (s) {
+      demLuot(pid, 'doc', s.size || 1);
       if (s.empty) return 0;
       var b = db.batch(); s.docs.forEach(function (d) { b.delete(d.ref); });
-      return b.commit().then(function () { return xoaHet(q); });
+      demLuot(pid, 'xoa', s.size);
+      return b.commit().then(function () { return xoaHet(db, q, pid); });
     });
   }
 
-  // Firestore không lưu được mảng lồng mảng (vd. vị trí ô tô Phần III trong kq.vt): cất cả đối tượng thành chuỗi JSON 'j',
-  // chỉ tách riêng vài trường để tìm / phân quyền (kyThi, sbd, chu) và ảnh. Đọc ra thì ghép lại như cũ.
   function dong(o) { return { id: o.id || '', kyThi: o.kyThi || '', chu: o.chu || '', sbd: String(o.sbd == null ? '' : o.sbd), anh: o.anh || '', j: JSON.stringify(o) }; }
   function moDong(d) {
     if (!d || typeof d.j !== 'string') return d;
     try { var o = JSON.parse(d.j); if (d.anh) o.anh = d.anh; return o; } catch (e) { return d; }
   }
 
-  // ---- lưu một bài (giống luuNhieuBai_ / luuKetQua_ của Apps Script) ----
-  // dl.ghiDe === false (máy quét): cùng mã mà khác bài → lưu thành bài riêng _2, _3…; giống hệt → bỏ qua
+  function maAnhFs(pid, id) { return 'fs:' + pid + ':' + id; }
+  function tachMaAnh(chuoi, kyThiGoiY) {
+    var s = String(chuoi || '').replace(/^fs:/, '');
+    var vt = s.indexOf(':');
+    if (vt > 0) return { duAn: s.slice(0, vt), id: s.slice(vt + 1) };
+    var kyId = kyThiGoiY || s.split('_')[0] || '';
+    return { duAn: KY_DU_AN[kyId] || (ls('nkzip_ky_duan') || {})[kyId] || DU_AN_CU.projectId, id: s };
+  }
+
+  // ---- lưu một bài vào đúng dự án Firebase của kỳ thi đó ----
   function luuMot(dl, anh) {
     dl = sach(dl);
-    var ghiDe = dl.ghiDe !== false, goc = dl.id; delete dl.ghiDe; delete dl.tenKy;
-    if (dl.chiAnh) {                                  // chỉ gắn ảnh vào bài đã có, không đụng tới dữ liệu
-      var rk = db.collection('kq').doc(goc);
-      return rk.get().then(function (s) {
-        if (!s.exists) return { ok: true, id: goc, anh: '', boQua: true };
-        var cuA = moDong(s.data());
-        if (!anh) return { ok: true, id: goc, anh: cuA.anh || '' };
-        cuA.anh = 'fs:' + goc; cuA.sach = true;
-        return db.collection('anh').doc(goc).set({ kyThi: cuA.kyThi || dl.kyThi || '', b64: anh })
-          .then(function () { return rk.set(dong(cuA)); })
-          .then(function () { ANH[goc] = null; return { ok: true, id: goc, anh: 'fs:' + goc }; });
-      });
-    }
-    return db.runTransaction(function (tx) {
-      var trung = '';
-      function thu(id, n) {
-        var ref = db.collection('kq').doc(id);
-        return tx.get(ref).then(function (s) {
-          if (s.exists && !ghiDe) {
-            var cu = moDong(s.data());
-            if (vanTay(cu) === vanTay(dl)) return { ok: true, id: id, anh: cu.anh || '', trung: 'giong' };
-            trung = 'khac'; return thu(goc + '_' + n, n + 1);
-          }
-          var m = sach(dl); m.id = id;
-          if (anh) { m.anh = 'fs:' + id; m.sach = true; }
-          else if (s.exists && moDong(s.data()).anh && !m.anh) m.anh = moDong(s.data()).anh;
-          if (String(m.anh || '').indexOf('data:') === 0) m.anh = '';
-          tx.set(ref, dong(m));
-          return { ok: true, id: id, anh: m.anh || '', trung: trung };
+    var ghiDe = dl.ghiDe !== false, goc = dl.id, kyId = dl.kyThi;
+    delete dl.ghiDe; delete dl.tenKy;
+    return dbCuaKy(kyId, dl.duAn).then(function (db) {
+      var pid = KY_DU_AN[kyId] || (ls('nkzip_ky_duan') || {})[kyId] || timCfg().projectId;
+      if (dl.chiAnh) {
+        if (!anh) return { ok: true, id: goc, anh: '' };
+        var maA = maAnhFs(pid, goc);
+        // Chỉ ghi ảnh vào bảng 'anh' (1 lượt ghi), KHÔNG đọc rk.get() và KHÔNG ghi lại bảng 'kq' lần 2 nếu Bước 1 đã gán sẵn mã ảnh
+        return db.collection('anh').doc(goc).set({ kyThi: kyId || '', b64: anh })
+          .then(function () {
+            demLuot(pid, 'ghi', 1);
+            ANH[goc] = ANH[pid + ':' + goc] = anh;
+            KHO_ANH.luu(pid + ':' + goc, anh);
+            if (dl.daGanAnh) return { ok: true, id: goc, anh: maA };
+            return db.collection('kq').doc(goc).set({ anh: maA }, { merge: true }).then(function () {
+              demLuot(pid, 'ghi', 1);
+              return { ok: true, id: goc, anh: maA };
+            });
+          });
+      }
+      // Khi sửa bài trên máy tính (ghiDe === true, không kèm ảnh mới): ghi thẳng bằng merge:true, tiết kiệm 1 lượt đọc tx.get()
+      if (ghiDe && !anh) {
+        var m0 = sach(dl); m0.id = goc;
+        if (!m0.anh && KQ_NGHE[kyId] && KQ_NGHE[kyId].du) {
+          var cu0 = KQ_NGHE[kyId].du.filter(function (x) { return x && x.id === goc; })[0];
+          if (cu0 && cu0.anh) m0.anh = cu0.anh;
+        }
+        if (String(m0.anh || '').indexOf('data:') === 0) m0.anh = '';
+        var d0 = dong(m0);
+        if (!d0.anh) delete d0.anh;
+        return db.collection('kq').doc(goc).set(d0, { merge: true }).then(function () {
+          demLuot(pid, 'ghi', 1);
+          return { ok: true, id: goc, anh: m0.anh || '' };
         });
       }
-      return thu(goc, 2);
-    }).then(function (r) {
-      if (!anh || r.trung === 'giong') return r;
-      return db.collection('anh').doc(r.id).set({ kyThi: dl.kyThi || '', b64: anh }).then(function () { ANH[r.id] = null; return r; });
+      return db.runTransaction(function (tx) {
+        var trung = '';
+        function thu(id, n) {
+          var ref = db.collection('kq').doc(id);
+          return tx.get(ref).then(function (s) {
+            demLuot(pid, 'doc', 1);
+            if (s.exists && !ghiDe) {
+              var cu = moDong(s.data());
+              if (vanTay(cu) === vanTay(dl)) return { ok: true, id: id, anh: cu.anh || '', trung: 'giong' };
+              trung = 'khac'; return thu(goc + '_' + n, n + 1);
+            }
+            var m = sach(dl); m.id = id;
+            // Gán sẵn mã ảnh fs:<pid>:<id> ngay từ Bước 1 khi quét (m.sach === true) để Bước 2 không phải ghi lại bảng 'kq' lần 2
+            var seCoAnh = !!(anh || m.sach);
+            if (seCoAnh) { m.anh = maAnhFs(pid, id); m.sach = true; }
+            else if (s.exists && moDong(s.data()).anh && !m.anh) m.anh = moDong(s.data()).anh;
+            if (String(m.anh || '').indexOf('data:') === 0) m.anh = '';
+            tx.set(ref, dong(m));
+            demLuot(pid, 'ghi', 1);
+            return { ok: true, id: id, anh: anh ? m.anh : '', daGanAnh: seCoAnh, trung: trung };
+          });
+        }
+        return thu(goc, 2);
+      }).then(function (r) {
+        if (!anh || r.trung === 'giong') return r;
+        return db.collection('anh').doc(r.id).set({ kyThi: kyId || '', b64: anh }).then(function () {
+          demLuot(pid, 'ghi', 1);
+          ANH[r.id] = ANH[pid + ':' + r.id] = anh;
+          KHO_ANH.luu(pid + ':' + r.id, anh);
+          return r;
+        });
+      });
     });
   }
 
-  function taiKyThi() { return db.collection('kyThi').get().then(function (s) { return s.docs.map(function (d) { return moDong(d.data()); }).sort(function (a, b) { return String(a.tao || a.id) < String(b.tao || b.id) ? -1 : 1; }); }); }
-  function taiKQ(kyThi) { return db.collection('kq').where('kyThi', '==', kyThi).get().then(function (s) { return s.docs.map(function (d) { return moDong(d.data()); }); }); }
-  // Bài thi đang được theo dõi trực tiếp thì đã có sẵn danh sách mới nhất: dùng luôn, khỏi đọc lại cả bài thi (mỗi bài = 1 lượt đọc Firestore).
-  // ep: người dùng bấm tải lại thì vẫn đọc thật. Theo dõi chưa nhận được gì sau 8 giây (mạng chậm, lỗi) cũng đọc thật.
+  // Lọc kỳ thi theo tài khoản: tài khoản thường chỉ thấy bài của mình; quản trị xem theo ô chọn tài khoản (của mình / làm thay / tất cả)
+  function cuaToiKy(k) {
+    var tk = API.tk();
+    if (API.quanTri() && tk === 'tatca') return true;
+    // Mọi bài thi (kể cả bài thi cũ trên dự án gốc) chỉ hiện với tài khoản đã tạo; quản trị xem bài của người khác bằng "Tất cả tài khoản"
+    var chu = k && k.chu ? String(k.chu).toLowerCase() : '';
+    var dang = String(tk || API.toi() || '').toLowerCase();
+    if (!dang) return true;
+    return chu === dang;
+  }
+
+  var DU_AN_LOI = {}, DU_AN_OK = {};
+  // Giờ (theo máy) Firebase làm mới hạn mức ngày: nửa đêm giờ Thái Bình Dương (≈ 14:00 mùa hè / 15:00 mùa đông giờ Việt Nam)
+  function gioLamMoi() {
+    try {
+      var bay = new Date(), la = new Date(bay.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+      var conLai = (86400 - (la.getHours() * 3600 + la.getMinutes() * 60 + la.getSeconds())) * 1000;
+      return new Date(bay.getTime() + conLai).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return '15:00'; }
+  }
+  // Tải danh sách kỳ thi từ tất cả các dự án Firebase đang hoạt động (chạy song song), lọc theo tài khoản trên máy (cuaToiKy).
+  // (Bản 1.7.2 đầu tiên lọc ngay trên máy chủ theo trường 'chu' và làm mất các bài thi cũ: giữ cách đọc cũ cho chắc.)
+  function taiKyThi() {
+    var ds = dsHoatDong(false);
+    return Promise.all(ds.map(function (cfg) {
+      return ketNoiDuAn(cfg).then(function (a) {
+        return a.db.collection('kyThi').get().then(function (s) {
+          demLuot(cfg.projectId, 'doc', s.size || 1);
+          var ds = s.docs.map(function (d) {
+            var k = moDong(d.data());
+            k.duAn = k.duAn || cfg.projectId;
+            nhoDuAnKy(k.id, cfg.projectId);
+            return k;
+          });
+          ls('nkzip_kyds_' + cfg.projectId, ds);
+          delete DU_AN_LOI[cfg.projectId];
+          DU_AN_OK[cfg.projectId] = 1;
+          return ds;
+        });
+      }).catch(function (e) {
+        // dự án đang hết hạn mức / lỗi quyền / mất mạng: giữ danh sách bài thi đã lưu trên máy, không để bài thi "biến mất"
+        delete DU_AN_OK[cfg.projectId];
+        var cu = ls('nkzip_kyds_' + cfg.projectId) || [];
+        if (cu.length) DU_AN_LOI[cfg.projectId] = String(e && (e.code || e.message) || e);   // chỉ báo dự án đang có bài thi
+        return cu;
+      });
+    })).then(function (mang) {
+      var gop = {}, ra = [];
+      mang.forEach(function (nhom) {
+        nhom.forEach(function (k) {
+          if (!k || !k.id || !cuaToiKy(k)) return;
+          if (!gop[k.id]) { gop[k.id] = 1; ra.push(k); }
+        });
+      });
+      return ra.sort(function (a, b) { return String(a.tao || a.id) < String(b.tao || b.id) ? -1 : 1; });
+    });
+  }
+
+  function taiKQ(kyThi) {
+    return dbCuaKy(kyThi).then(function (db) {
+      var pid = KY_DU_AN[kyThi] || (ls('nkzip_ky_duan') || {})[kyThi] || DU_AN_CU.projectId;
+      return db.collection('kq').where('kyThi', '==', kyThi).get().then(function (s) {
+        demLuot(pid, 'doc', s.size || 1);
+        return s.docs.map(function (d) { return moDong(d.data()); });
+      });
+    });
+  }
+
   var KQ_NGHE = {};
   function docKQ(kyThi, ep) {
     var c = KQ_NGHE[kyThi];
-    if (ep || !c) return taiKQ(kyThi);
-    if (c.du) return Promise.resolve(c.du.map(moDong));
+    // Nếu đang có kết nối onSnapshot (thời gian thực) và đã nhận dữ liệu thì dùng ngay dữ liệu đang đồng bộ trực tiếp, không gọi .get() tốn lượt đọc gấp đôi
+    if (c && c.du) return Promise.resolve(c.du.map(moDong));
+    if (!c) return taiKQ(kyThi);
     return new Promise(function (ok) {
       var t = setTimeout(function () { ok(false); }, 8000);
       c.doi.push(function (co) { clearTimeout(t); ok(co); });
     }).then(function (co) { return co && c.du ? c.du.map(moDong) : taiKQ(kyThi); });
   }
-  var LOP = null;                  // lớp / học sinh lấy từ Apps Script (dùng chung với chế độ chấm trong lớp)
+  var LOP = null;
 
   function goi(viec, y, lan) {
+    y = y || {};
     return sanSang().then(function () {
       switch (viec) {
         case 'taiDuLieu':
-          var gas = API.goiGas('taiDuLieu', {}).then(function (r) { LOP = r; return r; }, function (e) { if (LOP) return LOP; throw e; });
-          return Promise.all([taiKyThi(), gas, y.kemKQ ? taiKQ(y.kemKQ) : null]).then(function (a) {
-            var r = { ok: true, kyThi: a[0], lop: a[1].lop || [], tk: a[1].tk, toi: a[1].toi, quanTri: a[1].quanTri, url: a[1].url };
-            if (y.kemKQ && a[0].some(function (k) { return k.id === y.kemKQ; })) { r.kemKQ = y.kemKQ; r.ketQua = a[2] || []; }
+          var gas = API.goiGas('taiDuLieu', {}).then(function (r) {
+            LOP = r;
+            if (r && r.fbConfigs) napCauHinhTuMayChu(r.fbConfigs);
             return r;
+          }, function (e) { if (LOP) return LOP; throw e; });
+          return gas.then(function (g) {
+            return Promise.all([taiKyThi(), y.kemKQ ? docKQ(y.kemKQ) : null]).then(function (a) {
+              var r = { ok: true, kyThi: a[0], lop: g.lop || [], tk: g.tk, toi: g.toi, quanTri: g.quanTri, url: g.url, duAnLoi: Object.keys(DU_AN_LOI) };
+              if (y.kemKQ && a[0].some(function (k) { return k.id === y.kemKQ; })) { r.kemKQ = y.kemKQ; r.ketQua = a[1] || []; }
+              return r;
+            });
           });
         case 'taiKetQua': return docKQ(y.kyThi, y.ep).then(function (ds) { return { ok: true, ketQua: ds }; });
         case 'luuKyThi':
-          var ref = db.collection('kyThi').doc(y.dl.id);
-          return ref.get().then(function (s) {
-            var k = sach(y.dl), cu = s.exists ? moDong(s.data()) : null; k.chu = cu && cu.chu ? cu.chu : API.toi();
-            return ref.set(dong(k)).then(function () { return { ok: true }; });
+          var k = sach(y.dl);
+          var duAn = k.duAn || KY_DU_AN[k.id] || (ls('nkzip_ky_duan') || {})[k.id] || chonDuAn(1);
+          k.duAn = duAn;
+          nhoDuAnKy(k.id, duAn);
+          k.chu = k.chu || (API.tk() && API.tk() !== 'tatca' ? API.tk() : API.toi());
+          return dbCuaKy(k.id, duAn).then(function (db) {
+            var ref = db.collection('kyThi').doc(k.id);
+            return ref.set(dong(k)).then(function () { demLuot(duAn, 'ghi', 1); return { ok: true, duAn: duAn }; });
           });
         case 'xoaKyThi': return xoaKy(y.id).then(function () { return { ok: true }; });
         case 'xoaNhieuKyThi':
@@ -1859,262 +2362,151 @@ var FBK = (function () {
         case 'luuNhieuBai':
           return Promise.all((y.ds || []).map(function (b) {
             return luuMot(b.dl, b.anh).catch(function (e) {
-              if (e && e.code === 'permission-denied') throw e;           // vé hết hạn: cả lượt xin vé lại rồi gửi lại
+              if (e && e.code === 'permission-denied') throw e;
               return { ok: false, loi: String(e && e.message || e) };
             });
           })).then(function (kq) { return { ok: true, kq: kq, ban: 2 }; });
         case 'luuKetQua': return luuMot(y.dl, y.anh);
-        case 'luuNhieuKetQua':              // chấm lại / sửa hàng loạt: ghi điểm mới, giữ nguyên ảnh
-          return Promise.all(chia(y.ds || [], 400).map(function (lo) {
-            // giữ ảnh đã lưu khi bản gửi lên không kèm ảnh
-            return Promise.all(lo.map(function (q) { return q.anh ? null : db.collection('kq').doc(q.id).get(); })).then(function (cu) {
+        case 'luuNhieuKetQua':
+          var dsq = y.ds || [];
+          if (!dsq.length) return { ok: true };
+          var kyId0 = dsq[0].kyThi, pid0 = KY_DU_AN[kyId0] || (ls('nkzip_ky_duan') || {})[kyId0] || DU_AN_CU.projectId;
+          // Tra cứu mã ảnh ngay từ bộ nhớ (KQ_NGHE) và dùng set(..., { merge: true }) để KHÔNG tốn lượt đọc .get() trước khi ghi
+          var mapAnhNho = {};
+          if (KQ_NGHE[kyId0] && KQ_NGHE[kyId0].du) {
+            KQ_NGHE[kyId0].du.forEach(function (d) { if (d && d.id && d.anh) mapAnhNho[d.id] = d.anh; });
+          }
+          return dbCuaKy(kyId0).then(function (db) {
+            return Promise.all(chia(dsq, 400).map(function (lo) {
               var b = db.batch();
-              lo.forEach(function (q, i) { q = sach(q); if (!q.anh && cu[i] && cu[i].exists) q.anh = moDong(cu[i].data()).anh || ''; b.set(db.collection('kq').doc(q.id), dong(q)); });
+              lo.forEach(function (q) {
+                q = sach(q);
+                if (!q.anh && mapAnhNho[q.id]) q.anh = mapAnhNho[q.id];
+                var d = dong(q);
+                if (!d.anh) delete d.anh;
+                b.set(db.collection('kq').doc(q.id), d, { merge: true });
+                demLuot(pid0, 'ghi', 1);
+              });
               return b.commit();
-            });
-          })).then(function () { return { ok: true }; });
+            })).then(function () { return { ok: true }; });
+          });
         case 'xoaKetQua':
-          var vc = [db.collection('kq').doc(y.id).delete()];
-          if (!y.giuAnh) vc.push(db.collection('anh').doc(y.id).delete());
-          return Promise.all(vc).then(function () { return { ok: true }; });
+          var pidX = KY_DU_AN[y.kyThi] || (ls('nkzip_ky_duan') || {})[y.kyThi] || DU_AN_CU.projectId;
+          return dbCuaKy(y.kyThi).then(function (db) {
+            var vc = [db.collection('kq').doc(y.id).delete()];
+            if (!y.giuAnh) vc.push(db.collection('anh').doc(y.id).delete());
+            demLuot(pidX, 'xoa', vc.length);
+            return Promise.all(vc).then(function () { return { ok: true }; });
+          });
         case 'layAnh':
-          return layAnh(String(y.id).replace(/^fs:/, '')).then(function (b64) { return b64 ? { ok: true, b64: b64 } : { ok: false, loi: 'Không có ảnh' }; });
+          return layAnh(y.id, y.kyThi).then(function (b64) { return b64 ? { ok: true, b64: b64 } : { ok: false, loi: 'Không có ảnh' }; });
       }
-      return { ok: false, loi: 'KTDK Zip chưa hỗ trợ: ' + viec };
+      return { ok: false, loi: 'Chưa hỗ trợ: ' + viec };
     }).then(function (r) {
-      if (r && r.ok === false) { var e = new Error(r.loi || 'Lỗi KTDK Zip'); throw e; }
+      if (r && r.ok === false) { var e = new Error(r.loi || 'Lỗi kết nối máy chủ'); throw e; }
       return r;
     }, function (e) {
-      if (e && e.code === 'permission-denied' && !lan) return ghiDanhLai().then(function () { return goi(viec, y, 1); });   // vé hết hạn: xin lại rồi thử lại
-      // Firestore quá tải / mất mạng: đánh dấu để hàng chờ gửi lại im lặng
+      if (e && e.code === 'permission-denied' && !lan) return ghiDanhLai().then(function () { return goi(viec, y, 1); });
       if (e && /unavailable|resource-exhausted|deadline|aborted|network/i.test(String(e.code || e.message))) e.quaTai = true;
-      if (e && e.code === 'permission-denied') e.message = 'Tài khoản chưa được duyệt chấm KTDK hoặc không có quyền với mục này';
+      if (e && e.code === 'permission-denied') e.message = 'Không có quyền truy cập dữ liệu (kiểm tra quyền tài khoản)';
       throw e;
     });
   }
-  // ================= Chấm trong lớp: hàng chờ Firebase, Apps Script chuyển dần vào Google Sheet / Drive =================
-  // lq/{id} = { id, kyThi, chu, sbd, anh, j, cho, luc }   cho = đang đợi ảnh từ điện thoại; luc = lúc gửi
-  // la/{id} = { kyThi, chu, b64 }                          ảnh sạch của bài đang chờ
-  // Apps Script (khoLop, 5 phút một lần) lưu các bài đã đủ ảnh vào Sheet + Drive (giữ quy tắc trùng SBD) rồi xoá ở đây.
-  // Máy đọc kết quả = Sheet (Apps Script) + bài đang chờ ở đây (bản ở đây mới hơn). Firebase không dùng được (chưa
-  // ghi danh, luật chưa cho phép, hết hạn mức miễn phí…) thì làm thẳng với Apps Script như trước, không báo lỗi.
-  var CHU = ls('nkzip_lq_chu') || {}, tatLop = 0, GAS_KQ = {}, LQ_NGHE = {}, quaGio = 0;
-  function lopFB() { return !!CAU_HINH && !window.API_GIA && Date.now() > tatLop; }
-  function chuKy(kyThi) { return CHU[kyThi] || API.toi(); }
-  function nhoChu(kys) { (kys || []).forEach(function (k) { if (k.chu) CHU[k.id] = k.chu; }); ls('nkzip_lq_chu', CHU); }
-  function dongLq(o, cho) {
-    var m = sach(o); delete m.choKho; delete m.tenKy;
-    var d = dong(m); d.chu = chuKy(m.kyThi); d.cho = !!cho; d.luc = new Date().toISOString();
-    return d;
-  }
-  function moLq(d) { var o = moDong(d); if (d.cho) { o.anh = ''; o.choKho = true; } delete o.ghiDe; return o; }
-  function choLq(kyThi, ep) {                 // bài đang chờ của một bài thi (lỗi thì coi như không có)
-    if (!lopFB()) return Promise.resolve([]);
-    if (!ep && LQ_NGHE[kyThi] && LQ_NGHE[kyThi].cho) return Promise.resolve(LQ_NGHE[kyThi].cho.map(moLq));   // đang theo dõi: khỏi đọc lại
-    return sanSang().then(function () {
-      return db.collection('lq').where('kyThi', '==', kyThi).where('chu', '==', chuKy(kyThi)).get();
-    }).then(function (s) { return s.docs.map(function (d) { return moLq(d.data()); }); }, function () { return []; });
-  }
-  function tron(gas, cho) {                   // ghép: bài đang chờ (mới hơn) thay bản trên Sheet cùng mã
-    var vt = {}, ra = (gas || []).slice();
-    ra.forEach(function (r, i) { vt[r.id] = i; });
-    cho.forEach(function (r) { if (vt[r.id] != null) ra[vt[r.id]] = r; else ra.push(r); });
-    return ra;
-  }
-  function gasKQ(kyThi, moi) {                // kết quả trên Sheet (hỏi kèm phiên bản: không đổi thì dùng bản đã có)
-    var c = GAS_KQ[kyThi];
-    return API.goiGas('taiKetQua', { kyThi: kyThi, v: c && !moi ? c.v : '' }).then(function (r) {
-      if (r.khongDoi && c) return c;
-      if (r.khongDoi) return gasKQ(kyThi, true);
-      return (GAS_KQ[kyThi] = { v: r.v || '', ds: r.ketQua || [] });
+
+  function xoaKy(id) {
+    var pid = KY_DU_AN[id] || (ls('nkzip_ky_duan') || {})[id] || DU_AN_CU.projectId;
+    return dbCuaKy(id).then(function (db) {
+      return xoaHet(db, db.collection('kq').where('kyThi', '==', id), pid)
+        .then(function () { return xoaHet(db, db.collection('anh').where('kyThi', '==', id), pid); })
+        .then(function () { demLuot(pid, 'xoa', 1); return db.collection('kyThi').doc(id).delete(); });
     });
   }
-  function hen(p, ms) {                       // ghi Firestore khi mất mạng có thể treo: quá giờ thì coi như máy chủ bận
-    return Promise.race([p, new Promise(function (ok, loi) { setTimeout(function () { var e = new Error('Mạng chậm'); e.code = 'unavailable'; loi(e); }, ms); })]);
-  }
-  // lưu một bài vào hàng chờ; trả null khi bài này phải lưu qua Apps Script (gắn ảnh cho bài đã chuyển kho)
-  function luuLq(dl, anh) {
-    dl = sach(dl);
-    var goc = dl.id, ghiDe = dl.ghiDe !== false, chiAnh = dl.chiAnh;
-    return hen(db.runTransaction(function (tx) {
-      var trung = '';
-      function thu(id, n) {
-        var ref = db.collection('lq').doc(id);
-        return tx.get(ref).then(function (s) {
-          var cu = s.exists ? s.data() : null;
-          if (chiAnh) {                               // điện thoại gửi ảnh sau điểm
-            if (!cu) return null;
-            if (!anh) return { ok: true, id: id, anh: cu.anh || '' };
-            var o = moDong(cu); o.anh = 'fs:' + id; o.sach = true;
-            tx.set(db.collection('la').doc(id), { kyThi: o.kyThi || '', chu: cu.chu, b64: anh });
-            var d = dongLq(o, false); d.chu = cu.chu; tx.set(ref, d);
-            return { ok: true, id: id, anh: 'fs:' + id };
-          }
-          if (cu && !ghiDe) {
-            if (vanTay(moDong(cu)) === vanTay(dl)) return { ok: true, id: id, anh: cu.cho ? '' : cu.anh || '', trung: 'giong' };
-            trung = 'khac'; return thu(goc + '_' + n, n + 1);
-          }
-          var m = sach(dl); m.id = id; if (ghiDe) delete m.ghiDe;   // ghiDe false giữ lại: Apps Script xét trùng với bài trên Sheet
-          var cho = !anh && !m.anh && !ghiDe;                        // máy quét gửi điểm trước, ảnh gửi sau
-          if (cu && !anh && !m.anh && cu.anh) { m.anh = cu.anh; cho = cu.cho; }
-          if (anh) { m.anh = 'fs:' + id; m.sach = true; tx.set(db.collection('la').doc(id), { kyThi: m.kyThi || '', chu: chuKy(m.kyThi), b64: anh }); }
-          if (String(m.anh || '').indexOf('data:') === 0) m.anh = '';
-          tx.set(ref, dongLq(m, cho));
-          return { ok: true, id: id, anh: cho ? '' : m.anh || '', trung: trung };
-        });
-      }
-      return thu(goc, 2);
-    }), 25000).then(function (r) { if (r && anh) ANH[r.id] = null; return r; });
-  }
-  // sửa bài (giáo viên sửa / chấm lại): bài còn chờ (hoặc ảnh còn ở hàng chờ) thì sửa ở đây, không thì trả null → Apps Script
-  function suaLq(q) {
-    var ref = db.collection('lq').doc(q.id);
-    return hen(db.runTransaction(function (tx) {
-      return tx.get(ref).then(function (s) {
-        var cu = s.exists ? s.data() : null, m = sach(q);
-        if (!cu && String(m.anh || '').indexOf('fs:') !== 0) return null;
-        if (cu && !m.anh) m.anh = cu.cho ? '' : cu.anh || '';
-        if (cu) { try { if (JSON.parse(cu.j).ghiDe === false) m.ghiDe = false; } catch (e) { /* bỏ qua */ } }   // vẫn xét trùng SBD khi chuyển kho
-        var d = dongLq(m, cu ? cu.cho && !m.anh : false); if (cu) d.chu = cu.chu;
-        tx.set(ref, d);
-        return { ok: true, id: q.id, anh: m.anh || '' };
+
+  // Ảnh không có trên máy chủ (bài đã gán mã ảnh nhưng ảnh chưa lên) / đọc lỗi: nhớ lại một lúc, không đọc lại liên tục
+  // (trước đây: đọc không thấy → vẽ lại → lại đọc… mỗi giây vài lượt đọc suốt lúc mở bài)
+  var KHONG_ANH = {}, NHO_KHONG = 120000, NHO_LOI = 30000;
+  function conNhoKhong(khoa) { var h = KHONG_ANH[khoa]; return !!(h && h > Date.now()); }
+  function thieuAnh(a, kyThiGoiY) { var t = tachMaAnh(a, kyThiGoiY); return conNhoKhong(t.duAn + ':' + t.id); }
+  function layAnh(rawId, kyThiGoiY) {
+    var t = tachMaAnh(rawId, kyThiGoiY), khoa = t.duAn + ':' + t.id;
+    if (ANH[khoa] || ANH[t.id]) return Promise.resolve(ANH[khoa] || ANH[t.id]);
+    if (conNhoKhong(khoa)) return Promise.resolve('');
+    return KHO_ANH.lay(khoa).then(function (cached) {
+      if (cached) { ANH[khoa] = ANH[t.id] = cached; return cached; }
+      return dbCuaKy(kyThiGoiY, t.duAn).then(function (db) {
+        demLuot(t.duAn, 'doc', 1);
+        return db.collection('anh').doc(t.id).get();
+      }).then(function (s) {
+        if (s.exists && s.data() && s.data().b64) return s.data().b64;
+        // Chỉ dự án cũ mới có thể có ảnh trong bộ sưu tập 'la'; các dự án GV mới không đọc thừa bảng 'la'
+        if (t.duAn !== DU_AN_CU.projectId) return '';
+        return dbCuaKy(kyThiGoiY, t.duAn).then(function (db) { demLuot(t.duAn, 'doc', 1); return db.collection('la').doc(t.id).get(); })
+          .then(function (s2) { return s2.exists && s2.data() ? s2.data().b64 || '' : ''; }, function () { return ''; });
+      }).then(function (b) {
+        if (b) { ANH[khoa] = ANH[t.id] = b; KHO_ANH.luu(khoa, b); }
+        else KHONG_ANH[khoa] = Date.now() + NHO_KHONG;
+        return b;
+      }, function (e) {
+        KHONG_ANH[khoa] = Date.now() + NHO_LOI;
+        throw e;
       });
-    }), 25000);
-  }
-  function lamLop(viec, y) {
-    switch (viec) {
-      case 'luuNhieuBai':
-        var ds = y.ds || [];
-        return Promise.all(ds.map(function (b) { return luuLq(b.dl, b.anh); })).then(function (kq) {
-          var con = []; kq.forEach(function (r, i) { if (!r) con.push(i); });
-          if (!con.length) return { ok: true, kq: kq, ban: 2 };
-          return API.goiGas('luuNhieuBai', { ds: con.map(function (i) { return ds[i]; }) }).then(function (r) {
-            con.forEach(function (i, n) { kq[i] = (r.kq || [])[n] || { ok: false, loi: 'Máy chủ không lưu được bài' }; });
-            return { ok: true, kq: kq, ban: 2 };
-          });
-        });
-      case 'luuKetQua':
-        var dl = y.dl || {};
-        if (y.anh || dl.ghiDe === false || dl.chiAnh) return luuLq(dl, y.anh).then(function (r) { return r || API.goiGas('luuKetQua', y); });
-        return suaLq(dl).then(function (r) { return r || API.goiGas('luuKetQua', y); });
-      case 'luuNhieuKetQua':
-        var dsq = y.ds || [];
-        return Promise.all(dsq.map(suaLq)).then(function (kq) {
-          var con = dsq.filter(function (q, i) { return !kq[i]; });
-          return con.length ? API.goiGas('luuNhieuKetQua', { ds: con }) : { ok: true };
-        });
-      case 'xoaKetQua':
-        var vc = [hen(db.collection('lq').doc(y.id).delete(), 25000)];
-        if (!y.giuAnh) vc.push(hen(db.collection('la').doc(y.id).delete(), 25000));
-        // có thể bài đã (hoặc đang) chuyển vào Sheet: xoá cả ở đó
-        return Promise.all(vc).then(function () { return API.goiGas('xoaKetQua', y); });
-      case 'layAnh':
-        return layAnh(String(y.id).replace(/^fs:/, '')).then(function (b64) { return b64 ? { ok: true, b64: b64 } : { ok: false, loi: 'Không có ảnh' }; });
-    }
-    return API.goiGas(viec, y);
-  }
-  // các lệnh của chế độ chấm trong lớp đi qua đây (api.js)
-  function goiLop(viec, y) {
-    y = y || {};
-    if (viec === 'taiDuLieu') {
-      return API.goiGas('taiDuLieu', y).then(function (r) {
-        nhoChu(r.kyThi);
-        if (!r.kemKQ || !lopFB()) return r;
-        GAS_KQ[r.kemKQ] = { v: r.v || '', ds: r.ketQua || [] };
-        return choLq(r.kemKQ).then(function (cho) { r.ketQua = tron(r.ketQua, cho); return r; });
-      });
-    }
-    if (viec === 'taiKetQua') {
-      if (!lopFB()) return API.goiGas(viec, y);
-      return Promise.all([gasKQ(y.kyThi), choLq(y.kyThi, y.ep)]).then(function (a) { return { ok: true, ketQua: tron(a[0].ds, a[1]), v: a[0].v }; });
-    }
-    if (viec === 'layAnh' && String(y.id || '').indexOf('fs:') !== 0) return API.goiGas(viec, y);
-    if (!lopFB() && viec !== 'layAnh') return API.goiGas(viec, y);
-    var kd = function (e) { if (e) e.khoiDong = true; throw e; };
-    var lam = function () { return sanSang().catch(kd).then(function () { return lamLop(viec, y); }); };
-    return lam().catch(function (e) {
-      if (e && e.code === 'permission-denied') return ghiDanhLai().catch(kd).then(function () { return lamLop(viec, y); });
-      throw e;
-    }).then(function (r) { quaGio = 0; return r; }, function (e) {
-      // chỉ lỗi của Firebase mới chuyển sang Apps Script; lỗi của chính Apps Script / không có ảnh thì báo như cũ
-      if (!e || viec === 'layAnh' || e.ma === 'dangnhap' || !(e.khoiDong || typeof e.code === 'string')) throw e;
-      if (/unavailable|deadline|aborted|network/i.test(String(e.code || ''))) {       // mất mạng: hàng chờ tự gửi lại
-        // Firebase hết hạn mức có thể làm lệnh treo tới quá giờ: quá giờ liên tiếp thì lượt gửi lại đi thẳng Apps Script, khỏi đứng mãi
-        if (++quaGio >= 3) { quaGio = 0; tatLop = Date.now() + 10 * 60000; }
-        e.quaTai = true; throw e;
-      }
-      tatLop = Date.now() + (e.khoiDong ? 2 : 10) * 60000;                          // Firebase không dùng được: tạm đi thẳng Apps Script
-      return API.goiGas(viec, y);
     });
   }
-  // theo dõi bài đang chờ của một bài thi: bài mới lên ngay; bài vừa chuyển vào Sheet thì tải lại danh sách từ Sheet
-  function ngheLop(kyThi, cb) {
-    var huy = null, dung = false, g = {};
-    if (!lopFB()) return function () {};
-    LQ_NGHE[kyThi] = g;
-    var thoi = function () { if (LQ_NGHE[kyThi] === g) delete LQ_NGHE[kyThi]; };
-    sanSang().then(function () {
+
+  function anhNgay(a, xong, kyThiGoiY) {
+    var t = tachMaAnh(a, kyThiGoiY), khoa = t.duAn + ':' + t.id;
+    if (ANH[khoa] || ANH[t.id]) return 'data:image/jpeg;base64,' + (ANH[khoa] || ANH[t.id]);
+    if (!DANG_ANH[khoa] && !conNhoKhong(khoa)) {
+      // vẽ lại một lần (hiện ảnh, hoặc báo "chưa có ảnh"); lần vẽ đó gặp KHONG_ANH nên không đọc lại → hết vòng lặp
+      DANG_ANH[khoa] = layAnh(a, kyThiGoiY).then(function () { delete DANG_ANH[khoa]; if (xong) xong(); }, function () { delete DANG_ANH[khoa]; });
+    }
+    return '';
+  }
+
+  // loiCb: luồng theo dõi bị máy chủ ngắt (vd. hết hạn mức) – báo cho giao diện để mở lại sau, thay vì nằm chết đến khi tải lại trang
+  function nghe(kyThi, cb, loiCb) {
+    var huy = null, dung = false, g = { du: null, doi: [] };
+    KQ_NGHE[kyThi] = g;
+    var bao = function (co) { var d = g.doi; g.doi = []; d.forEach(function (f) { f(co); }); };
+    var thoi = function () { if (KQ_NGHE[kyThi] === g) delete KQ_NGHE[kyThi]; bao(false); if (!dung && loiCb) loiCb(); };
+    dbCuaKy(kyThi).then(function (db) {
       if (dung) return;
-      huy = db.collection('lq').where('kyThi', '==', kyThi).where('chu', '==', chuKy(kyThi)).onSnapshot(function (s) {
-        g.cho = s.docs.map(function (d) { return d.data(); });
-        if (s.metadata.hasPendingWrites) return;
-        var cho = g.cho.map(moLq);
-        var di = s.docChanges().some(function (c) { return c.type === 'removed'; });
-        (di || !GAS_KQ[kyThi] ? gasKQ(kyThi) : Promise.resolve(GAS_KQ[kyThi])).then(function (g) { if (!dung) cb(tron(g.ds, cho)); }, function () {});
-      }, thoi /* chưa có quyền / mất mạng: vẫn còn làm mới định kì */);
+      var pid = KY_DU_AN[kyThi] || (ls('nkzip_ky_duan') || {})[kyThi] || DU_AN_CU.projectId;
+      huy = db.collection('kq').where('kyThi', '==', kyThi).onSnapshot(function (s) {
+        if (!s.metadata.fromCache) demLuot(pid, 'doc', Math.max(1, s.docChanges().length));
+        if (g.du || !s.metadata.fromCache) { g.du = s.docs.map(function (d) { return d.data(); }); bao(true); }
+        if (!s.metadata.hasPendingWrites) cb(s.docs.map(function (d) { return moDong(d.data()); }));
+      }, thoi);
     }).catch(thoi);
     return function () { dung = true; thoi(); if (huy) huy(); };
   }
 
-  function xoaKy(id) {
-    return xoaHet(db.collection('kq').where('kyThi', '==', id))
-      .then(function () { return xoaHet(db.collection('anh').where('kyThi', '==', id)); })
-      .then(function () { return db.collection('kyThi').doc(id).delete(); });
-  }
-  function layAnh(id) {
-    if (ANH[id]) return Promise.resolve(ANH[id]);
-    return sanSang().then(function () { return db.collection(API.cheDo() === 'lop' ? 'la' : 'anh').doc(id).get(); })
-      .then(function (s) { var b = s.exists ? s.data().b64 || '' : ''; if (b) ANH[id] = b; return b; });
-  }
-  // ảnh để hiện: trả ngay data URL nếu đã có; chưa có thì tải ngầm rồi gọi xong() để vẽ lại
-  function anhNgay(a, xong) {
-    var id = String(a).replace(/^fs:/, '');
-    if (ANH[id]) return 'data:image/jpeg;base64,' + ANH[id];
-    if (!DANG_ANH[id]) {
-      DANG_ANH[id] = layAnh(id).then(function () { delete DANG_ANH[id]; if (xong) xong(); }, function () { delete DANG_ANH[id]; });
-    }
-    return '';
-  }
-  // theo dõi kết quả của một bài thi: bài mới chấm trên điện thoại hiện lên máy tính ngay (không cần tải lại)
-  function nghe(kyThi, cb) {
-    var huy = null, dung = false, g = { du: null, doi: [] };
-    KQ_NGHE[kyThi] = g;
-    var bao = function (co) { var d = g.doi; g.doi = []; d.forEach(function (f) { f(co); }); };
-    var thoi = function () { if (KQ_NGHE[kyThi] === g) delete KQ_NGHE[kyThi]; bao(false); };
-    sanSang().then(function () {
-      if (dung) return;
-      huy = db.collection('kq').where('kyThi', '==', kyThi).onSnapshot(function (s) {
-        // bản đầu tiên phải từ máy chủ (bản từ bộ nhớ có thể thiếu bài); giữ cả thay đổi của chính máy này để đọc lại không bị bản cũ
-        if (g.du || !s.metadata.fromCache) { g.du = s.docs.map(function (d) { return d.data(); }); bao(true); }
-        if (!s.metadata.hasPendingWrites) cb(s.docs.map(function (d) { return moDong(d.data()); }));
-      }, thoi /* mất quyền / mạng: thôi theo dõi, vẫn tải lại thủ công được */);
-    }).catch(thoi);
-    return function () { dung = true; thoi(); if (huy) huy(); };
-  }
-  // theo dõi chính bài thi (đáp án, thang điểm): máy khác sửa thì máy này nhận bản mới ngay, không chấm / sửa bài theo bản cũ
   function ngheKy(kyThi, cb) {
     var huy = null, dung = false;
-    sanSang().then(function () {
+    dbCuaKy(kyThi).then(function (db) {
       if (dung) return;
+      var pid = KY_DU_AN[kyThi] || (ls('nkzip_ky_duan') || {})[kyThi] || DU_AN_CU.projectId;
       huy = db.collection('kyThi').doc(kyThi).onSnapshot(function (s) {
-        if (!s.metadata.hasPendingWrites && s.exists) cb(moDong(s.data()));
-      }, function () { /* mất quyền / mạng: vẫn dùng bản đang có */ });
+        if (!s.metadata.fromCache) demLuot(pid, 'doc', 1);
+        if (!s.metadata.hasPendingWrites && s.exists) {
+          var k = moDong(s.data());
+          if (KY_DU_AN[kyThi]) k.duAn = k.duAn || KY_DU_AN[kyThi];
+          cb(k);
+        }
+      }, function () {});
     }).catch(function () {});
     return function () { dung = true; if (huy) huy(); };
   }
-  return { goi: goi, goiLop: goiLop, lopFB: lopFB, sanSang: sanSang, dangXuat: dangXuat, anhNgay: anhNgay, coCauHinh: function () { return !!CAU_HINH; },
-    nghe: function (kyThi, cb) { return API.cheDo() === 'lop' ? ngheLop(kyThi, cb) : nghe(kyThi, cb); },
-    ngheKy: function (kyThi, cb) { return API.cheDo() === 'lop' ? function () {} : ngheKy(kyThi, cb); } };
+
+  return {
+    goi: goi, goiLop: goi, lopFB: function () { return false; }, sanSang: sanSang, dangXuat: dangXuat, anhNgay: anhNgay,
+    coCauHinh: function () { return dsHoatDong(false).length > 0; },
+    dsCauHinh: dsCauHinh, luuCauHinh: luuCauHinh, napCauHinhTuMayChu: napCauHinhTuMayChu,
+    phanTich: phanTich, hopLe: hopLe, chonDuAn: chonDuAn, dsHoatDong: dsHoatDong,
+    layDemNgay: layDemNgay, kiemTraDungLuong: kiemTraDungLuong, layThongKeLuu: layThongKeLuu,
+    nghe: nghe, ngheKy: ngheKy, thieuAnh: thieuAnh, gioLamMoi: gioLamMoi,
+    duAnCua: function (kyThi) { return KY_DU_AN[kyThi] || (ls('nkzip_ky_duan') || {})[kyThi] || DU_AN_CU.projectId; }
+  };
 })();
 
 </script>
@@ -2322,11 +2714,24 @@ var QUET = (function () {
     tot = 0;
     if (capDL < SONG_DL) capDL++; else if (capAnh < SONG_ANH) capAnh++;
   }
+  // Firebase hết hạn mức ngày của một dự án: tạm dừng MỌI bài thuộc dự án đó, cứ 2,5 phút gửi thử đúng 1 bài; thử được là gửi tiếp hết.
+  // (trước đây coi như "máy chủ bận", 15 giây gửi lại cả lô – mỗi lần mỗi bài tốn 1 lượt đọc kiểm tra trùng, khi hết lượt ghi
+  //  mà lượt đọc còn thì một máy đốt hàng chục nghìn lượt đọc mỗi giờ). Không xoá khi mở lại app / quay lại cửa sổ.
+  var DUNG_HM = {}, THU_HM = {}, NGHI_HM = 150000;
+  function duAnBai(m) { return m.kq && window.FBK && FBK.duAnCua ? FBK.duAnCua(m.kq.kyThi) : ''; }
+  function lucGui(m) { return Math.max(HOAN[m.id] ? HOAN[m.id].sau : 0, DUNG_HM[duAnBai(m)] || 0); }
+  function hetHanMuc(pid) {
+    if (!DUNG_HM[pid]) tt('Firebase đã hết hạn mức hôm nay – bài vẫn giữ an toàn trên máy, ĐỪNG xoá app / dữ liệu trình duyệt. App tự gửi tiếp khi có lượt (thường lúc ' +
+      (window.FBK && FBK.gioLamMoi ? FBK.gioLamMoi() : '15:00') + ').');
+    DUNG_HM[pid] = Date.now() + NGHI_HM;
+  }
   // kieu: 'tai' = quá tải (gửi lại nhanh, im lặng), true = máy chủ từ chối, khác = mạng
   function hoan(m, e, kieu) {
     var h = HOAN[m.id] || { lan: 0 }, mang = !kieu && (e instanceof TypeError || !e || !e.message);
+    var hetHM = /resource-exhausted|quota/i.test(String(e && (e.code + ' ' + e.message)));
     h.lan++;
-    h.loi = /resource-exhausted|quota/i.test(String(e && (e.code + ' ' + e.message))) ? 'Firebase hết hạn mức hôm nay – bài vẫn giữ trên máy, tự gửi khi có lại'
+    if (hetHM) hetHanMuc(duAnBai(m));
+    h.loi = hetHM ? 'Đạt giới hạn lượt trong ngày – bài vẫn giữ trên máy, tự thử gửi lại mỗi 2,5 phút'
       : kieu === 'tai' ? 'Máy chủ đang bận – tự gửi lại' : mang ? 'Mất mạng / chưa kết nối được' : e && e.ma === 'dangnhap' ? 'Cần đăng nhập lại' : String(e && e.message || e);
     h.sau = Date.now() + (kieu === 'tai' ? Math.min(15000, 2000 * h.lan) * (0.7 + Math.random() * 0.6)
       : kieu ? 120000 : Math.min(60000, 5000 * Math.pow(2, h.lan - 1)) * (0.75 + Math.random() * 0.5));
@@ -2347,18 +2752,21 @@ var QUET = (function () {
     }
     doiMa(m, r.id);
     if (TC.daGui) TC.daGui(m.kq, '', r.id || m.kq.id);
-    m.buoc = 'anh'; m.idMay = r.id || m.kq.id;
+    m.buoc = 'anh'; m.idMay = r.id || m.kq.id; m.daGanAnh = !!r.daGanAnh;
     return HC.them(m);
   }
   // bài gửi qua Firebase (KTDK Zip, hoặc chấm trong lớp qua hàng chờ Firebase): ảnh đi nhiều luồng nhỏ
   function quaFB(m) { return m.che === 'ktdk' || ((m.che || 'lop') === 'lop' && API.lopFB && API.lopFB()); }
-  function san(m, bay) { return !DANG[m.id] && (!HOAN[m.id] || HOAN[m.id].sau <= bay); }
+  function san(m, bay) { return !DANG[m.id] && lucGui(m) <= bay && !THU_HM[duAnBai(m)]; }
   function chonLo(ds, bay, laAnh) {
     var lo = ds.filter(function (m) { return (laAnh ? m.buoc === 'anh' : !m.buoc) && san(m, bay); });
     if (lo.length) { var che = lo[0].che || 'lop'; lo = lo.filter(function (m) { return (m.che || 'lop') === che; }); }   // một lượt chỉ gửi bài cùng chế độ (NKZip / KTDK Zip)
     // KTDK Zip (Firebase): mỗi lượt ảnh chỉ 4 tấm để ảnh bài vừa chấm lên sớm, không phải đợi cả lô 8
+    // dự án đang hết hạn mức: mỗi dự án chỉ gửi thử 1 bài, các bài khác của dự án đó chờ kết quả lượt thử
+    var thu = {};
+    lo = lo.filter(function (m) { var p = duAnBai(m); if (!DUNG_HM[p]) return true; if (thu[p]) return false; thu[p] = 1; return true; });
     lo = lo.slice(0, khongGop ? 1 : laAnh ? (lo.length && quaFB(lo[0]) ? 4 : GOP_ANH) : GOP_DL);
-    lo.forEach(function (m) { DANG[m.id] = 1; });
+    lo.forEach(function (m) { DANG[m.id] = 1; var p = duAnBai(m); if (DUNG_HM[p]) THU_HM[p] = 1; });
     return lo.length ? { ds: lo, anh: laAnh } : null;
   }
   function dayHangCho() {
@@ -2378,7 +2786,7 @@ var QUET = (function () {
       if (!chay) baoXong();
       if (ds.length) {                                 // bài đang đợi tới lượt gửi lại / ảnh đang tạm dừng: hẹn giờ gửi tiếp
         var som = Math.min.apply(null, ds.filter(function (x) { return !DANG[x.id]; }).map(function (x) {
-          var t = HOAN[x.id] ? HOAN[x.id].sau : bay;
+          var t = Math.max(lucGui(x), bay);
           return x.buoc === 'anh' && choAnh ? Math.max(t, dungAnh) : t;
         }).concat([bay + 60000]));
         if (som > bay || !chay) henGui = setTimeout(dayHangCho, Math.max(500, som - bay));
@@ -2398,16 +2806,16 @@ var QUET = (function () {
       goi = API.goi('luuNhieuBai', {
         ds: lo.map(function (m) {
           if (khongTach) { var d = sao(m.kq); d.id = maMay(m); d.ghiDe = true; return { dl: d, anh: m.anh }; }
-          return { dl: { id: maMay(m), kyThi: m.kq.kyThi, tenKy: m.kq.tenKy, chiAnh: true }, anh: m.anh };
+          return { dl: { id: maMay(m), kyThi: m.kq.kyThi, tenKy: m.kq.tenKy, chiAnh: true, daGanAnh: !!m.daGanAnh }, anh: m.anh };
         })
       }, che).then(function (r) { return r.kq || []; });
     }
-    var xong = function () { lo.forEach(function (m) { delete DANG[m.id]; }); chay--; if (laAnh) chayAnh--; else chayDL--; dayHangCho(); };
+    var xong = function () { lo.forEach(function (m) { delete DANG[m.id]; delete THU_HM[duAnBai(m)]; }); chay--; if (laAnh) chayAnh--; else chayDL--; dayHangCho(); };
     goi.then(function (kq) {
       var viec = [], tuChoi = 0, tai = false;
       lo.forEach(function (m, i) {
         var r = kq[i];
-        if (r && r.ok) viec.push(daLuu(m, r, laAnh).catch(function () {}));
+        if (r && r.ok) { delete DUNG_HM[duAnBai(m)]; viec.push(daLuu(m, r, laAnh).catch(function () {})); }   // gửi được: dự án có lượt lại, gửi tiếp hết
         else {
           var e = new Error(r && r.loi || 'Máy chủ không lưu được bài');
           if (laAnh || laQuaTai(e)) { hoan(m, e, 'tai'); tai = true; }        // ảnh lỗi / máy chủ bận: tự gửi lại, không báo
@@ -3048,8 +3456,8 @@ var QUET = (function () {
   function loi(e) { if (e && e.ma === 'dangnhap') return moDangNhap(); bao('Lỗi: ' + (e && e.message || e), 7000); }
   function ky() { return DL.kyThi.filter(function (k) { return k.id === chon.ky; })[0]; }
   function lop() { return DL.lop.filter(function (k) { return k.id === chon.lop; })[0]; }
-  // ảnh KTDK Zip ('fs:<mã>') nằm trong Firestore: lấy ngầm rồi vẽ lại khung đang xem
-  function anhUrl(a, to) { if (String(a || '').indexOf('fs:') === 0) return window.FBK ? FBK.anhNgay(a, veLaiVungAnh) : ''; return !a ? '' : a[0] === '/' || a.indexOf('data:') === 0 ? a : to ? 'https://drive.google.com/file/d/' + a + '/view' : 'https://drive.google.com/thumbnail?id=' + a + '&sz=w2000'; }
+  // ảnh bài làm ('fs:<mã>' hoặc 'fs:<projectId>:<mã>') nằm trong Firestore: lấy ngầm rồi vẽ lại khung đang xem
+  function anhUrl(a, to) { if (String(a || '').indexOf('fs:') === 0) return window.FBK ? FBK.anhNgay(a, veLaiVungAnh, ky() && ky().id) : ''; return !a ? '' : a[0] === '/' || a.indexOf('data:') === 0 ? a : to ? 'https://drive.google.com/file/d/' + a + '/view' : 'https://drive.google.com/thumbnail?id=' + a + '&sz=w2000'; }
   function tb(ds, f) { var t = 0, n = 0; ds.forEach(function (r) { var v = f(r); if (v != null) { t += v; n++; } }); return n ? t / n : null; }
   function ls(k, v) { try { if (v === undefined) { var s = localStorage.getItem(k); return s ? JSON.parse(s) : null; } localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* đầy bộ nhớ */ } return null; }
   function laKTDK() { return API.cheDo() === 'ktdk'; }
@@ -3129,7 +3537,7 @@ var QUET = (function () {
       if (QT) taiTK().then(function () { if (tabBen === 'tk') veTaiKhoan(); });
     }).catch(function (er) { $('#mkNut').textContent = 'Lưu mật khẩu mới'; l.textContent = er.message; });
   };
-  $('#nutThoat').onclick = function () { if (confirm('Đăng xuất khỏi tài khoản này?')) { API.dangXuat(); QT = false; TK = []; DL = { kyThi: [], lop: [] }; KQ = []; KQC = {}; tabBen = 'ky'; veKhung(); veBen(); veChinh(); moDangNhap(); } };
+  $('#nutThoat').onclick = function () { if (confirm('Đăng xuất khỏi tài khoản này?')) { huyTheoDoiKy(); API.dangXuat(); QT = false; TK = []; DL = { kyThi: [], lop: [] }; KQ = []; KQC = {}; tabBen = 'ky'; veKhung(); veBen(); veChinh(); moDangNhap(); } };
 
   // ================= tải dữ liệu (hiện bản đã lưu trên máy trước, rồi làm mới ngầm) =================
   function taiDL() {
@@ -3138,6 +3546,7 @@ var QUET = (function () {
     var kem = laKTDK() ? '' : chon.ky || kyCuoi();     // KTDK Zip: kết quả đến từ theo dõi trực tiếp, không tải kèm để khỏi đọc hai lần
     return API.goi('taiDuLieu', kem ? { kemKQ: kem } : {}).then(function (r) {
       DL = { kyThi: r.kyThi || [], lop: r.lop || [] };
+      if (r.duAnLoi && r.duAnLoi.length) bao('Chưa đọc được kho dữ liệu ' + r.duAnLoi.join(', ') + ' (hết hạn mức hoặc mất mạng) – đang hiện bài thi đã lưu trên máy, dữ liệu không mất. Hạn mức làm mới lúc ' + (FBK.gioLamMoi ? FBK.gioLamMoi() : '15:00') + '.', 9000);
       if (r.kemKQ) { datKQ(r.kemKQ, r.ketQua || []); if (r.v) KQV[r.kemKQ] = r.v; }
       if (r.quanTri !== undefined && !CUC_BO) {          // quyền + đường dẫn đi kèm luôn, không cần gọi riêng
         var cu = QT; QT = !!r.quanTri; API.quanTri(QT); URL_APP = r.url || URL_APP;
@@ -3152,14 +3561,41 @@ var QUET = (function () {
     if (!lop()) chon.lop = hep() || !DL.lop.length ? null : DL.lop[0].id;
   }
   var KQV = {};                    // số phiên bản kết quả của từng kỳ thi trên máy chủ
+  // Tự nhẩm điểm và ghép Họ tên / Lớp trong RAM theo đáp án & danh sách lớp mới nhất (~1ms cho 500 bài, tốn 0 lượt đọc/ghi)
+  var KQ_LECH = {};
+  function dongBoDiem(id, ds) {
+    if (window.API_GIA || !Array.isArray(ds)) return ds || [];
+    var k = DL.kyThi.filter(function (x) { return x.id === id; })[0];
+    var coDe = !!(k && k.de && Object.keys(k.de).length), coLop = !!(DL.lop && DL.lop.length);
+    if (!coDe && !coLop) return ds;
+    var lech = KQ_LECH[id] || (KQ_LECH[id] = {});
+    return ds.map(function (r) {
+      if (!r || r.chuaGui) return r;
+      var m = coDe && (r.p1 || r.p2 || (r.p3 && r.p3.length)) ? tinhDiem(k, r) : r;
+      if (coLop && /^\d+$/.test(m.sbd)) {
+        var hs = CHAM.timHS(DL.lop, m.sbd);
+        if (hs && (m.ten !== hs.ten || m.lop !== hs.lop || m.sbd !== hs.sbd)) {
+          if (m === r) m = sao(r);
+          m.sbd = hs.sbd || m.sbd; m.ten = hs.ten || ''; m.lop = hs.lop || '';
+        }
+      }
+      if (m !== r && (m.diem !== r.diem || m.d1 !== r.d1 || m.d2 !== r.d2 || m.d3 !== r.d3 || m.ten !== r.ten || m.lop !== r.lop)) lech[r.id] = 1;
+      return m;
+    });
+  }
   function datKQ(id, moi) {        // nhận kết quả mới từ máy chủ; trả về true nếu khác bản đang có
+    moi = dongBoDiem(id, moi || []);
     var doi = JSON.stringify(moi) !== JSON.stringify(KQC[id] || null);
     KQC[id] = moi;
     if (ky() && ky().id === id) KQ = moi;
     if (doi) ls('nkzip_kq_' + id, moi.map(function (r) { if (String(r.anh || '').indexOf('data:') !== 0) return r; var m = sao(r); m.anh = ''; return m; }));
     return doi;
   }
-  function napKQ(id) { if (!KQC[id]) { var c = ls('nkzip_kq_' + id); if (c) KQC[id] = c; } return KQC[id] || []; }
+  function napKQ(id) {
+    if (!KQC[id]) { var c = ls('nkzip_kq_' + id); if (c) KQC[id] = dongBoDiem(id, c); }
+    else KQC[id] = dongBoDiem(id, KQC[id]);
+    return KQC[id] || [];
+  }
   function taiKQ(im) {
     var k = ky();
     if (!k) { KQ = []; return Promise.resolve(false); }
@@ -3181,18 +3617,18 @@ var QUET = (function () {
 
   // ================= khung chung =================
   function cacTab() {
-    // thẻ tạo nhanh bài KTDK chỉ có ở chế độ KTDK Zip
-    var t = (laKTDK() ? [['ktdk', 'KTDK', 'sua']] : []).concat([['ky', 'Bài thi', 'kythi'], ['lop', 'Lớp', 'lop'], ['hs', 'Học sinh', 'hocsinh']]);
+    var t = [['ktdk', 'Tạo nhanh', 'sua'], ['ky', 'Bài thi', 'kythi'], ['lop', 'Lớp', 'lop'], ['hs', 'Học sinh', 'hocsinh']];
     if (QT && !CUC_BO) t.push(['tk', 'Tài khoản', 'taikhoan']);
     if (QT || CUC_BO) t.push(['cd', 'Cài đặt', 'caidat']);
     return t;
   }
   function veKhung() {
     var t = cacTab();
+    if (!t.some(function (x) { return x[0] === tabBen; })) tabBen = 'ky';
     var cho = TK.filter(function (a) { return a.cho; }).length, so = function (x) { return x[0] === 'tk' && cho ? '<span class="soCho">' + cho + '</span>' : ''; };
     $('#tabBen').innerHTML = t.map(function (x) { return '<button data-t="' + x[0] + '">' + x[1] + so(x) + '</button>'; }).join('');
     $('#duoi').innerHTML = t.map(function (x) { return '<button data-t="' + x[0] + '">' + ic(x[2]) + x[1] + so(x) + '</button>'; }).join('');
-    $$('#tabBen button, #duoi button').forEach(function (b) { b.onclick = function () { tabBen = b.getAttribute('data-t'); document.body.classList.remove('chiTiet'); SUA = null; veBen(); veChinh(); }; });
+    $$('#tabBen button, #duoi button').forEach(function (b) { b.onclick = function () { dayChamLaiNgay(); tabBen = b.getAttribute('data-t'); document.body.classList.remove('chiTiet'); SUA = null; veBen(); veChinh(); }; });
     $('#nutThoat').style.display = CUC_BO ? 'none' : '';
     $('#nutThoat').innerHTML = ic('thoat'); $('#nutTaiLai').innerHTML = ic('lammoi');
     $('#tenNg').textContent = CUC_BO ? 'Chế độ thử (chưa kết nối Google)' : API.ten() + (QT ? ' · quản trị' : '');
@@ -3255,41 +3691,49 @@ var QUET = (function () {
     Array.prototype.forEach.call(document.styleSheets, function (sh) { try { duyet(sh.cssRules); } catch (e) { /* bảng kiểu ngoài */ } });
   }
   function veCheDo() {
-    var kt = laKTDK();
-    document.body.classList.toggle('ktdk', kt); document.documentElement.classList.toggle('ktdk', kt);
-    if (kt) nhuomSang();
-    $$('.logo .tenApp').forEach(function (e) { e.innerHTML = kt ? 'KTDK <b>Zip</b>' : 'NK<b>Zip</b>'; });
-    $$('.logo i').forEach(function (e) { e.textContent = kt ? 'KT' : 'NK'; });
-    document.title = kt ? 'KTDK Zip' : 'NKZip';
+    // Chế độ duy nhất NKZip (thừa hưởng nền trắng + xanh lá và tốc độ Firebase của KTDK Zip)
+    document.body.classList.add('ktdk'); document.documentElement.classList.add('ktdk');
+    nhuomSang();
+    $$('.logo .tenApp').forEach(function (e) { e.innerHTML = 'NK<b>Zip</b>'; });
+    $$('.logo i').forEach(function (e) { e.textContent = 'NK'; });
+    document.title = 'NKZip';
     var n = $('#nutCheDo');
-    if (n) {
-      // nút chỉ hiện khi KTDK Zip đã cấu hình Firebase (đang ở KTDK mà chưa cấu hình thì vẫn hiện để quay về)
-      n.style.display = CUC_BO || (!kt && !(window.FBK && FBK.coCauHinh()) && !window.API_GIA) ? 'none' : '';
-      n.innerHTML = kt ? '<span>KTDK</span> → Chấm trong lớp' : '<span>Chấm trong lớp</span> → KTDK';
-      n.title = kt ? 'Chuyển về chế độ chấm trong lớp (NKZip)' : 'Chuyển sang KTDK Zip (chấm kiểm tra định kì)';
-      n.onclick = function () { API.cheDo(kt ? 'lop' : 'ktdk'); if (/^#ktdk/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); location.reload(); };
-    }
+    if (n) n.style.display = 'none';
   }
-  // KTDK Zip: theo dõi kết quả của bài thi đang mở – bài vừa chấm trên điện thoại hiện lên ngay, không cần tải lại
-  var nghe = { id: null, huy: null, huyKy: null }, dangCham = false, anLau = false, henAn = 0;
-  // Theo dõi danh sách bài tốn lượt đọc Firebase mỗi khi có bài mới, nên tắt lúc không ai xem: máy đang quét (chỉ cần gửi bài lên),
-  // cửa sổ ẩn quá 5 phút. Bật lại thì nhận đủ bài ngay. Theo dõi đáp án / thang điểm vẫn giữ để máy quét chấm theo bản mới nhất.
+  // NKZip: giữ luồng theo dõi cho các kỳ thi đã mở trong phiên làm việc (DS_NGHE) – bấm qua lại giữa các môn không tải lại hàng trăm bài
+  // (giữ theo dõi chỉ tốn đúng số bài thay đổi; ngắt rồi mở lại sau 30 phút thì Firebase tính lại cả kỳ thi). Ngoại lệ:
+  //  - đang quét (camera): tạm ngắt theo dõi kết quả – máy quét chỉ cần gửi bài lên; theo dõi đáp án vẫn giữ;
+  //  - cửa sổ ẩn quá 10 phút: ngắt hết;
+  //  - luồng bị máy chủ ngắt (hết hạn mức…): 1 phút sau mới mở lại.
+  var DS_NGHE = {}, dangCham = false, anLau = false, henAn = 0;
   document.addEventListener('visibilitychange', function () {
     clearTimeout(henAn);
-    if (document.hidden) henAn = setTimeout(function () { anLau = true; theoDoiKy(); }, 300000);
+    if (document.hidden) henAn = setTimeout(function () { anLau = true; huyTheoDoiKy(); }, 600000);
     else if (anLau) { anLau = false; theoDoiKy(); }
   });
+  function huyTheoDoiKy(idCuThe) {
+    var ids = idCuThe ? [idCuThe] : Object.keys(DS_NGHE);
+    ids.forEach(function (id) {
+      var n = DS_NGHE[id];
+      if (!n) return;
+      if (n.huy) n.huy();
+      if (n.huyKy) n.huyKy();
+      delete DS_NGHE[id];
+    });
+  }
   function theoDoiKy() {
-    var id = (laKTDK() || API.lopFB()) && window.FBK && tabBen === 'ky' && ky() ? ky().id : null;
-    if (id !== nghe.id) {
-      if (nghe.huy) nghe.huy();
-      if (nghe.huyKy) nghe.huyKy();
-      nghe = { id: id, huy: null, huyKy: null, kq: false, ky: false };
-      if (id) ngheBaiThi(id);
+    var id = (laKTDK() || API.lopFB()) && window.FBK && ky() ? ky().id : null;
+    if (!id || anLau) return;
+    var n = DS_NGHE[id];
+    if (!n) {
+      n = DS_NGHE[id] = { id: id, huy: null, huyKy: null, kq: false, ky: false };
+      ngheBaiThi(id, n);
     }
-    var can = id && !dangCham && !anLau;
-    if (can && !nghe.huy) ngheBaiLam(id);
-    else if (!can && nghe.huy) { nghe.huy(); nghe.huy = null; nghe.kq = false; }
+    if (dangCham) {
+      Object.keys(DS_NGHE).forEach(function (k) { var x = DS_NGHE[k]; if (x.huy) { x.huy(); x.huy = null; x.kq = false; } });
+      return;
+    }
+    if (!n.huy && !(n.loiLuc && Date.now() - n.loiLuc < 60000)) ngheBaiLam(id, n);
   }
   var henVe = 0;
   function veSauNhan(id) {     // gom các thay đổi dồn dập, đừng vẽ lại khi đang sửa / xem một bài
@@ -3299,27 +3743,23 @@ var QUET = (function () {
       if (!SUA && !$('#hop').classList.contains('hien') && tabBen === 'ky' && ky() && ky().id === id) veChinh();
     }, 400);
   }
-  function ngheBaiThi(id) {
-    var n = nghe;
-    // bài thi (đáp án, thang điểm) do máy khác sửa: nhận bản mới ngay – trước đây máy mở app từ trước vẫn giữ bản cũ đến khi
-    // tải lại, nên bài sửa trên máy đó bị chấm theo thang điểm cũ (vd. Phần III 0,25 thay vì 0,5)
-    nghe.huyKy = FBK.ngheKy(id, function (k) {
+  function ngheBaiThi(id, n) {
+    // bài thi (đáp án, thang điểm) do máy khác sửa: nhận bản mới ngay và tự nhẩm lại điểm trong RAM (0 lượt ghi)
+    n.huyKy = FBK.ngheKy(id, function (k) {
       n.ky = true;
       for (var i = 0; i < DL.kyThi.length; i++) if (DL.kyThi[i].id === id) break;
       if (i >= DL.kyThi.length) return;
       if (JSON.stringify(DL.kyThi[i]) !== JSON.stringify(k)) {
         DL.kyThi[i] = k; ls(khoaDem(), DL); QUET.doiKy(k);
+        if (KQC[id]) datKQ(id, KQC[id]);
         veSauNhan(id);
       }
-      if (n.kq) suaDiemLech(k);
     });
   }
-  function ngheBaiLam(id) {
-    var n = nghe;
-    nghe.huy = FBK.nghe(id, function (ds) {
+  function ngheBaiLam(id, n) {
+    n.huy = FBK.nghe(id, function (ds) {
       n.kq = true;
       var doi = datKQ(id, ds);
-      if (n.ky) suaDiemLech(DL.kyThi.filter(function (k) { return k.id === id; })[0]);
       if (!doi) return;
       // đang xem một bài mà ảnh của bài đó vừa lên (ảnh gửi sau điểm): gắn ảnh vào và vẽ lại ngay
       if (XEM && XEM.goc && !XEM.goc.anh) {
@@ -3327,7 +3767,7 @@ var QUET = (function () {
         if (moi && moi.anh) { XEM.goc.anh = moi.anh; XEM.goc.sach = moi.sach; XEM.r.anh = moi.anh; XEM.r.sach = moi.sach; veXem(); }
       }
       veSauNhan(id);
-    });
+    }, function () { n.huy = null; n.kq = false; n.loiLuc = Date.now(); });
   }
   function veLaiVungAnh() {                    // ảnh KTDK vừa tải xong: vẽ lại khung đang hiện ảnh
     if (XEM) veXem(); else if (tabBen === 'ky' && tabKy === 'tk') veChinh();
@@ -3339,7 +3779,7 @@ var QUET = (function () {
     var dang = API.thay();
     s.innerHTML = '<option value="">Dữ liệu của tôi</option><option value="*"' + (dang === '*' ? ' selected' : '') + '>Tất cả tài khoản</option>' +
       TK.filter(function (a) { return a.tk !== API.toi(); }).map(function (a) { return '<option value="' + esc(a.tk) + '"' + (a.tk === dang ? ' selected' : '') + '>Làm thay: ' + esc(a.ten || a.tk) + '</option>'; }).join('');
-    s.onchange = function () { API.thay(s.value); DL = { kyThi: [], lop: [] }; chon = { ky: null, lop: null }; KQ = []; KQC = {}; SUA = null; veBen(); veChinh(); taiDL().then(function () { return taiKQ(); }).then(veChinh); };
+    s.onchange = function () { huyTheoDoiKy(); API.thay(s.value); DL = { kyThi: [], lop: [] }; chon = { ky: null, lop: null }; KQ = []; KQC = {}; SUA = null; veBen(); veChinh(); taiDL().then(function () { return taiKQ(); }).then(veChinh); };
   }
 
   function veBen() {
@@ -3350,9 +3790,10 @@ var QUET = (function () {
     if (tabBen === 'ky') {
       DL.kyThi.slice().reverse().forEach(function (k) {
         var n = (KQC[k.id] || []).length;
-        // KTDK Zip chỉ giữ tối đa 7 ngày: quá hạn thì nhắc in / xuất bảng rồi xoá (không tự xoá)
+        // Nhắc in / xuất bảng rồi xoá khi bài thi đã quá 7 ngày (không tự xoá)
         var quaHan = laKTDK() && k.tao && Date.now() - new Date(k.tao).getTime() > 7 * 86400000;
-        h += '<div class="muc' + (k.id === chon.ky ? ' chon' : '') + '" data-id="' + esc(k.id) + '"><b>' + esc(tenK(k)) + '</b><small>' + esc(k.mon || 'Chưa ghi môn') + ' · ' + Object.keys(k.de || {}).length + ' mã đề' + (KQC[k.id] ? ' · ' + n + ' bài' : '') + '</small>' +
+        var nhanDuAn = QT && k.duAn ? ' · <span title="Kho lưu kỳ thi này">' + esc(k.duAn.replace(/^project-1f7b73ae.*/, 'goc')) + '</span>' : '';
+        h += '<div class="muc' + (k.id === chon.ky ? ' chon' : '') + '" data-id="' + esc(k.id) + '"><b>' + esc(tenK(k)) + '</b><small>' + esc(k.mon || 'Chưa ghi môn') + ' · ' + Object.keys(k.de || {}).length + ' mã đề' + (KQC[k.id] ? ' · ' + n + ' bài' : '') + nhanDuAn + '</small>' +
           (quaHan ? '<small class="quaHan">⚠ Đã quá 7 ngày – in / xuất bảng rồi xoá</small>' : '') + '<button class="xoa" title="Xoá kỳ thi">✕</button></div>';
       });
       $('#nutMoi').textContent = '+ Kỳ thi mới'; $('#tdBen').innerHTML = 'Kỳ thi <span>' + DL.kyThi.length + '</span>';
@@ -3373,14 +3814,25 @@ var QUET = (function () {
     });
   }
   function moMuc(id) {
+    dayChamLaiNgay();
     chon[tabBen] = id; SUA = null; document.body.classList.add('chiTiet');
-    if (tabBen === 'ky') { kyCuoi(id); tabKy = hep() ? 'menu' : 'bai'; maPT = maCT = ''; KQ = napKQ(id); veBen(); veChinh(); taiKQ(true).then(function (doi) { if (doi) { veBen(); veChinh(); } }); }
+    if (tabBen === 'ky') {
+      kyCuoi(id); tabKy = hep() ? 'menu' : 'bai'; maPT = maCT = ''; KQ = napKQ(id); veBen(); veChinh();
+      if (!laKTDK()) taiKQ(true).then(function (doi) { if (doi) { veBen(); veChinh(); } });
+    }
     else { veBen(); veChinh(); }
   }
-  $('#nutTaiLai').onclick = function () { bao('Đang đồng bộ…', 20000); taiDL().then(function () { return taiKQ(); }).then(function () { veBen(); veChinh(); bao('Đã đồng bộ'); }); };
+  var lucTaiLai = 0;
+  $('#nutTaiLai').onclick = function () {
+    if (!window.API_GIA && Date.now() - lucTaiLai < 3000) return bao('Đã đồng bộ mới nhất');
+    lucTaiLai = Date.now();
+    bao('Đang đồng bộ…', 20000);
+    taiDL().then(function () { return taiKQ(); }).then(function () { veBen(); veChinh(); bao('Đã đồng bộ'); });
+  };
   $('#nutMoi').onclick = function () {
     if (tabBen === 'ky') {
-      var k = { id: 'k' + ma(), ten: '', mon: '', mau: 'nk1846', so: { p1: 18, p2: 4, p3: 6 }, diem: CHAM.diemMacDinh('nk1846', false), de: {}, tao: new Date().toISOString() };
+      var duAn = window.FBK && FBK.chonDuAn ? FBK.chonDuAn(1) : '';
+      var k = { id: 'k' + ma(), ten: '', mon: '', mau: 'nk1846', so: { p1: 18, p2: 4, p3: 6 }, diem: CHAM.diemMacDinh('nk1846', false), de: {}, tao: new Date().toISOString(), duAn: duAn };
       DL.kyThi.push(k); chon.ky = k.id; tabKy = 'da'; KQ = []; SUA = null;
       API.goi('luuKyThi', { dl: k }).catch(loi);
     } else {
@@ -3408,7 +3860,7 @@ var QUET = (function () {
     bao('Đang xoá ' + ids.length + ' bài thi…', 120000);
     API.goi('xoaNhieuKyThi', { ids: ids }).then(function (r) {
       DL.kyThi = DL.kyThi.filter(function (k) { return ids.indexOf(k.id) < 0; });
-      ids.forEach(function (id) { delete KQC[id]; ls('nkzip_kq_' + id, null); QUET.boKy(id); });
+      ids.forEach(function (id) { huyTheoDoiKy(id); delete KQC[id]; ls('nkzip_kq_' + id, null); QUET.boKy(id); });
       chon.ky = null; KQ = []; SUA = null; XEM = null; document.body.classList.remove('chiTiet');
       ls(khoaDem(), DL); veBen(); veChinh();
       bao('Đã xoá ' + (r.daXoa != null ? r.daXoa : ids.length) + ' bài thi', 6000);
@@ -3418,6 +3870,7 @@ var QUET = (function () {
     clearTimeout(henLuuT);
     var k = DL.kyThi.filter(function (x) { return x.id === id; })[0];
     if (!k || !confirm('Xoá kỳ thi “' + tenK(k) + '”?\n\nToàn bộ kết quả đã chấm của kỳ thi này sẽ bị xoá, ảnh bài làm chuyển vào thùng rác Google Drive (khôi phục được trong 30 ngày).')) return;
+    huyTheoDoiKy(id);
     DL.kyThi = DL.kyThi.filter(function (x) { return x.id !== id; });
     if (chon.ky === id) { chon.ky = null; KQ = []; SUA = null; XEM = null; document.body.classList.remove('chiTiet'); }
     ls(khoaDem(), DL); chonMacDinh(); if (ky()) KQ = napKQ(ky().id); veBen(); veChinh();
@@ -3465,9 +3918,9 @@ var QUET = (function () {
     ({ bai: veBaiLam, pt: vePhanTich, ct: veChiTiet, tk: veTKCS, da: veDapAn })[tabKy](k);
   }
   function chuyenTab(t) {
-    if (t === 'cham') return moCham();
+    if (t === 'cham') { dayChamLaiNgay(); return moCham(); }
     if (XEM && XEM.tc && XEM.tc.nhung) XEM = null;         // rời TKCS: bỏ bài đang mở trong trang
-    if (tabKy === 'da' && t !== 'da') SUA = null;
+    if (tabKy === 'da' && t !== 'da') { dayChamLaiNgay(); SUA = null; }
     tabKy = t; veChinh(); $('#chinh').scrollTop = 0;
   }
 
@@ -3549,11 +4002,12 @@ var QUET = (function () {
     var o = ' ' + khongDau(r.ten + ' ' + r.lop + ' ' + r.sbd).replace(/\s+/g, ' ');
     return khongDau(tu).split(/\s+/).every(function (x) { return !x || o.indexOf(' ' + x) >= 0; });
   }
-  var timBL = '';
+  var timBL = '', chiThieuAnh = false;
+  function thieuAnhBai(r) { return !r.chuaGui && !r.anh; }
   // số bài theo từng SBD (hai máy chấm cùng SBD, giáo viên "giữ cả hai"… thì có hơn 1 bài)
   function demSbd() { var d = {}; KQ.forEach(function (r) { if (/^\d+$/.test(r.sbd)) d[r.sbd] = (d[r.sbd] || 0) + 1; }); return d; }
   function dsLoc() {
-    var ds = KQ.filter(function (r) { return (!locLop || r.lop === locLop) && khopTim(r, timBL); });
+    var ds = KQ.filter(function (r) { return (!locLop || r.lop === locLop) && khopTim(r, timBL) && (!chiThieuAnh || thieuAnhBai(r)); });
     var c = sapXep.cot;
     ds.sort(function (a, b) {
       var x = a[c], y = b[c];
@@ -3570,6 +4024,8 @@ var QUET = (function () {
   }
   function veBaiLam(k) {
     var cacLop = {}; KQ.forEach(function (r) { if (r.lop) cacLop[r.lop] = 1; });
+    var soThieuAnh = KQ.filter(thieuAnhBai).length;
+    if (!soThieuAnh) chiThieuAnh = false;
     var ds = dsLoc(), co = ds.filter(function (r) { return r.diem != null; }), h = '';
     if (co.length) {
       var d = co.map(function (r) { return r.diem; }).sort(function (a, b) { return a - b; });
@@ -3587,6 +4043,8 @@ var QUET = (function () {
     h += '<div class="the"><div class="hang"><select id="locLop"><option value="">Tất cả các lớp</option>' +
       Object.keys(cacLop).sort().map(function (l) { return '<option' + (l === locLop ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('') +
       '</select><button id="nutLamMoi">⟳ Tải lại</button><button id="nutThemBai">+ Thêm bài</button><button id="nutChamLai">Chấm lại theo đáp án</button><button id="nutXuat" class="vang">Xuất Excel</button>' +
+      (soThieuAnh ? '<button id="nutThieuAnh"' + (chiThieuAnh ? ' class="chon"' : '') + ' title="Bài đã có điểm nhưng chưa có ảnh trên máy chủ: mở lại app trên điện thoại đã chấm, hoặc quét lại phiếu (chỉ bổ sung ảnh, không đổi điểm)">' +
+        (chiThieuAnh ? '✕ Bỏ lọc thiếu ảnh' : '⏳ Thiếu ảnh (' + soThieuAnh + ')') + '</button>' : '') +
       '<input id="timBL" type="search" placeholder="🔍 Lọc theo tên, lớp hoặc SBD…" value="' + esc(timBL) + '" autocomplete="off" style="flex:1;min-width:200px;max-width:340px">' +
       '<span class="mo anDT" style="margin-left:auto">' + ds.length + ' bài · bấm vào một dòng để xem bài làm</span></div>';
     var soSbd = demSbd();
@@ -3616,7 +4074,7 @@ var QUET = (function () {
       if (ng.length) co2 += '<span class="nhan" title="' + esc(ng.join('; ')) + '">' + ng.length + ' chỗ cần xem lại</span>';
       h += '<tr class="bam' + lopTr + '" data-id="' + esc(r.id) + '"><td>' + esc(r.sbd) + '</td><td>' + esc(r.ten) + '</td>' +
         // ảnh bài làm đã lên web chưa (ảnh gửi sau điểm; ✓ tự hiện khi ảnh lên)
-        (r.anh && !r.chuaGui ? '<td class="cotAnh co" title="Ảnh đã lên web">✓</td>' : '<td class="cotAnh chua" title="Ảnh đang được gửi lên">⏳</td>') +
+        (r.anh && !r.chuaGui ? '<td class="cotAnh co" title="Ảnh đã lên web">✓</td>' : '<td class="cotAnh chua" title="Chưa có ảnh trên máy chủ (đang gửi lên, hoặc cần quét lại phiếu)">⏳</td>') +
         '<td>' + esc(r.lop) + '</td><td>' + esc(r.made) +
         '</td><td class="p diem">' + vn(r.diem) + '</td><td class="p">' + vn(r.d1) + '</td><td class="p">' + vn(r.d2) + '</td><td class="p">' + vn(r.d3) +
         '</td><td>' + co2 + '</td></tr>';
@@ -3632,7 +4090,12 @@ var QUET = (function () {
     }
     $('#noiDung').innerHTML = h;
     $('#locLop').onchange = function () { locLop = this.value; veChinh(); };
-    $('#nutLamMoi').onclick = function () { taiKQ().then(function () { veBen(); veChinh(); }); };
+    if ($('#nutThieuAnh')) $('#nutThieuAnh').onclick = function () { chiThieuAnh = !chiThieuAnh; veChinh(); };
+    $('#nutLamMoi').onclick = function () {
+      if (!window.API_GIA && Date.now() - lucTaiLai < 3000) return bao('Đã tải mới nhất');
+      lucTaiLai = Date.now();
+      taiKQ().then(function () { veBen(); veChinh(); });
+    };
     $('#nutXuat').onclick = function () { xuatBangDiem(k); };
     $('#nutChamLai').onclick = function () { chamLai(k); };
     $('#nutThemBai').onclick = function () { moBai(null); };
@@ -3669,21 +4132,27 @@ var QUET = (function () {
   }
   // Chấm lại mọi bài của kỳ thi theo đáp án / điểm hiện tại. tuDong: gọi ngay sau khi lưu bài thi, không hỏi lại.
   function chamLai(k, tuDong) {
-    var doi = [];
+    if (!tuDong && KQC[k.id]) { datKQ(k.id, KQC[k.id]); veChinh(); }
+    var doi = [], lech = KQ_LECH[k.id] || {};
     KQ.forEach(function (r) {
       if (r.chuaGui || r.kyThi !== k.id) return;
       var m = tuDong ? tinhDiem(k, r) : tinhLai(k, r, r.sbd, r.loiMade ? null : r.made);
-      if (JSON.stringify(m) !== JSON.stringify(r)) doi.push(m);
+      if (JSON.stringify(m) !== JSON.stringify(r) || (!tuDong && lech[r.id])) doi.push(m);
     });
     if (!doi.length) { if (!tuDong) bao('Không có bài nào thay đổi điểm.'); return Promise.resolve(0); }
-    if (!tuDong && !confirm('Có ' + doi.length + ' bài thay đổi sau khi chấm lại. Lưu?')) return Promise.resolve(0);
+    var hoi = window.API_GIA ? 'Có ' + doi.length + ' bài thay đổi sau khi chấm lại. Lưu?'
+      : 'Điểm trên màn hình đã được cập nhật mới nhất.\nBạn có muốn lưu điểm mới của ' + doi.length + ' bài này lên hệ thống để đồng bộ cho các máy dùng bản cũ không?\n\n' +
+        'Lưu ý hạn mức: việc này tốn ' + doi.length + ' lượt ghi, và MỖI máy đang mở bài thi này tốn thêm ' + doi.length + ' lượt đọc.\n' +
+        'Máy dùng bản mới tự tính điểm theo đáp án mới, không cần lưu.';
+    if (!tuDong && !confirm(hoi)) return Promise.resolve(0);
+    if (KQ_LECH[k.id]) doi.forEach(function (m) { delete KQ_LECH[k.id][m.id]; });
     return guiDiemMoi(k, doi, tuDong);
   }
   // KTDK Zip: điểm đã lưu lệch với đáp án / thang điểm hiện tại (bài sửa trên máy còn giữ bản bài thi cũ, kể cả máy dùng bản app cũ)
   // → tự chấm lại đúng các bài đó. Chỉ chạy khi cả bài thi lẫn danh sách bài đều vừa nhận từ máy chủ (không dùng bản lưu trên máy).
   var lechDaGui = {};
   function suaDiemLech(k) {
-    if (!k || !laKTDK()) return;
+    if (!k || !laKTDK() || (SUA && SUA.id === k.id) || henChamLaiKy) return;
     var doi = [];
     (KQC[k.id] || []).forEach(function (r) {
       if (r.chuaGui || r.kyThi !== k.id) return;
@@ -3744,16 +4213,19 @@ var QUET = (function () {
   var TRUOC = {};
   function taiTruocAnh(r) {
     var a = r && (anhSachCua(r) || r.anh);
-    if (!a || TRUOC[a] || String(a).indexOf('data:') === 0) return;
+    // Không tự tải trước ảnh lưu trên Firestore ('fs:') để tránh tốn thêm 2 lượt đọc khi người dùng chỉ mở xem 1 bài
+    if (!a || TRUOC[a] || String(a).indexOf('data:') === 0 || String(a).indexOf('fs:') === 0) return;
     TRUOC[a] = 1;
-    if (String(a).indexOf('fs:') === 0) { if (window.FBK) FBK.anhNgay(a, null); return; }
     var u = anhUrl(a); if (u) (new Image()).src = u;
   }
   var xemGoc = false;                                // "Ảnh gốc": xem ảnh chụp thật, không vẽ dấu / không vẽ phần đã sửa
   function veXem() {
     var sach = anhSachCua(XEM.goc), a = anhUrl(sach || XEM.goc.anh), nd = khungXem();
     // KTDK Zip: ảnh gửi lên sau điểm (hoặc đang tải) – báo rõ thay vì để trống; ảnh lên xong sẽ tự hiện
-    var choAnh = !a && (laKTDK() || XEM.goc.choKho || String(XEM.goc.anh || '').indexOf('fs:') === 0) && !XEM.goc.chuaGui ? (String(XEM.goc.anh || '').indexOf('fs:') === 0 ? 'Đang tải ảnh bài làm…' : 'Ảnh bài làm đang được gửi lên từ điện thoại – sẽ tự hiện khi xong.') : '';
+    var maFs = String(sach || XEM.goc.anh || '').indexOf('fs:') === 0 ? (sach || XEM.goc.anh) : '';
+    var choAnh = !a && XEM.id && (laKTDK() || XEM.goc.choKho || maFs) && !XEM.goc.chuaGui
+      ? (maFs ? (window.FBK && FBK.thieuAnh && FBK.thieuAnh(maFs, ky() && ky().id) ? 'Chưa có ảnh bài làm trên máy chủ (ảnh chưa gửi lên được từ máy chấm).' : 'Đang tải ảnh bài làm…')
+        : 'Chưa có ảnh bài làm. Nếu vừa chấm thì ảnh đang được gửi lên từ điện thoại và sẽ tự hiện. Nếu điện thoại đã chấm bài này không còn bài chờ gửi, hãy quét lại phiếu này (app chỉ bổ sung ảnh, không đổi điểm).') : '';
     nd.classList.toggle('don', !a && !choAnh);
     nd.innerHTML = (a ? '<div class="anhBoc"><div id="xemAnh" class="vua">' + (sach ? '<canvas title="Ảnh bài làm"></canvas>' : '<img src="' + esc(a) + '" alt="Ảnh bài làm" draggable="false">') + '</div>' +
       '<div class="thuPhong"><button id="zTru" title="Thu nhỏ">−</button><button id="zVua" class="dai" title="Vừa khung">Vừa khung</button><button id="zCong" title="Phóng to">+</button>' +
@@ -3904,13 +4376,14 @@ var QUET = (function () {
     }
     if (!moi && idMoi !== idCu) truoc = API.goi('xoaKetQua', { id: idCu, kyThi: k.id, giuAnh: true });
     m.id = idMoi;
-    // cập nhật ngay trên màn hình (ảnh vẽ lại ngay theo bài đã sửa), gửi máy chủ sau
+    // cập nhật ngay trên màn hình (ảnh vẽ lại ngay theo bài đã sửa), gửi máy chủ sau (nếu không thay đổi gì thì tốn 0 lượt ghi)
     var hien = sao(m); delete hien.tenKy; delete hien.ghiDe; if (!hien.anh) hien.anh = XEM.goc.anh;
+    var khongDoi = !moi && idMoi === idCu && JSON.stringify(boTam(hien)) === JSON.stringify(boTam(XEM.goc));
     KQ = KQ.filter(function (x) { return x.id !== idCu && x.id !== idMoi; }); KQ.push(hien); KQC[k.id] = KQ;
     bao('Đã lưu · điểm mới: ' + vn(m.diem) + baoTrung, baoTrung ? 7000 : 3200);
     if (tc && tc.sauLuu) tc.sauLuu(idMoi);
     else { veChinh(); if (moi) dongHop(); else moBai(idMoi, XEM && XEM.ds ? XEM.ds.map(function (x) { return x === idCu ? idMoi : x; }) : null, tc); }
-    truoc.then(function () { return API.goi('luuKetQua', { dl: m }); }).catch(loi);
+    if (!khongDoi) truoc.then(function () { return API.goi('luuKetQua', { dl: m }); }).catch(loi);
   }
   function xoaBai() {
     var k = ky(), r = XEM.goc;
@@ -4252,6 +4725,7 @@ var QUET = (function () {
     }).join('') + '</div><div class="hang" style="margin-top:8px"><button class="nho nguy" id="tuXoa">Xoá bảng tương ứng</button><span class="mo" style="font-size:12.5px">Tự động lưu sau mỗi lần dán / sửa.</span></div></div>';
     return h;
   }
+  var henLuuTU = 0;
   function ganTU(k) {
     var khung = $('#khungTU'); if (!khung) return;
     khung.addEventListener('paste', function (e) {
@@ -4260,16 +4734,20 @@ var QUET = (function () {
       e.preventDefault();
       var n = danTU(k, chu);
       if (!n) return bao('Không đọc được bảng. Hãy bôi đen cả các hàng “MÃ ĐỀ …” trong Excel rồi Ctrl+C.', 6000);
-      luuKy(k); veChinh();
+      clearTimeout(henLuuTU); luuKy(k); veChinh();
     });
     $$('#khungTU input[data-tu]').forEach(function (o) {
       o.onchange = function () {
         var p = o.getAttribute('data-tu').split('|'), m = p[0], i = +p[1], x = parseInt(o.value, 10);
         var tu = sao(k.tuongUng || {}); tu[m] = (tu[m] || []).slice(); while (tu[m].length < tongCau(k)) tu[m].push(null);
-        tu[m][i] = isNaN(x) ? null : x; k.tuongUng = tu; luuKy(k); veChinh();
+        tu[m][i] = isNaN(x) ? null : x; k.tuongUng = tu;
+        if (window.API_GIA) { luuKy(k); veChinh(); return; }
+        clearTimeout(henLuuTU);
+        henLuuTU = setTimeout(function () { luuKy(k); }, 1200);
+        veChinh();
       };
     });
-    $('#tuXoa').onclick = function () { if (!confirm('Xoá toàn bộ bảng mã đề tương ứng?')) return; k.tuongUng = {}; luuKy(k); veChinh(); };
+    $('#tuXoa').onclick = function () { if (!confirm('Xoá toàn bộ bảng mã đề tương ứng?')) return; clearTimeout(henLuuTU); k.tuongUng = {}; luuKy(k); veChinh(); };
   }
 
   // Các cột của bảng KTDK theo số câu của mã gốc. tinh(r) -> null (câu không tính với bài này) | { dung, ghi, cau2 }
@@ -4866,17 +5344,6 @@ var QUET = (function () {
         if (!r.maTam && !r.loiMade) return;
         ds.push({ r: r, ghi: ['Không đọc được mã đề (máy đọc <b>' + esc(String(r.madeDoc || '').replace(/_/g, '?') || 'trống') + '</b>) – ' +
           (r.maTam ? 'đang <b>tạm chấm theo mã ' + esc(r.made) + '</b>. Xem ảnh, chọn đúng mã đề ở ô “Mã đề” rồi bấm Lưu.' : 'chưa có điểm. Chọn mã đề rồi bấm Lưu.')] });
-      } else if (che === 'trung') {
-        if (!/^\d+$/.test(r.sbd) || !(soSbd[r.sbd] > 1)) return;
-        var khac = KQ.filter(function (x) { return x !== r && x.sbd === r.sbd; });
-        ds.push({ r: r, hs: true, ghi: ['SBD <b>' + esc(r.sbd) + '</b> có ' + soSbd[r.sbd] + ' bài. Bài này: ' + vn(r.diem) + ' điểm, mã đề ' + esc(r.made) + '.'].concat(khac.map(function (x) {
-          var n = soKhacBai(x, r), anh = anhUrl(anhSachCua(x) || x.anh);
-          return 'Bài kia: ' + vn(x.diem) + ' điểm, mã đề ' + esc(x.made) +
-            (n === 0 ? ' – <b>giống hệt bài này</b>: cùng một tờ bị chấm 2 lần, xoá bớt một bài' :
-              n <= 3 ? ' – <b>gần giống</b> (khác ' + n + ' chỗ): có thể cùng một tờ chấm lại khi tay còn che / ảnh mờ – giữ bài ảnh rõ, xoá bài kia' :
-                ' – <b>khác ' + n + ' chỗ</b>: có thể học sinh khác tô trùng SBD – so họ tên trên ảnh rồi gán lại đúng học sinh') +
-            (anh ? '<br><img class="anhSoSanh" src="' + esc(anh) + '" alt="Ảnh bài kia" title="Ảnh bài kia (so họ tên viết tay)">' : '');
-        })) });
       } else if (che === 'sot') {
         var t = cauTrong(k, r).filter(function (c) { return !chiMoTK || c.mo; });
         if (t.length) ds.push({ r: r, ghi: ['Bỏ trống ' + t.length + ' câu: ' + t.map(function (c) { return esc(c.nhan) + (c.mo ? ' <span class="nhan">có vết tô mờ</span>' : ''); }).join(', ')] });
@@ -4963,7 +5430,7 @@ var QUET = (function () {
     API.goi('luuNhieuKetQua', { ds: [g] }).catch(loi);
   }
   function veTKCS(k) {
-    var ds = dsTK(k, cheTK), dem = {};
+    var ds = cheTK === 'trung' ? [] : dsTK(k, cheTK), dem = {};
     CHE_TK.forEach(function (c) { dem[c[0]] = c[0] === 'trung' ? nhomTrung().length : c[0] === cheTK ? ds.length : dsTK(k, c[0]).length; });
     if (vtTK >= ds.length) vtTK = Math.max(0, ds.length - 1);
     var soChac = 0;
@@ -5187,22 +5654,40 @@ var QUET = (function () {
     $('#eExcel').onclick = function () { docTT(); chonTep(function (hang) { nhapDapAn(hang); veChinh(); henLuu(); }); };
   }
   // Tự động lưu bài thi đang sửa (0,8 giây sau lần thay đổi cuối), rồi chấm lại các bài đã làm theo đáp án / điểm mới
-  var henLuuT = 0;
+  var henLuuT = 0, henChamLaiT = 0, henChamLaiKy = null;
+  function vanTayDapAn(k) { return JSON.stringify([k.mau, k.so, k.diem, k.heSo || '', k.de]); }
+  function dayChamLaiNgay() {
+    if (henLuuT && SUA) { clearTimeout(henLuuT); henLuuT = 0; luuSua(SUA, true); return; }
+    if (!henChamLaiKy) return;
+    var m = henChamLaiKy; henChamLaiKy = null;
+    clearTimeout(henChamLaiT); henChamLaiT = 0;
+    if (KQC[m.id]) datKQ(m.id, KQC[m.id]);
+    if (window.API_GIA && chon.ky === m.id) chamLai(m, true);
+  }
   function henLuu() {
     if (!SUA) return;
     var s = SUA;
     if ($('#eNhac')) $('#eNhac').textContent = 'Đang lưu…';
     clearTimeout(henLuuT);
-    henLuuT = setTimeout(function () { luuSua(s); }, 800);
+    henLuuT = setTimeout(function () { henLuuT = 0; luuSua(s); }, window.API_GIA ? 800 : 2500);
   }
-  function luuSua(s) {
+  window.addEventListener('beforeunload', function () { dayChamLaiNgay(); });
+  function luuSua(s, ngay) {
     if (!DL.kyThi.some(function (x) { return x.id === s.id; })) return;          // bài thi đã bị xoá
     var m = sao(s); Object.keys(m.de).forEach(function (x) { m.de[x] = gonDe(m, m.de[x]); });
-    for (var i2 = 0; i2 < DL.kyThi.length; i2++) if (DL.kyThi[i2].id === m.id) DL.kyThi[i2] = m;
-    ls(khoaDem(), DL); veBen();
+    var cu = null;
+    for (var i2 = 0; i2 < DL.kyThi.length; i2++) if (DL.kyThi[i2].id === m.id) { cu = DL.kyThi[i2]; DL.kyThi[i2] = m; }
     var gio = new Date(), hh = ('0' + gio.getHours()).slice(-2) + ':' + ('0' + gio.getMinutes()).slice(-2);
+    if (cu && JSON.stringify(cu) === JSON.stringify(m)) {
+      if ($('#eNhac') && SUA === s) $('#eNhac').textContent = 'Đã tự động lưu lúc ' + hh;
+      return;
+    }
+    var doiDapAn = !cu || vanTayDapAn(cu) !== vanTayDapAn(m);
+    if (doiDapAn && KQC[m.id]) datKQ(m.id, KQC[m.id]);                           // cập nhật lại điểm trong RAM tức thì (~1ms, tốn 0 lượt ghi kq)
+    ls(khoaDem(), DL); veBen();
     API.goi('luuKyThi', { dl: m }).then(function () {
       if ($('#eNhac') && SUA === s) $('#eNhac').textContent = 'Đã tự động lưu lúc ' + hh;
+      if (!doiDapAn || !window.API_GIA) return;    // trên Firebase: mỗi bài làm đã lưu p1/p2/p3 và tự tính điểm theo k.de trong RAM (0 lượt ghi kq)
       return (KQ.length || chon.ky !== m.id ? Promise.resolve() : taiKQ(true)).then(function () { if (chon.ky === m.id) return chamLai(m, true); });
     }).catch(loi);
   }
@@ -5360,7 +5845,10 @@ var QUET = (function () {
       if (!tao.length) return bao('Chưa dán đáp án môn nào.');
       var trung = tao.filter(function (k) { return DL.kyThi.some(function (x) { return x.ten === k.ten; }); });
       if (trung.length && !confirm('Đã có bài thi cùng tên: ' + trung.map(function (k) { return k.ten; }).join(', ') + '.\nVẫn tạo thêm?')) return;
-      if (!confirm('Tạo ' + tao.length + ' bài thi:\n' + tao.map(function (k) { return '• ' + k.ten + ' (' + Object.keys(k.de).length + ' mã đề)'; }).join('\n') + '?')) return;
+      var dsDuAn = window.FBK && FBK.chonDuAn ? FBK.chonDuAn(tao.length) : [];
+      if (!Array.isArray(dsDuAn)) dsDuAn = [dsDuAn];
+      tao.forEach(function (k, idx) { if (dsDuAn[idx]) k.duAn = dsDuAn[idx]; });
+      if (!confirm('Tạo ' + tao.length + ' bài thi:\n' + tao.map(function (k) { return '• ' + k.ten + ' (' + Object.keys(k.de).length + ' mã đề' + (k.duAn ? ' · ' + k.duAn : '') + ')'; }).join('\n') + '?')) return;
       tao.forEach(function (k) { DL.kyThi.push(k); });
       ls(khoaDem(), DL);
       bao('Đang tạo ' + tao.length + ' bài thi…', 20000);
@@ -5413,6 +5901,7 @@ var QUET = (function () {
       DL.lop.forEach(function (x) { if (x.id !== m.id) (x.hs || []).forEach(function (s) { m.hs.forEach(function (t) { if (t.sbd === s.sbd) trung.push(t.sbd + ' (' + x.ten + ')'); }); }); });
       if (trung.length && !confirm('SBD bị trùng với lớp khác: ' + trung.slice(0, 8).join(', ') + '. Vẫn lưu?')) return;
       for (var i = 0; i < DL.lop.length; i++) if (DL.lop[i].id === m.id) DL.lop[i] = m;
+      Object.keys(KQC).forEach(function (kid) { datKQ(kid, KQC[kid]); });
       LSUA = null; ls(khoaDem(), DL); veBen(); veChinh(); bao('Đã lưu lớp' + (bo ? ' (bỏ ' + bo + ' dòng thiếu SBD hoặc tên)' : ''));
       API.goi('luuLop', { dl: m }).catch(loi);
     };
@@ -5455,6 +5944,7 @@ var QUET = (function () {
       l.hs.sort(function (a, b) { return String(a.sbd).localeCompare(String(b.sbd), 'vi', { numeric: true }); });
       luu.push(l);
     });
+    Object.keys(KQC).forEach(function (kid) { datKQ(kid, KQC[kid]); });
     LSUA = null; chon.lop = luu[0].id; ls(khoaDem(), DL); veBen(); veChinh();
     bao('Đã nhập ' + tong + ' học sinh vào ' + luu.length + ' lớp' + (bo ? ' · bỏ qua ' + bo + ' dòng không hợp lệ' : ''), 6000);
     API.goi('luuNhieuLop', { ds: luu }).catch(loi);
@@ -5504,13 +5994,12 @@ var QUET = (function () {
         '</table></div>' : '') +
       '<div class="the"><h3>Thêm tài khoản</h3><div class="hang" style="align-items:flex-end"><div class="o"><label>Tài khoản (email hoặc tên, viết thường)</label><input id="tTk" autocomplete="off" spellcheck="false" style="width:230px"></div><div class="o"><label>Tên hiển thị</label><input id="tTen" autocomplete="off"></div>' +
       '<div class="o"><label>Mật khẩu (từ 6 kí tự)</label><input id="tMk" autocomplete="new-password"></div><label class="hang" style="gap:6px;cursor:pointer"><input type="checkbox" id="tQt"> Quản trị</label><button class="vang" id="tLuu">Tạo tài khoản</button></div></div>' +
-      '<div class="the"><h3>Danh sách (' + (TK.length - cho.length) + ')</h3><div style="overflow:auto"><table class="ke"><tr><th>Tài khoản</th><th>Tên hiển thị</th><th>Ngày tạo</th><th>Mật khẩu</th><th>Quyền</th><th title="Được chấm ở chế độ KTDK Zip">KTDK</th><th style="width:240px"></th></tr>' +
+      '<div class="the"><h3>Danh sách (' + (TK.length - cho.length) + ')</h3><div style="overflow:auto"><table class="ke"><tr><th>Tài khoản</th><th>Tên hiển thị</th><th>Ngày tạo</th><th>Mật khẩu</th><th>Quyền</th><th style="width:240px"></th></tr>' +
       TK.filter(function (a) { return !a.cho; }).map(function (a) {
         var mk = a.mk ? (hienMk[a.tk] ? esc(a.mk) : '••••••••') : '<span class="mo">(chưa lưu, hãy đặt lại)</span>';
         return '<tr><td><b>' + esc(a.tk) + '</b>' + (a.tk === API.toi() ? ' <span class="nhan">bạn</span>' : '') + '</td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleDateString('vi-VN') : '') + '</td>' +
           '<td style="font-family:Consolas,monospace">' + mk + (a.mk ? ' <button class="nho" data-hien="' + esc(a.tk) + '">' + (hienMk[a.tk] ? 'Ẩn' : 'Hiện') + '</button>' : '') + '</td>' +
           '<td>' + (a.qt ? '<span class="nhan">Quản trị</span>' : 'Thường') + '</td>' +
-          '<td>' + (a.qt ? '<span class="mo">luôn được</span>' : '<label style="cursor:pointer"><input type="checkbox" data-ktdk="' + esc(a.tk) + '"' + (a.ktdk ? ' checked' : '') + '> được chấm</label>') + '</td>' +
           '<td><button class="nho" data-mk="' + esc(a.tk) + '">Đổi mật khẩu</button> <button class="nho" data-ten="' + esc(a.tk) + '">Đổi tên</button> ' +
           (a.tk === API.toi() ? '' : '<button class="nho" data-qt="' + esc(a.tk) + '">' + (a.qt ? 'Bỏ quản trị' : 'Cho quản trị') + '</button> <button class="nho nguy" data-xoa="' + esc(a.tk) + '">Xoá</button>') + '</td></tr>';
       }).join('') + '</table></div></div>';
@@ -5536,20 +6025,162 @@ var QUET = (function () {
   }
 
   // ================= CÀI ĐẶT (chỉ quản trị) =================
+  var oFbMo = -1, dangKiemFB = false;
+  function soDep(n) { return Number(n || 0).toLocaleString('vi-VN'); }
+  function veKhungFirebase() {
+    if (!window.FBK) return '';
+    var ds = FBK.dsCauHinh(), cacHoatDong = ds.filter(FBK.hopLe), soOk = cacHoatDong.length;
+    var demNgay = FBK.layDemNgay ? FBK.layDemNgay() : {}, tkLuu = FBK.layThongKeLuu ? FBK.layThongKeLuu() : {};
+    var nut = ds.map(function (cfg, i) {
+      var ok = FBK.hopLe(cfg), che = cfg && cfg.apiKey && /[•*]/.test(cfg.apiKey);
+      var cham = ok ? '<span style="color:var(--xanh)">●</span> ' : che ? '<span style="color:var(--cam)" title="apiKey đang bị che (•••), hãy dán apiKey đầy đủ">⚠</span> ' : '<span class="mo">○</span> ';
+      var phu = cfg && cfg.projectId ? ' <small class="mo">(' + esc(cfg.projectId) + ')</small>' : '';
+      return '<button type="button" class="nho' + (oFbMo === i ? ' chon' : '') + '" data-fbo="' + i + '" style="' + (oFbMo === i ? 'border-color:var(--vang2);font-weight:800' : '') + '">' +
+        cham + 'Cấu hình Firebase API key ' + (i + 1) + phu + '</button>';
+    }).join('');
+    var oDang = oFbMo >= 0 ? ds[oFbMo] : null;
+    var chuoi = oDang ? 'const firebaseConfig = ' + JSON.stringify(oDang, null, 2) + ';' : '';
+    var bang = oFbMo < 0 ? '' :
+      '<div id="fbHop" style="margin-top:12px;padding:12px 14px;border:1.5px solid var(--vien);border-radius:12px">' +
+      '<div class="hang" style="margin-bottom:8px"><b>Cấu hình Firebase API key ' + (oFbMo + 1) + '</b>' +
+      (oDang && /[•*]/.test(oDang.apiKey || '') ? '<span class="nhan do">apiKey đang bị ẩn (•••) – hãy mở Firebase Console chép lại apiKey đầy đủ</span>' :
+        FBK.hopLe(oDang) ? '<span class="nhan" style="color:var(--xanh)">✓ Sẵn sàng (' + esc(oDang.projectId) + ')</span>' : '<span class="mo">Chưa có cấu hình</span>') +
+      '<button type="button" class="nho" id="fbAn" style="margin-left:auto">Ẩn khung ✕</button></div>' +
+      '<textarea id="fbTxt" rows="8" spellcheck="false" placeholder="Dán đoạn const firebaseConfig = { apiKey: &quot;...&quot;, projectId: &quot;...&quot;, ... }; hoặc JSON vào đây…" style="width:100%;font:12.5px/1.45 Consolas,monospace">' + esc(chuoi) + '</textarea>' +
+      '<div class="hang" style="margin-top:8px"><button type="button" class="vang nho" id="fbLuu">Lưu cấu hình ' + (oFbMo + 1) + '</button>' +
+      (oDang ? '<button type="button" class="nguy nho" id="fbXoa">Xoá ô này</button>' : '') +
+      '<span class="mo" style="font-size:12px">Dán nguyên khối <code>const firebaseConfig = { ... };</code> hoặc JSON đều được</span></div></div>';
+
+    // Bảng tổng hợp hạn mức & dung lượng lưu trữ
+    var tongDoc = 0, tongGhi = 0, tongXoa = 0, tongKy = 0, tongBai = 0, tongMB = 0, coTK = false;
+    var dongDuAn = cacHoatDong.map(function (cfg, idx) {
+      var pid = cfg.projectId, dm = demNgay[pid] || { doc: 0, ghi: 0, xoa: 0 }, tk = tkLuu[pid];
+      tongDoc += dm.doc || 0; tongGhi += dm.ghi || 0; tongXoa += dm.xoa || 0;
+      if (tk && tk.ok) { coTK = true; tongKy += tk.soKy; tongBai += tk.soBai; tongMB += tk.mb; }
+      var urlUsage = 'https://console.firebase.google.com/project/' + encodeURIComponent(pid) + '/firestore/databases/-default-/usage';
+      var ttLuu = !tk ? '<span class="mo">Bấm “Kiểm tra dung lượng” để đo</span>' :
+        !tk.ok ? '<span style="color:var(--do)">⚠ ' + esc(tk.loi) + '</span>' :
+        '<b>' + tk.soKy + '</b> kỳ thi · <b>' + soDep(tk.soBai) + '</b> bài (' + soDep(tk.soAnh) + ' ảnh) · ~<b>' + tk.mb.toFixed(1).replace('.', ',') + '</b> / 1.024 MB' +
+        (tk.chuaDem ? ' <span class="mo">(chưa đếm ' + tk.chuaDem + ' kỳ thi chưa mở trên máy này – không đọc để tiết kiệm lượt)</span>' : '');
+      return '<tr><td><b>Key ' + (ds.indexOf(cfg) + 1) + '</b> · <code>' + esc(pid) + '</code></td>' +
+        '<td class="p"><b>' + soDep(dm.doc) + '</b> <span class="mo">/ 50.000</span></td>' +
+        '<td class="p"><b>' + soDep(dm.ghi) + '</b> <span class="mo">/ 20.000</span></td>' +
+        '<td class="p"><b>' + soDep(dm.xoa) + '</b> <span class="mo">/ 20.000</span></td>' +
+        '<td>' + ttLuu + '</td>' +
+        '<td><a href="' + urlUsage + '" target="_blank" rel="noopener" style="font-size:12.5px">Xem trên Firebase ↗</a></td></tr>';
+    }).join('');
+
+    var bangHanMuc = '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--vien)">' +
+      '<div class="hang" style="margin-bottom:10px"><b style="font-size:14px">Hạn mức miễn phí &amp; Dung lượng đang dùng (' + soOk + ' dự án đang bật)</b>' +
+      '<button type="button" class="nho vang" id="fbKiemTra"' + (dangKiemFB ? ' disabled' : '') + ' style="margin-left:auto">' +
+      (dangKiemFB ? '⏳ Đang kiểm tra các dự án…' : '⟳ Kiểm tra dung lượng &amp; số bài trên các dự án') + '</button></div>' +
+      '<div class="o2" style="margin-bottom:10px;gap:18px">' +
+      '<div class="so"><small>Tổng lượt ĐỌC / ngày</small><b class="v">' + soDep(soOk * 50000) + '</b><small class="mo">Máy này hôm nay: ' + soDep(tongDoc) + '</small></div>' +
+      '<div class="so"><small>Tổng lượt GHI / ngày</small><b class="v">' + soDep(soOk * 20000) + '</b><small class="mo">Máy này hôm nay: ' + soDep(tongGhi) + ' (~' + soDep(soOk * 10000) + ' bài/ngày)</small></div>' +
+      '<div class="so"><small>Tổng lượt XOÁ / ngày</small><b>' + soDep(soOk * 20000) + '</b><small class="mo">Máy này hôm nay: ' + soDep(tongXoa) + '</small></div>' +
+      '<div class="so"><small>Tổng LƯU TRỮ miễn phí</small><b class="v">' + soOk + ' GB</b><small class="mo">' + (coTK ? 'Đang dùng ~' + tongMB.toFixed(1).replace('.', ',') + ' MB (' + tongKy + ' kỳ thi, ' + soDep(tongBai) + ' bài)' : 'Chứa được ~' + soDep(soOk * 9500) + ' bài kèm ảnh') + '</small></div>' +
+      '</div>' +
+      (dongDuAn ? '<div style="overflow:auto"><table class="ke" style="font-size:13px"><tr><th>Dự án</th><th class="p">Lượt đọc hôm nay (máy này)</th><th class="p">Lượt ghi hôm nay (máy này)</th><th class="p">Lượt xoá hôm nay</th><th>Đang lưu trên dự án</th><th>Biểu đồ Google</th></tr>' + dongDuAn + '</table></div>' : '') +
+      '</div>';
+
+    // Khoá bí mật của các dự án GV (thẻ ký tên): dán nội dung tệp .json tải từ Firebase Console → Apps Script cất vào Script Properties.
+    // Khoá không lưu trên máy này và không hiện lại sau khi lưu.
+    var khungKhoa = '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--vien)">' +
+      '<b style="font-size:14px">Khoá bí mật của dự án (thẻ ký tên)</b>' +
+      '<p class="mo" style="margin:4px 0 8px">Firebase Console → Project settings → Service accounts → Generate new private key → mở tệp .json bằng Notepad, chép hết rồi dán vào đây và bấm Lưu. ' +
+      'Khoá chỉ được cất trong Apps Script, không lưu trên máy này. Lưu xong hãy xoá tệp .json.</p>' +
+      '<textarea id="fbKhoa" rows="4" spellcheck="false" autocomplete="off" placeholder="Dán nội dung tệp khoá .json vào đây…" style="width:100%;font:12px/1.4 Consolas,monospace"></textarea>' +
+      '<div class="hang" style="margin-top:8px"><button type="button" class="vang nho" id="fbLuuKhoa">Lưu khoá</button>' +
+      '<button type="button" class="nho" id="fbXemKhoa">Dự án nào đã có khoá?</button><span class="mo" id="fbKhoaTT" style="font-size:12.5px"></span></div></div>';
+
+    return '<div class="the" id="theFB"><h3>Dự án Firebase chia tải (' + soOk + '/10 dự án sẵn sàng)</h3>' +
+      '<p class="mo" style="margin-top:0">Khi bấm tạo kỳ thi mới, NKZip tự động chọn ngẫu nhiên 1 dự án khả dụng để lưu đề và bài chấm. Bấm vào từng nút bên dưới để mở / ẩn bảng dán cấu hình.</p>' +
+      '<div class="hang" style="gap:6px">' + nut + '</div>' + bang + bangHanMuc + khungKhoa + '</div>';
+  }
+  function ganSuKienFirebase() {
+    var the = $('#theFB'); if (!the || !window.FBK) return;
+    $$('[data-fbo]', the).forEach(function (b) {
+      b.onclick = function () {
+        var i = +b.getAttribute('data-fbo');
+        oFbMo = oFbMo === i ? -1 : i;
+        the.outerHTML = veKhungFirebase();
+        ganSuKienFirebase();
+      };
+    });
+    var baoKhoa = function (s) { if ($('#fbKhoaTT')) $('#fbKhoaTT').textContent = s; };
+    var dsKhoa = function (r) { return r.coKhoa && r.coKhoa.length ? 'Đã có khoá: ' + r.coKhoa.join(', ') : 'Chưa dự án nào có khoá'; };
+    if ($('#fbLuuKhoa')) $('#fbLuuKhoa').onclick = function () {
+      var t = $('#fbKhoa').value.trim();
+      if (!t) return baoKhoa('Chưa dán nội dung tệp khoá.');
+      baoKhoa('Đang lưu…');
+      API.goiGas('luuKhoaFB', { khoa: t }).then(function (r) {
+        $('#fbKhoa').value = '';
+        baoKhoa('✓ Đã lưu khoá cho ' + r.duAn + '. ' + dsKhoa(r));
+      }).catch(function (e) { baoKhoa('⚠ ' + (e && e.message || e)); });
+    };
+    if ($('#fbXemKhoa')) $('#fbXemKhoa').onclick = function () {
+      baoKhoa('Đang hỏi Apps Script…');
+      API.goiGas('dsKhoaFB', {}).then(function (r) { baoKhoa(dsKhoa(r)); }).catch(function (e) { baoKhoa('⚠ ' + (e && e.message || e)); });
+    };
+    if ($('#fbKiemTra')) $('#fbKiemTra').onclick = function () {
+      if (dangKiemFB) return;
+      dangKiemFB = true;
+      the.outerHTML = veKhungFirebase();
+      ganSuKienFirebase();
+      FBK.kiemTraDungLuong().then(function () {
+        dangKiemFB = false;
+        var t2 = $('#theFB');
+        if (t2) { t2.outerHTML = veKhungFirebase(); ganSuKienFirebase(); }
+        bao('Đã cập nhật số bài và dung lượng của các dự án Firebase');
+      }).catch(function (e) {
+        dangKiemFB = false;
+        var t2 = $('#theFB');
+        if (t2) { t2.outerHTML = veKhungFirebase(); ganSuKienFirebase(); }
+        loi(e);
+      });
+    };
+    var luuTatCa = function (ds, thongBao) {
+      var chuan = FBK.luuCauHinh(ds);
+      if (API.mayTinh()) API.gui({ action: 'ghiCauHinhFB', phien: API.phien(), fbConfigs: chuan }).catch(function () {});
+      if (!CUC_BO && API.coPhien()) API.goiGas('luuCauHinhFB', { fbConfigs: chuan }).catch(function () {});
+      bao(thongBao);
+      the.outerHTML = veKhungFirebase();
+      ganSuKienFirebase();
+    };
+    if ($('#fbAn')) $('#fbAn').onclick = function () { oFbMo = -1; the.outerHTML = veKhungFirebase(); ganSuKienFirebase(); };
+    if ($('#fbLuu')) $('#fbLuu').onclick = function () {
+      var txt = $('#fbTxt').value.trim(), ds = FBK.dsCauHinh();
+      if (!txt) { ds[oFbMo] = null; return luuTatCa(ds, 'Đã xoá cấu hình ô ' + (oFbMo + 1)); }
+      var cfg = FBK.phanTich(txt);
+      if (!cfg || !cfg.projectId || !cfg.apiKey) return bao('Không đọc được apiKey và projectId. Hãy dán đúng khối firebaseConfig.', 5000);
+      ds[oFbMo] = cfg;
+      luuTatCa(ds, FBK.hopLe(cfg) ? 'Đã lưu cấu hình Firebase ' + (oFbMo + 1) + ' (' + cfg.projectId + ')' : 'Đã lưu (lưu ý: apiKey của ' + cfg.projectId + ' vẫn đang bị che •••)');
+    };
+    if ($('#fbXoa')) $('#fbXoa').onclick = function () {
+      if (!confirm('Xoá cấu hình Firebase ở ô ' + (oFbMo + 1) + '?')) return;
+      var ds = FBK.dsCauHinh(); ds[oFbMo] = null;
+      luuTatCa(ds, 'Đã xoá cấu hình ô ' + (oFbMo + 1));
+    };
+  }
   function veCaiDat() {
     var c = $('#chinh');
-    if (!QT && !CUC_BO) { c.innerHTML = '<h2>Cài đặt</h2><p class="mo">Cần đăng nhập bằng tài khoản quản trị.</p>'; return; }
+    if (!QT && !CUC_BO) { c.innerHTML = '<h2>Cài đặt</h2><p class="mo">Chỉ tài khoản quản trị viên mới truy cập được mục Cài đặt.</p>'; return; }
     var phan = function (url) {
-      return '<div class="the"><h3>Đường dẫn cho điện thoại</h3>' + (url ? '<p>Mở bằng <b>Safari / Chrome</b> trên điện thoại, đăng nhập, rồi “Thêm vào Màn hình chính”. Một đường dẫn dùng cho mọi bài thi và mọi tài khoản.</p><p><code style="word-break:break-all;font-size:15px">' + esc(url) + '</code></p><button id="cChep" class="vang">Chép đường dẫn</button>' : '<p class="mo">Cần kết nối Apps Script trước.</p>') + '</div>' +
+      return veKhungFirebase() +
+        '<div class="the"><h3>Đường dẫn cho điện thoại</h3>' + (url ? '<p>Mở bằng <b>Safari / Chrome</b> trên điện thoại, đăng nhập, rồi “Thêm vào Màn hình chính”. Một đường dẫn dùng cho mọi bài thi và mọi tài khoản.</p><p><code style="word-break:break-all;font-size:15px">' + esc(url) + '</code></p><button id="cChep" class="vang">Chép đường dẫn</button>' : '<p class="mo">Cần kết nối Apps Script trước.</p>') + '</div>' +
         '<div class="the"><h3>Phiếu trả lời</h3><p style="margin:0">' + (API.mayTinh() ? '<a href="/phieu.pdf" target="_blank">Mở phiếu NKZip (PDF, A4)</a> để in. ' : 'Phiếu NKZip (PDF) có trong ứng dụng NKZip trên máy tính, mục Cài đặt. ') + 'In đúng khổ A4, tỉ lệ 100%, mực đen rõ.</p></div>';
     };
-    var ganChep = function (url) { if ($('#cChep')) $('#cChep').onclick = function () { navigator.clipboard.writeText(url).then(function () { bao('Đã chép đường dẫn'); }); }; };
+    var ganChep = function (url) {
+      ganSuKienFirebase();
+      if ($('#cChep')) $('#cChep').onclick = function () { navigator.clipboard.writeText(url).then(function () { bao('Đã chép đường dẫn'); }); };
+    };
     if (!API.mayTinh()) { var u0 = window.NK_URL ? location.href.split('#')[0].split('?')[0] : URL_APP; c.innerHTML = '<h2>Cài đặt</h2>' + phan(u0); ganChep(u0); return; }
     API.goi('docCauHinh').then(function (r) {
+      if (r.fbConfigs && window.FBK) FBK.napCauHinhTuMayChu(r.fbConfigs);
       var url = r.gasUrl || '', diaChi = r.webUrl || url;
       c.innerHTML = '<h2>Cài đặt</h2>' +
-        '<div class="the"><h3>Kết nối Apps Script (Google Drive + Sheet)</h3>' +
-        '<p class="mo" style="margin-top:0">' + (url ? '<span style="color:var(--xanh)">●</span> Đang dùng dữ liệu trên Google. Điện thoại và máy tính dùng chung.' : '<span style="color:var(--cam)">●</span> Chưa kết nối: dữ liệu đang lưu tạm trên máy này (chế độ thử).') + '</p>' +
+        '<div class="the"><h3>Kết nối máy chủ tài khoản &amp; danh sách lớp</h3>' +
+        '<p class="mo" style="margin-top:0">' + (url ? '<span style="color:var(--xanh)">●</span> Đang kết nối máy chủ. Điện thoại và máy tính dùng chung tài khoản và danh sách lớp.' : '<span style="color:var(--cam)">●</span> Chưa kết nối: dữ liệu đang lưu tạm trên máy này (chế độ thử).') + '</p>' +
         '<div class="o"><label>Đường dẫn ứng dụng web (…/exec)</label><input id="cUrl" value="' + esc(url) + '" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%"></div>' +
         '<div class="hang" style="margin-top:12px"><button class="vang" id="cLuu">Kiểm tra &amp; lưu</button>' + (url ? '<button class="nguy" id="cBo">Ngắt kết nối (về chế độ thử)</button>' : '') + '</div></div>';
       c.innerHTML = c.innerHTML.replace('<h2>Cài đặt</h2>', '<h2>Cài đặt</h2>' + (url ? phan(diaChi) : ''));
@@ -5560,7 +6191,7 @@ var QUET = (function () {
         API.goi('ghiCauHinh', { gasUrl: u }).then(function () { bao(u ? 'Đã kết nối. Hãy đăng nhập.' : 'Đã chuyển về chế độ thử.'); API.dangXuat(); location.reload(); }).catch(loi);
       };
       $('#cLuu').onclick = function () { var u = $('#cUrl').value.trim(); if (u === url) return bao('Không có gì thay đổi.'); doi(u); };
-      if ($('#cBo')) $('#cBo').onclick = function () { if (confirm('Ngắt kết nối Apps Script? Dữ liệu trên Google vẫn còn nguyên.')) doi(''); };
+      if ($('#cBo')) $('#cBo').onclick = function () { if (confirm('Ngắt kết nối máy chủ?')) doi(''); };
     }).catch(loi);
   }
 
