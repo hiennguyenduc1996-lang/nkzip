@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.8.4';</script>
+<script>window.NK_BAN = '1.8.5';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -212,10 +212,10 @@
   table.bd td.lop { background:#dce6f1; min-width:80px; } table.bd td.sb { background:#fde4d6; } table.bd td.ss { background:#ff66ff; }
   table.bd td.m10.co { background:#ffff00; color:#0070c0; }
   table.bd td.yco { background:#ffc7ce; color:#c00000; }
-  table.bd td.tb { background:#ffffcc; font-weight:400; }
+  table.bd td.tb { background:#ffffcc; font-weight:700; }
   table.bd tr.nh td { background:#9bc2e6; } table.bd tr.nh td.nhTen, table.bd tr.nh td.m10 { background:#ffff00; } table.bd tr.nh td.m10 { color:#ff0000; }
-  table.bd tr.nh td.tb { font-weight:400; }
-  table.bd tr.tat td { background:#d9e1f2; font-weight:400; } table.bd tr.tat td.lop, table.bd tr.tat td.sb, table.bd tr.tat td.ss { font-weight:700; }
+  table.bd tr.nh td.tb { font-weight:700; }
+  table.bd tr.tat td { background:#d9e1f2; font-weight:400; } table.bd tr.tat td.lop, table.bd tr.tat td.sb, table.bd tr.tat td.ss, table.bd tr.tat td.tb { font-weight:700; }
   table.bd tr.tat td.m10 { background:#00b0f0; color:#000; font-weight:700; }
   /* trang in KTDK: đúng khổ A4 ngang, bảng giãn hết bề ngang (cỡ chữ, chiều cao hàng đặt theo từng trang) */
   .ctGiay.trangKT { padding:0; border-radius:0; min-width:0; overflow:hidden; box-sizing:border-box; }
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.4</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.5</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.4 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.8.4 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.8.5 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -4267,9 +4267,17 @@ var QUET = (function () {
       return String(x || '').localeCompare(String(y || ''), 'vi', { numeric: true });
     });
     if (sapXep.nguoc) ds.reverse();
-    if (c === 'sbd') {                                 // sắp theo SBD: các bài trùng SBD đưa lên đầu (vẫn theo thứ tự SBD) để dễ thấy
-      var so = demSbd(), trung = function (r) { return /^\d+$/.test(r.sbd) && so[r.sbd] > 1; };
-      ds = ds.filter(trung).concat(ds.filter(function (r) { return !trung(r); }));
+    if (c === 'sbd') {
+      // sắp theo SBD: trùng SBD lên đầu, rồi các bài có nhãn đỏ (SBD tô thiếu / tô 2 ô / không có trong lớp, chưa rõ mã đề,
+      // tạm chấm mã, câu tô 2 ô), rồi các bài còn lại – mỗi nhóm vẫn theo thứ tự SBD
+      var so = demSbd(), trung = function (r) { return /^\d+$/.test(r.sbd) && so[r.sbd] > 1; }, kyD = ky();
+      var nhanDo = function (r) {
+        if (!r.ten || r.loiMade || r.maTam) return true;
+        return !!(kyD && CHAM.kiemTra({ sbd: r.sbd, p1: r.p1, p2: r.p2, p3: r.p3 }, kyD, r.made).kep.length);
+      };
+      var nhom1 = [], nhom2 = [], nhom3 = [];
+      ds.forEach(function (r) { (trung(r) ? nhom1 : nhanDo(r) ? nhom2 : nhom3).push(r); });
+      ds = nhom1.concat(nhom2, nhom3);
     }
     return ds;
   }
@@ -5085,7 +5093,7 @@ var QUET = (function () {
     var nhomCot = function (c) { return c.loai !== 'cau' ? 'd' : c.phan === 3 ? '3' : '1'; }, can = { '1': 0, d: maxR(['0,25', '1,5']), '3': 0 }, soN = { '1': 0, d: 0, '3': 0 };
     cot.forEach(function (c, j) {
       var g = nhomCot(c); soN[g]++;
-      if (c.loai === 'cau') can[g] = Math.max(can[g], maxR([c.nhan, String(kq.length)].concat(kq.map(function (x) { var o = x.t[j]; return o && !o.dung ? o.ghi : ''; }))));
+      if (c.loai === 'cau') can[g] = Math.max(can[g], maxR([c.nhan, String(kq.length), c.da || ''].concat(kq.map(function (x) { var o = x.t[j]; return o && !o.dung ? o.ghi : ''; }))));
     });
     var dem = 4, fs = 13;                             // dem: khoảng đệm + viền mỗi ô (px)
     var canTong = function (f) {
@@ -5105,12 +5113,13 @@ var QUET = (function () {
     var h = '<div class="ctGiay trangKT' + (mau ? '' : ' bw') + '" style="width:' + KHO_W + 'px;height:' + KHO_H + 'px;font-size:' + fs.toFixed(1) + 'px">' +
       '<div class="ctDau"><span>LỚP <b>' + esc(lop) + '</b></span><h3>' + esc(tieuDe) + '</h3></div>';
     var r1 = '<tr><th rowspan="3">STT</th><th rowspan="3">SBD</th><th rowspan="3">MÃ<br>ĐỀ</th><th rowspan="3" colspan="2">HỌ VÀ TÊN</th><th rowspan="2">ĐIỂM</th>' +
-      (chiTN ? '' : '<th rowspan="3">PHẦN<br>1</th><th rowspan="3">PHẦN<br>2</th><th rowspan="3">PHẦN<br>3</th>'), r2 = '<tr>', r3 = '<tr><th class="daTD">' + (chiTN ? 'ĐÁP ÁN' : '% Câu sai') + '</th>';
+      (chiTN ? '' : '<th rowspan="3">PHẦN<br>1</th><th rowspan="3">PHẦN<br>2</th><th rowspan="3">PHẦN<br>3</th>'), r2 = '<tr>', r3 = '<tr><th class="daTD">ĐÁP ÁN</th>';
+    // dòng thứ ba: đáp án của mã đề đang in (In bảng theo mã đề) hoặc của mã đề gốc (In bảng KTDK) – thay cho % câu sai
     cot.forEach(function (c, j) {
       if (c.loai === 'cau') {
         var n = soTinh(j), s = soSai(j), p = n ? Math.round(s * 100 / n) : 0;
         r1 += '<th class="so">' + esc(c.nhan) + '</th>'; r2 += '<th class="dem' + (p >= 15 ? ' nhieu' : '') + '">' + s + '</th>';
-        r3 += chiTN ? '<th class="daCau">' + esc(c.da) + '</th>' : '<th class="tl">' + p + '</th>';
+        r3 += '<th class="daCau">' + esc(c.da || '') + '</th>';
       } else r1 += '<th rowspan="3" class="cauD"><small>' + (c.loai === 'diemCau' ? 'CÂU' : 'PHẦN') + '</small><b>' + (c.loai === 'diemCau' ? c.cau + 1 : 3) + '</b></th>';
     });
     h += '<table class="ct tn">' + cg + '<thead>' + r1 + '</tr>' + r2 + '</tr>' + r3 + '</tr></thead><tbody style="font-size:' + fsH.toFixed(1) + 'px">';
@@ -5550,16 +5559,19 @@ var QUET = (function () {
           }
         }
         if (g) cua.push({ phan: 3, i: i, nhan: 'Phần III câu ' + (i + 1), doc: d || '(trống)', da: a3[i].replace(/\|/g, ' / '), goiY: g.goiY, lyDo: g.lyDo, chac: g.chac });
+        // cột tô 2 ô (*) mà không có gợi ý sửa: vẫn đưa vào để mở ảnh xem (học sinh tô 2 ô / tẩy chưa sạch / phiếu cong)
+        else if (d.indexOf('*') >= 0) cua.push({ phan: 3, i: i, nhan: 'Phần III câu ' + (i + 1), doc: d, da: a3[i].replace(/\|/g, ' / '), goiY: '', lyDo: 'Có cột máy thấy tô 2 ô (*) – mở ảnh xem rồi gõ lại giá trị đúng', chac: false });
       }
       for (i = 0; i < a1.length; i++) {
         var c1 = (r.p1 || '')[i] || '-';
-        if (a1[i] && (c1 === '-' || c1 === '*') && ng.indexOf('I.' + (i + 1)) >= 0)
-          cua.push({ phan: 1, i: i, nhan: 'Phần I câu ' + (i + 1), doc: c1 === '*' ? 'tô 2 ô' : '(trống)', da: a1[i], goiY: '', lyDo: 'Máy đọc ' + (c1 === '*' ? 'tô 2 ô' : 'bỏ trống') + ' nhưng ô này máy chưa chắc – mở ảnh xem', chac: false });
+        // tô 2 ô: luôn đưa vào; bỏ trống: chỉ khi máy chưa chắc (có vết tô mờ)
+        if (a1[i] && (c1 === '*' || (c1 === '-' && ng.indexOf('I.' + (i + 1)) >= 0)))
+          cua.push({ phan: 1, i: i, nhan: 'Phần I câu ' + (i + 1), doc: c1 === '*' ? 'tô 2 ô' : '(trống)', da: a1[i], goiY: '', lyDo: c1 === '*' ? 'Máy thấy tô 2 ô – mở ảnh xem học sinh chọn ô nào' : 'Máy đọc bỏ trống nhưng ô này máy chưa chắc – mở ảnh xem', chac: false });
       }
       for (i = 0; i < a2.length; i++) {
         var c2 = (r.p2 || '')[i] || '-', ma = 'II.' + ((i >> 2) + 1) + 'abcd'[i & 3];
-        if (a2[i] && (c2 === '-' || c2 === '*') && ng.indexOf(ma) >= 0)
-          cua.push({ phan: 2, i: i, nhan: 'Phần II câu ' + ((i >> 2) + 1) + 'abcd'[i & 3], doc: c2 === '*' ? 'tô 2 ô' : '(trống)', da: a2[i].replace(/D/g, 'Đ'), goiY: '', lyDo: 'Máy đọc ' + (c2 === '*' ? 'tô 2 ô' : 'bỏ trống') + ' nhưng ô này máy chưa chắc – mở ảnh xem', chac: false });
+        if (a2[i] && (c2 === '*' || (c2 === '-' && ng.indexOf(ma) >= 0)))
+          cua.push({ phan: 2, i: i, nhan: 'Phần II câu ' + ((i >> 2) + 1) + 'abcd'[i & 3], doc: c2 === '*' ? 'tô 2 ô' : '(trống)', da: a2[i].replace(/D/g, 'Đ'), goiY: '', lyDo: c2 === '*' ? 'Máy thấy tô 2 ô (cả Đ và S) – mở ảnh xem học sinh chọn ô nào' : 'Máy đọc bỏ trống nhưng ô này máy chưa chắc – mở ảnh xem', chac: false });
       }
       soBai++;
       if (cua.length) ra.push({ r: r, cua: cua });
@@ -5790,7 +5802,7 @@ var QUET = (function () {
     var h = '<div class="the"><div class="doan tkChe">' + CHE_TK.map(function (c) {
       return '<button data-che="' + c[0] + '"' + (c[0] === cheTK ? ' class="chon"' : '') + '>' + c[1] + (c[0] === 'gt' && !gtTK ? '' : ' <span class="soTK' + (dem[c[0]] ? '' : ' khong') + '">' + dem[c[0]] + '</span>') + '</button>';
     }).join('') + '</div><div class="hang" style="align-items:center;margin-top:10px">';
-    if (cheTK === 'nghi') h += '<span class="mo" style="font-size:13px;flex:1;min-width:260px">Chỗ có lí do để nghi <b>máy</b> đọc sai: Phần III máy đọc dư 1 kí tự hoặc thấy 2 ô trong một cột so với đáp án; câu máy “chưa chắc” mà kết quả là bỏ trống / tô 2 ô.</span>' +
+    if (cheTK === 'nghi') h += '<span class="mo" style="font-size:13px;flex:1;min-width:260px">Chỗ cần mở ảnh xem lại: mọi câu máy thấy <b>tô 2 ô</b> (kể cả cột * ở Phần III); Phần III máy đọc dư 1 kí tự; câu máy “chưa chắc” mà kết quả là bỏ trống.</span>' +
       (soChac ? '<button id="tkApTat">✓ Cập nhật tất cả gợi ý chắc chắn (' + soChac + ')</button>' : '');
     if (cheTK === 'ma') h += '<span class="mo" style="font-size:13px">Học sinh không tô / tô sai mã đề: app tạm chấm theo mã nhỏ nhất để có điểm. Chọn đúng mã đề rồi Lưu – bài tự rời khỏi danh sách.</span>';
     if (cheTK === 'thieu') h += '<span class="mo" style="font-size:13px">Bài chưa gán được học sinh: SBD tô thiếu, tô 2 ô trong một cột hoặc không có trong danh sách lớp. Gợi ý là học sinh chưa có bài, khớp nhiều chữ số SBD nhất.</span>';
