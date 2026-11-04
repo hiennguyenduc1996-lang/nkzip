@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.8.5';</script>
+<script>window.NK_BAN = '1.8.6';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -455,7 +455,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.5</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.6</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -467,7 +467,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -496,7 +496,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.8.5 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.8.6 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -4850,12 +4850,13 @@ var QUET = (function () {
       '<span class="mo anDT" style="margin-left:auto">Ô tô màu = câu sai, ghi câu trả lời của học sinh · ô trống = đúng</span></div>' +
       '<div class="ctBoc" style="overflow:auto;max-height:75vh;margin-top:10px"><div class="ctGiay' + (mauCT ? '' : ' bw') + '"><div class="ctDau"><span>LỚP <b>' + esc(lop) + '</b></span><h3>' + esc(tieuDe) + '</h3></div>';
     var r1 = '<tr><th rowspan="3">STT</th><th rowspan="3">SBD</th><th rowspan="3">MÃ<br>ĐỀ</th><th rowspan="3" colspan="2">HỌ VÀ TÊN</th><th rowspan="2">ĐIỂM</th>' +
-      (chiTN ? '' : '<th rowspan="3">PHẦN<br>1</th><th rowspan="3">PHẦN<br>2</th><th rowspan="3">PHẦN<br>3</th>'), r2 = '<tr>', r3 = '<tr><th class="daTD">' + (chiTN ? 'ĐÁP ÁN' : '% Câu sai') + '</th>';
+      (chiTN ? '' : '<th rowspan="3">PHẦN<br>1</th><th rowspan="3">PHẦN<br>2</th><th rowspan="3">PHẦN<br>3</th>'), r2 = '<tr>', r3 = '<tr><th class="daTD">ĐÁP ÁN</th>';
+    // dòng thứ ba: đáp án của mã đề đang xem (thay cho % câu sai)
     cot.forEach(function (c) {
       if (c.loai === 'cau') {
         var p = tiLe(c);
         r1 += '<th class="so">' + esc(c.c.nhan) + '</th>'; r2 += '<th class="dem' + (p >= 15 ? ' nhieu' : '') + '">' + soSai(c) + '</th>';
-        r3 += chiTN ? '<th class="daCau">' + esc(c.c.da) + '</th>' : '<th class="tl">' + p + '</th>';
+        r3 += '<th class="daCau">' + esc(c.c.da) + '</th>';
       } else r1 += '<th rowspan="3" class="cauD"><small>' + (c.loai === 'diemCau' ? 'CÂU' : 'PHẦN') + '</small><b>' + (c.loai === 'diemCau' ? c.cau + 1 : 3) + '</b></th>';
     });
     h += '<table class="ct tn"><thead>' + r1 + '</tr>' + r2 + '</tr>' + r3 + '</tr></thead><tbody>';
@@ -4890,7 +4891,7 @@ var QUET = (function () {
       var rong0 = function (n) { var a = []; while (a.length < n - 1) a.push(''); return a; };
       var ra = [['LỚP ' + lop, '', '', tieuDe], trai.concat(cot.map(function (c) { return c.loai === 'cau' ? c.c.nhan : c.loai === 'diemCau' ? 'Câu ' + (c.cau + 1) : 'Phần 3'; })),
         rong0(nTrai).concat(['Số bài sai']).concat(cot.map(function (c) { return c.loai === 'cau' ? soSai(c) : ''; })),
-        rong0(nTrai).concat([chiTN ? 'Đáp án' : '% câu sai']).concat(cot.map(function (c) { return c.loai !== 'cau' ? '' : chiTN ? c.c.da : tiLe(c); }))];
+        rong0(nTrai).concat(['Đáp án']).concat(cot.map(function (c) { return c.loai !== 'cau' ? '' : c.c.da; }))];
       bai.forEach(function (r, i) {
         var t = tachTen(r.ten), hg = [i + 1, r.sbd, r.made, t[0], t[1], r.diem].concat(chiTN ? [] : [r.d1, r.d2, r.d3]);
         cot.forEach(function (c) { hg.push(c.loai === 'cau' ? (c.c.dung(r) ? '' : oSai(c.c, r)) : c.loai === 'diemCau' ? diemCau2(k, r, c.cau) : r.d3); });
