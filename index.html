@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.8.7';</script>
+<script>window.NK_BAN = '1.8.8';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -431,7 +431,7 @@
     body.chiTiet #ben { display:none; } body.chiTiet #chinh, #than.mot #chinh { display:block; }
     .muc { padding:14px 15px; } .muc b { font-size:16px; } .muc .xoa { display:block; }
     #duoi { display:flex; border-top:1.5px solid var(--vien); background:#0a1638; }
-    #duoi button { flex:1; min-width:0; padding-left:2px; padding-right:2px; border:0; border-radius:0; background:none; color:var(--mo); font-size:11.5px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+    #duoi button { flex:1; border:0; border-radius:0; background:none; color:var(--mo); font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
     #duoi button .ic { width:24px; height:24px; }
     #duoi button.chon { color:var(--vang); }
     h2 { font-size:21px; }
@@ -458,7 +458,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.7</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.8</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -470,7 +470,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.7 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.8 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -499,7 +499,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.8.7 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.8.8 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -2056,21 +2056,29 @@ var FBK = (function () {
       var p = mapKy[k];
       if (dem[p] != null) dem[p]++;
     });
+    // Ưu tiên dự án NHẬN ÍT BÀI THI NHẤT TRONG 24 GIỜ QUA (rồi mới tới ít bài nhất tổng cộng): các bài tạo cùng ngày (vd. 5 môn KTDK)
+    // nằm ở các dự án khác nhau → ngày chấm mỗi dự án chỉ gánh một môn. (Chỉ xét ít bài tổng cộng thì một dự án mới thêm, đang trống,
+    // sẽ nhận hết cả 5 môn và dễ hết hạn mức đọc ngày chấm.)
+    var bayGio = Date.now(), gan24 = (ls('nkzip_fb_gan24') || []).filter(function (x) { return x && bayGio - x.t < 86400000; });
+    var homNay = {};
+    ds.forEach(function (c) { homNay[c.projectId] = 0; });
+    gan24.forEach(function (x) { if (homNay[x.p] != null) homNay[x.p]++; });
     var rr = Number(ls('nkzip_fb_rr') || 0) || 0;
     var n = Math.max(1, Number(soLuong) || 1), kq = [];
     for (var k = 0; k < n; k++) {
-      var totNhat = -1, itNhat = 1e9;
+      var totNhat = -1, itHN = 1e9, itNhat = 1e9;
       for (var i = 0; i < ds.length; i++) {
         var idx = (rr + i) % ds.length;
         var pid = ds[idx].projectId;
-        if (dem[pid] < itNhat) { itNhat = dem[pid]; totNhat = idx; }
+        if (homNay[pid] < itHN || (homNay[pid] === itHN && dem[pid] < itNhat)) { itHN = homNay[pid]; itNhat = dem[pid]; totNhat = idx; }
       }
       var chon = ds[totNhat].projectId;
       kq.push(chon);
-      dem[chon]++;
+      dem[chon]++; homNay[chon]++; gan24.push({ p: chon, t: bayGio });
       rr = (totNhat + 1) % ds.length;
     }
     ls('nkzip_fb_rr', rr);
+    ls('nkzip_fb_gan24', gan24.slice(-200));
     return (!soLuong || soLuong <= 1) ? kq[0] : kq;
   }
 
@@ -2486,7 +2494,8 @@ var FBK = (function () {
             nhoDuAnKy(k.id, cfg.projectId);
             return k;
           });
-          ls('nkzip_kyds_' + cfg.projectId, ds);
+          // bản dự phòng (dùng khi dự án lỗi): bỏ bảng tóm tắt cho nhẹ bộ nhớ trình duyệt (~5 MB) – app đã lưu một bản đầy đủ riêng
+          ls('nkzip_kyds_' + cfg.projectId, ds.map(function (k) { if (!k.tt) return k; var m = Object.assign({}, k); delete m.tt; return m; }));
           delete DU_AN_LOI[cfg.projectId];
           DU_AN_OK[cfg.projectId] = 1;
           return ds;
@@ -2572,8 +2581,22 @@ var FBK = (function () {
           });
         case 'xoaKyThi': return xoaKy(y.id).then(function () { return { ok: true }; });
         case 'xoaNhieuKyThi':
-          return (y.ids || []).reduce(function (p, id) { return p.then(function () { return xoaKy(id); }); }, Promise.resolve())
-            .then(function () { return { ok: true, daXoa: (y.ids || []).length }; });
+          // Hạn mức xoá: 20.000 lượt / dự án / ngày. Xoá một bài thi N bài làm ≈ 2N + 1 lượt (bài làm + ảnh + bài thi).
+          // Mỗi dự án chỉ xoá tới ~18.000 lượt trong một lần bấm; phần còn lại để lần sau (sau giờ làm mới hạn mức).
+          // Firebase báo hết lượt giữa chừng: dừng dự án đó, không thử lại liên tục; bài thi chưa xoá xong vẫn còn, xoá lại sau được.
+          var TRAN_XOA = 18000, dungXoa = {}, hetDA = {}, daXoaDs = [], conLaiDs = [];
+          return (y.ids || []).reduce(function (p, id) {
+            return p.then(function () {
+              var pX = KY_DU_AN[id] || (ls('nkzip_ky_duan') || {})[id] || DU_AN_CU.projectId;
+              var can = 2 * (Number((y.uoc || {})[id]) || 50) + 1;
+              if (hetDA[pX] || (dungXoa[pX] || 0) + can > TRAN_XOA) { conLaiDs.push(id); return; }
+              dungXoa[pX] = (dungXoa[pX] || 0) + can;
+              return xoaKy(id).then(function () { daXoaDs.push(id); }, function (e) {
+                if (e && /resource-exhausted|quota/i.test(String(e.code || '') + ' ' + String(e.message || ''))) { hetDA[pX] = 1; conLaiDs.push(id); return; }
+                throw e;
+              });
+            });
+          }, Promise.resolve()).then(function () { return { ok: true, daXoa: daXoaDs.length, ids: daXoaDs, conLai: conLaiDs }; });
         case 'luuNhieuBai':
           return Promise.all((y.ds || []).map(function (b) {
             return luuMot(b.dl, b.anh).catch(function (e) {
@@ -3802,7 +3825,10 @@ var QUET = (function () {
     if (dem && !DL.kyThi.length && !DL.lop.length) { DL = dem; chonMacDinh(); veBen(); veChinh(); }
     var kem = laKTDK() ? '' : chon.ky || kyCuoi();     // KTDK Zip: kết quả đến từ theo dõi trực tiếp, không tải kèm để khỏi đọc hai lần
     return API.goi('taiDuLieu', kem ? { kemKQ: kem } : {}).then(function (r) {
+      if (!r.duAnLoi || !r.duAnLoi.length) lucTaiDL = Date.now();
+      var ttCu = {}; DL.kyThi.forEach(function (k) { if (k.tt) ttCu[k.id] = k.tt; });
       DL = { kyThi: r.kyThi || [], lop: r.lop || [] };
+      DL.kyThi.forEach(function (k) { if (!k.tt && ttCu[k.id] && r.duAnLoi && r.duAnLoi.length) k.tt = ttCu[k.id]; });   // dự án lỗi (dùng bản dự phòng không có tóm tắt): giữ bảng tóm tắt đã có
       if (r.duAnLoi && r.duAnLoi.length) bao('Chưa đọc được kho dữ liệu ' + r.duAnLoi.join(', ') + ' (hết hạn mức hoặc mất mạng) – đang hiện bài thi đã lưu trên máy, dữ liệu không mất. Hạn mức làm mới lúc ' + (FBK.gioLamMoi ? FBK.gioLamMoi() : '15:00') + '.', 9000);
       if (r.kemKQ) { datKQ(r.kemKQ, r.ketQua || []); if (r.v) KQV[r.kemKQ] = r.v; }
       if (r.quanTri !== undefined && !CUC_BO) {          // quyền + đường dẫn đi kèm luôn, không cần gọi riêng
@@ -3902,7 +3928,8 @@ var QUET = (function () {
 
   // ================= khung chung =================
   function cacTab() {
-    var t = [['ktdk', 'Tạo nhanh', 'sua'], ['ky', 'Bài thi', 'kythi'], ['lop', 'Lớp', 'lop'], ['hs', 'Học sinh', 'hocsinh'], ['tkt', 'Tổng kết', 'phantich']];
+    var t = [['ktdk', 'Tạo nhanh', 'sua'], ['ky', 'Bài thi', 'kythi'], ['lop', 'Lớp', 'lop'], ['hs', 'Học sinh', 'hocsinh']];
+    if (API.mayTinh() || !hep()) t.push(['tkt', 'Tổng kết', 'phantich']);      // Tổng kết: chỉ trên máy tính (điện thoại không cần)
     if (QT && !CUC_BO) t.push(['tk', 'Tài khoản', 'taikhoan']);
     if (QT || CUC_BO) t.push(['cd', 'Cài đặt', 'caidat']);
     return t;
@@ -3993,7 +4020,9 @@ var QUET = (function () {
   var DS_NGHE = {}, dangCham = false, anLau = false, henAn = 0;
   document.addEventListener('visibilitychange', function () {
     clearTimeout(henAn);
-    if (document.hidden) henAn = setTimeout(function () { anLau = true; huyTheoDoiKy(); }, 600000);
+    // NKZip.exe trên máy tính: thu nhỏ / bị che vẫn giữ theo dõi (chỉ tốn đúng số bài thay đổi – không bao giờ hơn việc đọc lại cả bài thi
+    // khi mở lại sau 30 phút). Điện thoại / trình duyệt: ẩn quá 10 phút thì ngắt như cũ.
+    if (document.hidden && !API.mayTinh()) henAn = setTimeout(function () { anLau = true; huyTheoDoiKy(); }, 600000);
     else if (anLau) { anLau = false; theoDoiKy(); }
   });
   function huyTheoDoiKy(idCuThe) {
@@ -4106,12 +4135,17 @@ var QUET = (function () {
     }
     else { veBen(); veChinh(); }
   }
-  var lucTaiLai = 0;
+  var lucTaiLai = 0, lucTaiDL = 0;
+  // Nút ⟳: danh sách bài thi chỉ đọc lại nếu lần đọc trước đã quá 2 phút (200 bài thi = 200 lượt mỗi lần);
+  // bài thi đang được theo dõi trực tiếp thì không đọc lại (đã tự cập nhật, đọc lại tốn cả bài thi: 1.000 em = 1.000 lượt)
   $('#nutTaiLai').onclick = function () {
     if (!window.API_GIA && Date.now() - lucTaiLai < 3000) return bao('Đã đồng bộ mới nhất');
     lucTaiLai = Date.now();
+    var k = ky(), n = k && DS_NGHE[k.id];
+    var canDL = window.API_GIA || Date.now() - lucTaiDL > 120000, canKQ = !(n && n.huy && n.kq);
+    if (!canDL && !canKQ) return bao('Đã đồng bộ mới nhất (bài thi đang tự cập nhật trực tiếp)');
     bao('Đang đồng bộ…', 20000);
-    taiDL().then(function () { return taiKQ(); }).then(function () { veBen(); veChinh(); bao('Đã đồng bộ'); });
+    (canDL ? taiDL() : Promise.resolve()).then(function () { return canKQ ? taiKQ() : null; }).then(function () { veBen(); veChinh(); bao('Đã đồng bộ'); });
   };
   $('#nutMoi').onclick = function () {
     if (tabBen === 'ky') {
@@ -4141,14 +4175,20 @@ var QUET = (function () {
     if (go === null) return;
     if (go.trim().toUpperCase() !== 'XOA') return bao('Chưa xoá: chữ xác nhận không đúng.', 4000);
     clearTimeout(henLuuT);
-    var ids = ds.map(function (k) { return k.id; });
+    var ids = ds.map(function (k) { return k.id; }), uoc = {};
+    // ước số bài làm của từng bài thi (để không vượt hạn mức xoá 20.000 lượt / dự án / ngày): bài đã tải / bảng tóm tắt, chưa rõ thì 50
+    ds.forEach(function (k) { var o = moTT(k); uoc[k.id] = KQC[k.id] ? KQC[k.id].length : o ? o.ds.length : 50; });
     bao('Đang xoá ' + ids.length + ' bài thi…', 120000);
-    API.goi('xoaNhieuKyThi', { ids: ids }).then(function (r) {
-      DL.kyThi = DL.kyThi.filter(function (k) { return ids.indexOf(k.id) < 0; });
-      ids.forEach(function (id) { huyTheoDoiKy(id); delete KQC[id]; ls('nkzip_kq_' + id, null); QUET.boKy(id); });
+    API.goi('xoaNhieuKyThi', { ids: ids, uoc: uoc }).then(function (r) {
+      var da = Array.isArray(r.ids) ? r.ids : ids;
+      DL.kyThi = DL.kyThi.filter(function (k) { return da.indexOf(k.id) < 0; });
+      da.forEach(function (id) { huyTheoDoiKy(id); delete KQC[id]; ls('nkzip_kq_' + id, null); QUET.boKy(id); });
       chon.ky = null; KQ = []; SUA = null; XEM = null; document.body.classList.remove('chiTiet');
       ls(khoaDem(), DL); veBen(); veChinh();
-      bao('Đã xoá ' + (r.daXoa != null ? r.daXoa : ids.length) + ' bài thi', 6000);
+      var con = (r.conLai || []).length;
+      if (con) alert('Đã xoá ' + da.length + ' bài thi. Còn ' + con + ' bài thi CHƯA xoá để không vượt hạn mức xoá trong ngày của Firebase (20.000 lượt mỗi dự án).\n\n' +
+        'Dữ liệu không hỏng. Hãy bấm “Xoá toàn bộ bài thi” lại sau ' + (window.FBK && FBK.gioLamMoi ? FBK.gioLamMoi() : '15:00') + ' (giờ hạn mức được cấp lại) để xoá nốt.');
+      else bao('Đã xoá ' + da.length + ' bài thi', 6000);
     }).catch(loi);
   }
   function xoaKy(id) {
@@ -6254,7 +6294,13 @@ var QUET = (function () {
       try { dsDuAn = window.FBK && FBK.chonDuAn ? FBK.chonDuAn(tao.length) : []; } catch (e) { return alert(e.message); }
       if (!Array.isArray(dsDuAn)) dsDuAn = [dsDuAn];
       tao.forEach(function (k, idx) { if (dsDuAn[idx]) k.duAn = dsDuAn[idx]; });
-      if (!confirm('Tạo ' + tao.length + ' bài thi:\n' + tao.map(function (k) { return '• ' + k.ten + ' (' + Object.keys(k.de).length + ' mã đề' + (k.duAn ? ' · ' + k.duAn : '') + ')'; }).join('\n') + '?')) return;
+      // nhiều môn buộc phải nằm chung một dự án (không đủ dự án dùng chung đang sẵn sàng): cảnh báo rõ trước khi tạo
+      var theoDA = {}; tao.forEach(function (k) { if (k.duAn) (theoDA[k.duAn] = theoDA[k.duAn] || []).push(k.ten); });
+      var chung = Object.keys(theoDA).filter(function (p) { return theoDA[p].length > 1; });
+      var canhBao = chung.length ? '\n\n⚠ CÁC MÔN NẰM CHUNG MỘT DỰ ÁN (không đủ dự án dùng chung đang sẵn sàng):\n' +
+        chung.map(function (p) { return '  ' + p + ': ' + theoDA[p].join(', '); }).join('\n') +
+        '\nNgày chấm, một dự án gánh nhiều môn dễ HẾT HẠN MỨC ĐỌC. Nên thêm / kiểm tra dự án dùng chung (Cài đặt → Firebase) rồi tạo lại.' : '';
+      if (!confirm('Tạo ' + tao.length + ' bài thi:\n' + tao.map(function (k) { return '• ' + k.ten + ' (' + Object.keys(k.de).length + ' mã đề' + (k.duAn ? ' · ' + k.duAn : '') + ')'; }).join('\n') + canhBao + '\n\nTạo?')) return;
       tao.forEach(function (k) { DL.kyThi.push(k); });
       ls(khoaDem(), DL);
       bao('Đang tạo ' + tao.length + ' bài thi…', 20000);
@@ -6391,16 +6437,24 @@ var QUET = (function () {
     if (TT_HEN[id] || dangCham) return;
     var k = DL.kyThi.filter(function (x) { return x.id === id; })[0];
     if (!k || !dsTT(k).length || giongTT(k)) return;      // không đổi / chưa có bài: 0 lượt
-    var cho = TT_LUC[id] ? Math.max(20000, TT_CHU_KY - (Date.now() - TT_LUC[id])) : 20000;
-    TT_HEN[id] = setTimeout(function () { delete TT_HEN[id]; ghiTomTat(id); }, cho);
+    var lan = lucTTCuoi(k), cho = lan ? Math.max(20000, TT_CHU_KY - (Date.now() - lan)) : 20000;
+    TT_HEN[id] = setTimeout(function () { delete TT_HEN[id]; ghiTomTat(id, true); }, cho);
+  }
+  // lần ghi bảng tóm tắt gần nhất của BẤT KỲ máy nào (giờ ghi nằm trong bảng, nhận qua theo dõi bài thi) hoặc của máy này:
+  // máy khác vừa ghi trong 5 phút thì máy này nhường, cả nhóm máy chỉ ghi khoảng 1 lần / 5 phút cho mỗi bài thi
+  function lucTTCuoi(k) {
+    var o = moTT(k), t = o && o.luc ? Date.parse(o.luc) || 0 : 0;
+    if (t > Date.now()) t = Date.now();                     // đồng hồ máy khác chạy nhanh: không nhường quá 5 phút
+    return Math.max(t, TT_LUC[k.id] || 0);
   }
   function xaTomTat() {
     Object.keys(TT_HEN).forEach(function (id) { if (!TT_LUC[id] || Date.now() - TT_LUC[id] >= 60000) ghiTomTat(id); });
   }
-  function ghiTomTat(id) {
+  function ghiTomTat(id, tuHen) {
     clearTimeout(TT_HEN[id]); delete TT_HEN[id];
     var k = DL.kyThi.filter(function (x) { return x.id === id; })[0];
     if (!k || !TT_MAYCHU[id] || dangCham) return Promise.resolve(false);
+    if (tuHen && Date.now() - lucTTCuoi(k) < TT_CHU_KY - 5000) { henTomTat(id); return Promise.resolve(false); }   // máy khác vừa ghi: hẹn lại
     var ds = dsTT(k);
     // không có bài nào: không ghi (cũng không xoá bảng cũ – phòng khi máy đọc thiếu); xoá hết bài làm thì bài thi thường cũng bị xoá
     if (!ds.length || giongTT(k)) return Promise.resolve(false);
