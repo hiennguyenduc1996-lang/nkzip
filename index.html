@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.9.1';</script>
+<script>window.NK_BAN = '1.9.2';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -371,6 +371,12 @@
   .chuyenDN { text-align:center; margin-top:14px; color:var(--mo); }
   .tacGia { margin-top:20px; padding-top:14px; border-top:1px solid var(--vien); font-size:12.5px; line-height:1.6; color:var(--mo); text-align:center; }
   .tacGia b { color:var(--chu); }
+  .oMk { position:relative; display:block; } .oMk input { padding-right:46px !important; }
+  .oMk .mat { position:absolute; right:4px; left:auto; top:50%; transform:translateY(-50%); width:38px !important; height:38px !important; min-width:0 !important;
+    margin:0 !important; padding:0 !important; border:0 !important; background:none !important; box-shadow:none !important;
+    color:var(--mo) !important; display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:8px; }
+  .oMk .mat:hover, .oMk .mat:focus-visible { color:var(--chu) !important; }
+  .oMk .mat svg { width:20px; height:20px; }
   #tenNg { cursor:pointer; } #tenNg:hover { color:var(--vang); }
   .soCho { display:inline-block; min-width:18px; padding:0 5px; margin-left:5px; border-radius:10px; background:var(--do); color:#fff; font-size:11px; line-height:18px; text-align:center; }
   #fMk input { width:100%; }
@@ -485,7 +491,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.1</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.2</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -498,7 +504,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.2 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -527,8 +533,8 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.9.1 <span class="banMoi"></span></div>
-  <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.9.2 <span class="banMoi"></span></div>
+  <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a><br>Thông tin &amp; tải NKZip: <a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
   <h3 style="font-size:18px;margin-bottom:2px">Đổi mật khẩu</h3><div class="mo" id="mkTk" style="margin-bottom:6px"></div>
@@ -3836,9 +3842,30 @@ var QUET = (function () {
     $('#dnLoi').textContent = ''; $('#dnNut').textContent = 'Đang đăng nhập…';
     API.dangNhap($('#dnTk').value.trim(), $('#dnMk').value).then(function () {
       $('#dnNut').textContent = 'Đăng nhập'; $('#dnMk').value = ''; $('#dangNhap').classList.remove('hien');
+      anHetMk();
       chon = { ky: null, lop: null }; KQ = []; KQC = {}; khoiDong();
     }).catch(function (er) { $('#dnNut').textContent = 'Đăng nhập'; $('#dnLoi').textContent = er.message; });
   };
+  // nút con mắt ẩn / hiện mật khẩu cho mọi ô mật khẩu (đăng nhập, đăng kí, đổi mật khẩu)
+  var MAT_HIEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var MAT_AN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
+  function datMat(nut, hien) {
+    nut.innerHTML = hien ? MAT_AN : MAT_HIEN;
+    nut.title = hien ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'; nut.setAttribute('aria-label', nut.title);
+  }
+  function anHetMk() {
+    $$('.oMk').forEach(function (o) { var i = o.querySelector('input'), n = o.querySelector('.mat'); if (i) i.type = 'password'; if (n) datMat(n, false); });
+  }
+  $$('input[type=password]').forEach(function (i) {
+    if (i.parentNode.classList.contains('oMk')) return;
+    var o = document.createElement('span'); o.className = 'oMk';
+    i.parentNode.insertBefore(o, i); o.appendChild(i);
+    var n = document.createElement('button'); n.type = 'button'; n.className = 'mat'; n.tabIndex = -1;
+    datMat(n, false);
+    n.onmousedown = function (e) { e.preventDefault(); };          // giữ con trỏ trong ô mật khẩu
+    n.onclick = function () { var hien = i.type === 'password'; i.type = hien ? 'text' : 'password'; datMat(n, hien); i.focus(); };
+    o.appendChild(n);
+  });
   function hienForm(dk) {
     $('#fDN').style.display = dk ? 'none' : ''; $('#fDK').style.display = dk ? '' : 'none';
     $('#dnLoi').textContent = $('#dkLoi').textContent = ''; $('#dkLoi').className = 'loiDN';
@@ -6827,7 +6854,9 @@ var QUET = (function () {
           '<span class="tpAnh"><img src="' + esc(anh) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span class="tpTai">⇩ Mở PDF để in</span></span>' +
           '<span class="tpTen">' + esc(p[1]) + '</span></a>';
       }).join('') + '</div></div>' +
-      '<div class="the"><h3>Tác giả</h3><p style="margin:0 0 10px">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.</p>' + lk(FACEBOOK_TG, 'Bấm để liên hệ tác giả qua Facebook', 'vang') + '</div>';
+      '<div class="the"><h3>Tác giả</h3><p style="margin:0 0 10px">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.</p>' +
+        '<div class="hang" style="gap:10px">' + lk(FACEBOOK_TG, 'Bấm để liên hệ tác giả qua Facebook', 'vang') + lk('https://zalo.me/0388705452', 'Zalo 0388 705 452') + '</div>' +
+        '<p class="mo" style="margin:10px 0 0">Trang thông tin &amp; tải NKZip: ' + '<a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></p></div>';
     veQR($('#webQR'), WEB_NKZIP);
     $('#webChep').onclick = function () {
       var xong = function () { bao('Đã chép đường dẫn: ' + WEB_NKZIP); };
