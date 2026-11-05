@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.8.9';</script>
+<script>window.NK_BAN = '1.9';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -215,6 +215,14 @@
   table.bd td.tb { background:#ffffcc; font-weight:700; }
   table.tkt th { white-space:nowrap; } table.tkt th small { display:block; font-weight:400; opacity:.75; }
   table.tkt td { text-align:center; white-space:nowrap; } table.tkt td.tb { font-weight:700; } table.tkt tr.tat td { font-weight:700; }
+  #caiApp { position:fixed; left:10px; right:10px; bottom:74px; z-index:60; display:grid; grid-template-columns:1fr auto auto; grid-template-rows:auto auto; column-gap:8px; align-items:center;
+    padding:10px 10px 10px 14px; border-radius:14px; background:var(--the); border:1.5px solid var(--vang); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  #caiApp b { grid-column:1; } #caiApp small { grid-column:1; opacity:.75; } #caiApp #caiNut { grid-row:1 / span 2; grid-column:2; padding:8px 16px; }
+  #caiApp .caiBo { grid-row:1 / span 2; grid-column:3; background:none; border:0; font-size:18px; color:var(--mo); padding:6px; }
+  #caiHD { position:fixed; inset:0; z-index:70; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:16px; }
+  #caiHD .caiHop { background:var(--the); border-radius:16px; padding:18px; max-width:380px; } #caiHD ol { padding-left:20px; line-height:1.6; }
+  #caiHD .caiIc { display:inline-block; vertical-align:middle; } #caiHD .caiMuiTen { position:fixed; font-size:44px; color:#fff; text-shadow:0 2px 8px #000; }
+  #caiHD .caiMuiTen.duoi { bottom:6px; left:50%; transform:translateX(-50%); } #caiHD .caiMuiTen.tren { top:4px; right:14px; }
   .webHang { display:flex; flex-wrap:wrap; gap:16px; } .webO { flex:1; min-width:260px; } .webO p { margin:6px 0 10px; }
   a.nutLk { display:inline-block; padding:9px 14px; border-radius:10px; border:1.5px solid var(--vien); color:var(--chu); text-decoration:none; font-weight:600; }
   a.nutLk:hover { border-color:var(--vang); } a.nutLk.vang { background:var(--vang); color:#0d1a44; border-color:var(--vang); }
@@ -463,11 +471,12 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.8.9</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
     <span class="mo" id="tenNg" style="margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+    <button id="nutGiaoDien" title="Đổi giao diện sáng / tối">☾</button>
     <button id="nutTaiLai" title="Đồng bộ lại">⟳</button>
     <button id="nutThoat" style="display:none" title="Đăng xuất">⎋</button>
   </header>
@@ -475,7 +484,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.8.9 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -504,7 +513,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.8.9 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.9 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -3773,6 +3782,8 @@ var QUET = (function () {
       taikhoan: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-4 3.8-6 7.5-6s6.7 2 7.5 6"/>',
       caidat: '<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/>',
       lammoi: '<path d="M20 11a8 8 0 1 0-2.3 5.6"/><path d="M20 4v7h-7"/>',
+      sang: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>',
+      toi: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
       thoat: '<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16l-4-4 4-4M6 12h10"/>'
     }[ten] || '';
     return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
@@ -3966,9 +3977,9 @@ var QUET = (function () {
   //  - vàng nhấn (nút chính, thẻ đang chọn, điểm) → xanh lá vừa; chữ tối trên nút vàng → chữ trắng;
   //  - xanh "đúng", đỏ, cam… giữ màu nhưng đậm hơn cho rõ trên nền trắng.
   // Máy quét (nằm trên camera) giữ nguyên nền tối.
-  var daNhuom = false;
+  var daNhuom = false, NHUOM_GOC = [];             // NHUOM_GOC: [quy tắc CSS, cssText gốc] để trả về giao diện tối không cần tải lại trang
   function nhuomSang() {
-    if (daNhuom) return; daNhuom = true;
+    if (daNhuom) return; daNhuom = true; NHUOM_GOC = [];
     var hsl = function (R, G, B) {
       var r = R / 255, g = G / 255, b = B / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn, h = 0;
       var s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
@@ -4001,7 +4012,7 @@ var QUET = (function () {
     };
     // máy quét: giữ nền tối; quy tắc .ktdk đã viết sẵn cho nền trắng; các bảng kiểu giấy in (Bảng chi tiết, xếp hạng, bảng điểm
     // theo lớp, bảng mã đề tương ứng) giữ đúng màu như Excel – đổi màu ở đây làm nền trắng thành đen, chữ đen thành trắng
-    var BO_QUA = /#manQuet|#q[A-Z]|\.qHop|#lk[A-Z]|\.ktdk|\.ct\.tn|\.ctGiay|\.ctDau|\.xhGiay|\.xhTD|table\.xh|\.trangKT|\.kt-cuoi|\.tuTD|\.bangTU|\.bdGiay|table\.bd|\.trAnh/;
+    var BO_QUA = /#caiHD$|#caiHD \.caiMuiTen|#manQuet|#q[A-Z]|\.qHop|#lk[A-Z]|\.ktdk|\.ct\.tn|\.ctGiay|\.ctDau|\.xhGiay|\.xhTD|table\.xh|\.trangKT|\.kt-cuoi|\.tuTD|\.bangTU|\.bdGiay|table\.bd|\.trAnh/;
     var duyet = function (rules) {
       Array.prototype.forEach.call(rules, function (ru) {
         if (ru.cssRules && !ru.selectorText) return duyet(ru.cssRules);     // @media
@@ -4010,15 +4021,31 @@ var QUET = (function () {
         var v = ru.style.cssText;
         if (!/#|rgb/i.test(v)) return;
         var nv = thay(v);
-        if (nv !== v) ru.style.cssText = nv;
+        if (nv !== v) { NHUOM_GOC.push([ru, v]); ru.style.cssText = nv; }
       });
     };
     Array.prototype.forEach.call(document.styleSheets, function (sh) { try { duyet(sh.cssRules); } catch (e) { /* bảng kiểu ngoài */ } });
   }
+  function boNhuom() {
+    NHUOM_GOC.forEach(function (x) { try { x[0].style.cssText = x[1]; } catch (e) { /* bỏ qua */ } });
+    NHUOM_GOC = []; daNhuom = false;
+  }
+  // Giao diện: Sáng (nền trắng + xanh lá, mặc định) / Tối (xanh navy đậm – bảng màu gốc). Mỗi máy tự chọn, nhớ trên máy;
+  // đổi ngay không tải lại trang (0 lượt đọc)
+  function giaoDienToi() { return ls('nkzip_giaodien') === 'toi'; }
+  function apGiaoDien() {
+    var toi = giaoDienToi();
+    document.body.classList.toggle('ktdk', !toi); document.documentElement.classList.toggle('ktdk', !toi);
+    if (toi) boNhuom(); else nhuomSang();
+    var n = $('#nutGiaoDien');
+    if (n) { n.innerHTML = ic(toi ? 'sang' : 'toi'); n.title = toi ? 'Đổi sang giao diện sáng (xanh lá)' : 'Đổi sang giao diện tối (xanh navy)'; }
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', toi ? '#0d1a44' : '#f3f7f5');
+  }
+  if ($('#nutGiaoDien')) $('#nutGiaoDien').onclick = function () { ls('nkzip_giaodien', giaoDienToi() ? 'sang' : 'toi'); apGiaoDien(); };
   function veCheDo() {
-    // Chế độ duy nhất NKZip (thừa hưởng nền trắng + xanh lá và tốc độ Firebase của KTDK Zip)
-    document.body.classList.add('ktdk'); document.documentElement.classList.add('ktdk');
-    nhuomSang();
+    // Chế độ duy nhất NKZip (thừa hưởng tốc độ Firebase của KTDK Zip); màu theo giao diện người dùng chọn
+    apGiaoDien();
     $$('.logo .tenApp').forEach(function (e) { e.innerHTML = 'NK<b>Zip</b>'; });
     $$('.logo i').forEach(function (e) { e.textContent = 'NK'; });
     document.title = 'NKZip';
@@ -7211,7 +7238,46 @@ var QUET = (function () {
 
   var rongCu = hep();
   window.addEventListener('resize', function () { if (hep() !== rongCu) { rongCu = hep(); if (!XEM && !SUA) veChinh(); } });
-  window.QL = { dl: function () { return DL; }, kq: function () { return KQ; }, moBai: moBai, tab: function (t) { tabKy = t; veChinh(); }, ben: function (t) { tabBen = t; veBen(); veChinh(); }, moMuc: moMuc };
+  // ================= CÀI NKZIP RA MÀN HÌNH CHÍNH (điện thoại, bản web) =================
+  // Android (Chrome): bắt sự kiện beforeinstallprompt → nút bấm 1 lần hiện hộp "Cài đặt" của Chrome.
+  // iPhone (Safari / Chrome): Apple không cho trang web tự cài → hiện hướng dẫn có mũi tên chỉ nút Chia sẻ.
+  // Đã mở từ biểu tượng ngoài màn hình chính (standalone) thì không hiện. Bấm ✕: ẩn 30 ngày. Không tốn lượt Firebase.
+  var LOI_MOI_CAI = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); LOI_MOI_CAI = e; veNutCai(); });
+  window.addEventListener('appinstalled', function () { LOI_MOI_CAI = null; var b = $('#caiApp'); if (b) b.remove(); });
+  function laIOS() { return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1); }
+  function daCai() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+  function veNutCai() {
+    if (API.mayTinh() || window.NK_QUET || daCai() || !hep()) return;
+    var bo = ls('nkzip_bo_cai'); if (bo && Date.now() - bo < 30 * 864e5) return;
+    if (!LOI_MOI_CAI && !laIOS()) return;                 // Android chưa cho cài (đã cài / trình duyệt khác): thôi
+    if ($('#caiApp')) return;
+    var b = document.createElement('div'); b.id = 'caiApp';
+    b.innerHTML = '<b>Cài NKZip vào màn hình chính</b><small>Mở nhanh như ứng dụng, toàn màn hình</small><button class="vang" id="caiNut">Cài</button><button class="caiBo" id="caiBo" title="Ẩn">✕</button>';
+    document.body.appendChild(b);
+    $('#caiBo').onclick = function () { ls('nkzip_bo_cai', Date.now()); b.remove(); };
+    $('#caiNut').onclick = function () {
+      if (LOI_MOI_CAI) { var e = LOI_MOI_CAI; LOI_MOI_CAI = null; e.prompt(); (e.userChoice || Promise.resolve()).then(function (c) { if (c && c.outcome === 'accepted') b.remove(); }); return; }
+      huongDanIOS();
+    };
+  }
+  function huongDanIOS() {
+    var chrome = /CriOS/.test(navigator.userAgent), h = document.createElement('div'); h.id = 'caiHD';
+    h.innerHTML = '<div class="caiHop"><h3>Thêm NKZip vào màn hình chính</h3><ol>' +
+      '<li>Bấm nút <b>Chia sẻ</b> <span class="caiIc">' + '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></span> ' +
+      (chrome ? 'ở <b>góc trên bên phải</b>, cạnh ô địa chỉ.' : 'ở <b>thanh dưới cùng</b> của Safari (nếu không thấy, bấm nút <b>⋯</b> trước).') + '</li>' +
+      '<li>Kéo xuống, chọn <b>Thêm vào MH chính</b>.</li><li>Bấm <b>Thêm</b>. Biểu tượng NKZip sẽ hiện trên màn hình chính.</li></ol>' +
+      '<button class="vang" id="caiHDDong" style="width:100%">Đã hiểu</button></div><div class="caiMuiTen ' + (chrome ? 'tren' : 'duoi') + '">' + (chrome ? '↗' : '↓') + '</div>';
+    document.body.appendChild(h);
+    $('#caiHDDong').onclick = function () { h.remove(); };
+  }
+  // Chrome Android chỉ cho cài khi trang có service worker: sw.js không lưu gì, không chặn gì (luôn tải bản mới từ mạng)
+  if (!API.mayTinh() && !window.API_GIA && 'serviceWorker' in navigator && location.protocol === 'https:') {
+    try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) { /* bỏ qua */ }
+  }
+  setTimeout(veNutCai, 1500);
+
+  window.QL = { huongDanIOS: huongDanIOS, dl: function () { return DL; }, kq: function () { return KQ; }, moBai: moBai, tab: function (t) { tabKy = t; veChinh(); }, ben: function (t) { tabBen = t; veBen(); veChinh(); }, moMuc: moMuc };
   if (window.NK_QUET) cheDoQuet(window.NK_QUET); else khoiDong();
 })();
 
