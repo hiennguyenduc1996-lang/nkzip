@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.9';</script>
+<script>window.NK_BAN = '1.9.1';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -226,8 +226,22 @@
   .webHang { display:flex; flex-wrap:wrap; gap:16px; } .webO { flex:1; min-width:260px; } .webO p { margin:6px 0 10px; }
   a.nutLk { display:inline-block; padding:9px 14px; border-radius:10px; border:1.5px solid var(--vien); color:var(--chu); text-decoration:none; font-weight:600; }
   a.nutLk:hover { border-color:var(--vang); } a.nutLk.vang { background:var(--vang); color:#0d1a44; border-color:var(--vang); }
-  .webQR { background:#fff; padding:8px; border-radius:8px; width:150px; height:150px; flex:none; }
-  .webPhieu { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:8px; }
+  .webQRHang { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .webQRChu { display:flex; flex-direction:column; align-items:flex-start; gap:8px; min-width:0; }
+  .webQRChu .mo { word-break:break-all; }
+  .webQR { box-sizing:content-box; background:#ffffff; padding:10px; border-radius:10px; width:150px; height:150px; flex:none; line-height:0; box-shadow:0 1px 4px rgba(0,0,0,.18); }
+  .webQR img, .webQR canvas { display:block; width:150px; height:150px; }
+  .webPhieu { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:14px; }
+  a.thePhieu { display:flex; flex-direction:column; gap:8px; padding:10px; border-radius:12px; border:1.5px solid var(--vien); color:var(--chu); text-decoration:none;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+  a.thePhieu .tpAnh { position:relative; display:flex; align-items:center; justify-content:center; aspect-ratio:210 / 297; background:#ffffff; border-radius:6px; overflow:hidden; }
+  a.thePhieu img { width:100%; height:100%; object-fit:contain; transition:transform .25s ease; }
+  a.thePhieu .tpTai { position:absolute; left:0; right:0; bottom:0; padding:8px; text-align:center; font-weight:700; font-size:13px; color:#ffffff; background:rgba(13,26,68,.82);
+    opacity:0; transform:translateY(100%); transition:opacity .18s ease, transform .18s ease; }
+  a.thePhieu .tpTen { font-weight:700; font-size:13.5px; text-align:center; }
+  a.thePhieu:hover, a.thePhieu:focus-visible { transform:translateY(-4px); border-color:var(--vang); box-shadow:0 10px 22px rgba(0,0,0,.28); }
+  a.thePhieu:hover img { transform:scale(1.05); }
+  a.thePhieu:hover .tpTai, a.thePhieu:focus-visible .tpTai { opacity:1; transform:none; }
   #tkMon button small { opacity:.7; } #tkMon .xoaMon { margin-left:4px; opacity:.6; } #tkMon .xoaMon:hover { opacity:1; }
   table.bd tr.nh td { background:#9bc2e6; } table.bd tr.nh td.nhTen, table.bd tr.nh td.m10 { background:#ffff00; } table.bd tr.nh td.m10 { color:#ff0000; }
   table.bd tr.nh td.tb { font-weight:700; }
@@ -471,7 +485,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.1</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -484,7 +498,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -513,7 +527,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.9 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.9.1 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1864,10 +1878,32 @@ var FBK = (function () {
   function layDemNgay() { return docDemNgay().duAn || {}; }
   // Kiểm tra thực tế số kỳ thi, số bài chấm, số ảnh đang lưu trên từng dự án Firebase (tối ưu: dự án trống không đọc bảng kq; kỳ thi đã có trong bộ nhớ không đọc lại)
   var THONG_KE_LUU = {};
-  function kiemTraDungLuong() {
+  // Kiểm tra lần lượt theo nhóm 6 dự án một lúc (50–100 dự án không làm nghẽn mạng), mỗi dự án tối đa 30 giây;
+  // moiXong(tk, soXong, tong, dangChay) báo tiến độ cho giao diện.
+  function kiemTraDungLuong(moiXong) {
     var ds = dsCauHinh().filter(hopLe);
-    if (DU_AN_CU && hopLe(DU_AN_CU) && !ds.some(function (c) { return c.projectId === DU_AN_CU.projectId; })) ds.push(DU_AN_CU);
-    return Promise.all(ds.map(function (cfg) {
+    if (DU_AN_CU && hopLe(DU_AN_CU) && !ds.some(function (c) { return c.projectId === DU_AN_CU.projectId; })) ds.unshift(DU_AN_CU);
+    var tong = ds.length, xong = 0, ke = 0, dang = [], kq = [];
+    var baoTD = function (tk) { if (moiXong) try { moiXong(tk, xong, tong, dang.slice()); } catch (e) { /* bỏ qua */ } };
+    return new Promise(function (hoanTat) {
+      if (!tong) { hoanTat(kq); return; }
+      var chay = function () {
+        if (ke >= tong) { if (xong >= tong) hoanTat(kq); return; }
+        var i = ke++, pid = ds[i].projectId;
+        dang.push(pid); baoTD(null);
+        var hetGio = new Promise(function (ok) { setTimeout(function () { ok({ ok: false, projectId: pid, loi: 'Quá 30 giây không trả lời (mạng chậm hoặc dự án chưa sẵn sàng)' }); }, 30000); });
+        Promise.race([kiemMot(ds[i]), hetGio]).then(function (tk) {
+          if (!tk.ok) THONG_KE_LUU[pid] = tk;
+          kq[i] = tk; xong++;
+          dang.splice(dang.indexOf(pid), 1);
+          baoTD(tk);
+          chay();
+        });
+      };
+      for (var n = 0; n < Math.min(6, tong); n++) chay();
+    });
+  }
+  function kiemMot(cfg) {
       var pid = cfg.projectId;
       var ghi = function (soKy, soBai, soAnh, chuaDem) {
         var tk = { ok: true, projectId: pid, soKy: soKy, soBai: soBai, soAnh: soAnh, mb: (soKy * 3 + soBai * 4 + soAnh * 105) / 1024, chuaDem: chuaDem || 0, luc: new Date().toLocaleTimeString('vi-VN') };
@@ -1915,7 +1951,6 @@ var FBK = (function () {
           });
         });
       }
-    }));
   }
   function layThongKeLuu() { return THONG_KE_LUU; }
   // ---- Đo dung lượng từng dự án bằng lệnh ĐẾM (3 lượt đọc / dự án, nhớ 6 giờ) – cảnh báo khi một dự án dùng từ 950 MB ----
@@ -2123,10 +2158,11 @@ var FBK = (function () {
 
   // Các dự án GV: "thẻ ký tên" (custom token) do Apps Script ký bằng khoá bí mật của dự án – luật bảo mật chỉ cho máy có thẻ còn hạn,
   // Firebase tự kiểm tra chữ ký nên không tốn lượt đọc. Một lần gọi Apps Script lấy thẻ cho mọi dự án GV đang dùng; thẻ còn hạn thì dùng lại.
-  var XIN_THE = null, HEN_THE = {};
+  var XIN_THE = null, HEN_THE = {}, LUC_XIN = 0;
   function xinThe(ep) {
     if (XIN_THE && !ep) return XIN_THE;
     var ds = dsHoatDong(true).filter(duocDoc).map(function (c) { return c.projectId; }).filter(function (p) { return p !== DU_AN_CU.projectId; });
+    LUC_XIN = Date.now();
     XIN_THE = API.goiGas('theFB', { duAn: ds }).catch(function (e) { XIN_THE = null; throw e; });
     return XIN_THE;
   }
@@ -2134,6 +2170,10 @@ var FBK = (function () {
     var khoa = 'nkzip_the_' + pid, cu = ls(khoa);
     if (!ep && u && cu && cu.uid === u.uid && cu.tk === API.toi() && cu.han > Date.now() + 2 * 3600 * 1000) { henDoiThe(pid, cu.han); return Promise.resolve(u); }
     return xinThe(ep).then(function (r) {
+      // dự án vừa thêm / khoá vừa dán sau lần xin thẻ trước: xin lại một lần (cách lần trước ≥ 20 giây để không gọi Apps Script dồn dập)
+      if (!(r.the && r.the[pid]) && !ep && Date.now() - LUC_XIN > 20000) return xinThe(true);
+      return r;
+    }).then(function (r) {
       var tk = r.the && r.the[pid];
       if (!tk) throw new Error('Apps Script chưa có khoá bí mật của dự án ' + pid);
       return auth.signInWithCustomToken(tk).then(function (c) {
@@ -4012,7 +4052,7 @@ var QUET = (function () {
     };
     // máy quét: giữ nền tối; quy tắc .ktdk đã viết sẵn cho nền trắng; các bảng kiểu giấy in (Bảng chi tiết, xếp hạng, bảng điểm
     // theo lớp, bảng mã đề tương ứng) giữ đúng màu như Excel – đổi màu ở đây làm nền trắng thành đen, chữ đen thành trắng
-    var BO_QUA = /#caiHD$|#caiHD \.caiMuiTen|#manQuet|#q[A-Z]|\.qHop|#lk[A-Z]|\.ktdk|\.ct\.tn|\.ctGiay|\.ctDau|\.xhGiay|\.xhTD|table\.xh|\.trangKT|\.kt-cuoi|\.tuTD|\.bangTU|\.bdGiay|table\.bd|\.trAnh/;
+    var BO_QUA = /\.webQR|\.thePhieu \.tp|#caiHD$|#caiHD \.caiMuiTen|#manQuet|#q[A-Z]|\.qHop|#lk[A-Z]|\.ktdk|\.ct\.tn|\.ctGiay|\.ctDau|\.xhGiay|\.xhTD|table\.xh|\.trangKT|\.kt-cuoi|\.tuTD|\.bangTU|\.bdGiay|table\.bd|\.trAnh/;
     var duyet = function (rules) {
       Array.prototype.forEach.call(rules, function (ru) {
         if (ru.cssRules && !ru.selectorText) return duyet(ru.cssRules);     // @media
@@ -6777,12 +6817,17 @@ var QUET = (function () {
       '<div class="the"><h3>Cài đặt NKZip</h3><div class="webHang">' +
       '<div class="webO"><b>Máy tính (Windows)</b><p class="mo">Tải tệp <b>NKZip.exe</b> mới nhất trong thư mục, chép ra Desktop rồi mở. App tự cập nhật bản mới mỗi lần mở.</p>' + lk(THU_MUC_EXE, 'Mở thư mục tải NKZip.exe', 'vang') + '</div>' +
       '<div class="webO"><b>Điện thoại</b><p class="mo">Quét mã QR hoặc mở đường dẫn, rồi thêm vào màn hình chính: Android (Chrome) bấm nút 3 chấm → <i>Thêm vào màn hình chính</i>; iPhone (Safari / Chrome) bấm nút Chia sẻ → <i>Thêm vào MH chính</i>.</p>' +
-      '<div class="hang" style="align-items:center;gap:14px"><div id="webQR" class="webQR"></div><div>' + lk(WEB_NKZIP, 'Mở trang NKZip cho điện thoại') +
+      '<div class="webQRHang"><div id="webQR" class="webQR"></div><div class="webQRChu">' + lk(WEB_NKZIP, 'Mở trang NKZip cho điện thoại') +
       '<div class="mo" style="margin-top:6px;word-break:break-all">' + esc(WEB_NKZIP) + '</div><button class="nho" id="webChep" style="margin-top:6px">Chép đường dẫn</button></div></div></div></div></div>' +
       '<div class="the"><h3>Bản quyền</h3><p style="margin:0;font-size:16px"><b>500.000đ / 1 tài khoản</b> – dùng trọn đời.</p></div>' +
       '<div class="the"><h3>Mẫu phiếu</h3><p class="mo" style="margin-top:0">Bấm để mở tệp PDF rồi in (khổ A4, in đúng 100%, không co giãn). Mọi mẫu dưới đây đều chấm được bằng NKZip – khi tạo bài thi chọn đúng mẫu phiếu ở ô “Mẫu phiếu”.</p>' +
-      '<div class="webPhieu">' + PHIEU_TAI.filter(function (p) { return MAU[p[0]]; }).map(function (p) { return lk(WEB_NKZIP + 'phieu/' + p[2], esc(p[1])); }).join('') + '</div></div>' +
-      '<div class="the"><h3>Tác giả</h3><p style="margin:0 0 10px">Tác giả: <b>Nguyễn Đức Hiền</b></p>' + lk(FACEBOOK_TG, 'Bấm để liên hệ tác giả qua Facebook', 'vang') + '</div>';
+      '<div class="webPhieu">' + PHIEU_TAI.filter(function (p) { return MAU[p[0]]; }).map(function (p) {
+        var anh = WEB_NKZIP + 'phieu/' + p[2].replace(/\.pdf$/, '.jpg');
+        return '<a class="thePhieu" href="' + esc(WEB_NKZIP + 'phieu/' + p[2]) + '" target="_blank" rel="noopener" title="Mở tệp PDF ' + esc(p[1]) + '">' +
+          '<span class="tpAnh"><img src="' + esc(anh) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span class="tpTai">⇩ Mở PDF để in</span></span>' +
+          '<span class="tpTen">' + esc(p[1]) + '</span></a>';
+      }).join('') + '</div></div>' +
+      '<div class="the"><h3>Tác giả</h3><p style="margin:0 0 10px">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.</p>' + lk(FACEBOOK_TG, 'Bấm để liên hệ tác giả qua Facebook', 'vang') + '</div>';
     veQR($('#webQR'), WEB_NKZIP);
     $('#webChep').onclick = function () {
       var xong = function () { bao('Đã chép đường dẫn: ' + WEB_NKZIP); };
@@ -7022,15 +7067,28 @@ var QUET = (function () {
       dangKiemFB = true;
       the.outerHTML = veKhungFirebase();
       ganSuKienFirebase();
-      FBK.kiemTraDungLuong().then(function () {
+      // vẽ lại cả thẻ nhưng giữ chữ đang gõ dở trong các ô dán
+      var veLai = function () {
+        var t2 = $('#theFB'); if (!t2) return;
+        var giu = {};
+        ['fbTxt', 'fbKhoa'].forEach(function (id) { var o = $('#' + id); if (o) giu[id] = o.value; });
+        t2.outerHTML = veKhungFirebase(); ganSuKienFirebase();
+        Object.keys(giu).forEach(function (id) { var o = $('#' + id); if (o) o.value = giu[id]; });
+      };
+      var soLoi = 0;
+      FBK.kiemTraDungLuong(function (tk, xong, tong, dang) {
+        if (tk && !tk.ok) soLoi++;
+        var nut = $('#fbKiemTra'); if (!nut) return;
+        nut.textContent = '⏳ Đã kiểm tra ' + xong + '/' + tong + ' dự án' +
+          (dang.length ? ' – đang kiểm tra: ' + dang.map(function (p) { return FBK.duAnGoc && p === FBK.duAnGoc() ? 'dự án gốc' : p.replace(/^nkzip-/, '').toUpperCase(); }).join(', ') : '') + '…';
+      }).then(function () {
         dangKiemFB = false;
-        var t2 = $('#theFB');
-        if (t2) { t2.outerHTML = veKhungFirebase(); ganSuKienFirebase(); }
-        bao('Đã cập nhật số bài và dung lượng của các dự án Firebase');
+        veLai();
+        if (soLoi) bao('⚠ ' + soLoi + ' dự án chưa kiểm tra được – xem dòng báo đỏ trong bảng', 7000);
+        else bao('Đã cập nhật số bài và dung lượng của các dự án Firebase');
       }).catch(function (e) {
         dangKiemFB = false;
-        var t2 = $('#theFB');
-        if (t2) { t2.outerHTML = veKhungFirebase(); ganSuKienFirebase(); }
+        veLai();
         loi(e);
       });
     };
