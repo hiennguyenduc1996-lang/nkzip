@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.9.3';</script>
+<script>window.NK_BAN = '1.9.4';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -287,6 +287,8 @@
   #xemAnh { position:relative; background:#060d24; border:1.5px solid var(--vien); border-radius:16px; overflow:auto; display:flex; }
   #xemAnh img { display:block; margin:auto; }
   #xemAnh.vua img { max-width:100%; max-height:100%; }
+  #xemAnh canvas { display:block; margin:auto; }
+  #xemAnh.vua canvas { max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; }
   .anhBoc { position:relative; display:flex; min-height:0; min-width:0; }
   .anhBoc #xemAnh { flex:1; min-width:0; }
   .anhBoc .dangVe { position:absolute; top:12px; left:12px; padding:6px 12px; border-radius:10px; background:#0d1a44ee; border:1px solid var(--vang2,#EDB85C); color:#FFD98A; font-size:13px; font-weight:700; }
@@ -491,7 +493,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.3</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.4</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -504,7 +506,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.3 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.4 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -533,7 +535,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.9.3 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.9.4 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a><br>Thông tin &amp; tải NKZip: <a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -2764,14 +2766,32 @@ var FBK = (function () {
     });
   }
 
+  // CHO_VE[khoa]: việc cần làm khi ảnh đang tải xong (vẽ lại khung xem) – giữ được cả khi ảnh đang được tải sẵn trước đó
+  var CHO_VE = {};
+  function taiAnhNen(a, kyThiGoiY) {
+    var t = tachMaAnh(a, kyThiGoiY), khoa = t.duAn + ':' + t.id;
+    if (ANH[khoa] || ANH[t.id] || conNhoKhong(khoa)) return Promise.resolve();
+    if (DANG_ANH[khoa]) return DANG_ANH[khoa];
+    DANG_ANH[khoa] = layAnh(a, kyThiGoiY).then(function () {
+      delete DANG_ANH[khoa]; var f = CHO_VE[khoa]; delete CHO_VE[khoa]; if (f) f();
+    }, function () { delete DANG_ANH[khoa]; delete CHO_VE[khoa]; });
+    return DANG_ANH[khoa];
+  }
   function anhNgay(a, xong, kyThiGoiY) {
     var t = tachMaAnh(a, kyThiGoiY), khoa = t.duAn + ':' + t.id;
     if (ANH[khoa] || ANH[t.id]) return 'data:image/jpeg;base64,' + (ANH[khoa] || ANH[t.id]);
-    if (!DANG_ANH[khoa] && !conNhoKhong(khoa)) {
+    if (!conNhoKhong(khoa)) {
       // vẽ lại một lần (hiện ảnh, hoặc báo "chưa có ảnh"); lần vẽ đó gặp KHONG_ANH nên không đọc lại → hết vòng lặp
-      DANG_ANH[khoa] = layAnh(a, kyThiGoiY).then(function () { delete DANG_ANH[khoa]; if (xong) xong(); }, function () { delete DANG_ANH[khoa]; });
+      if (xong) CHO_VE[khoa] = xong;
+      taiAnhNen(a, kyThiGoiY);
     }
     return '';
+  }
+  // Tải sẵn ảnh các bài kế tiếp (lần lượt, bài gần trước): ảnh đã có trên máy thì không đọc lại máy chủ
+  function taiTruocAnh(ds, kyThiGoiY) {
+    return (ds || []).reduce(function (p, a) {
+      return p.then(function () { return taiAnhNen(a, kyThiGoiY); }).catch(function () {});
+    }, Promise.resolve());
   }
 
   // loiCb: luồng theo dõi bị máy chủ ngắt (vd. hết hạn mức) – báo cho giao diện để mở lại sau, thay vì nằm chết đến khi tải lại trang
@@ -2810,7 +2830,7 @@ var FBK = (function () {
   }
 
   return {
-    goi: goi, goiLop: goi, lopFB: function () { return false; }, sanSang: sanSang, dangXuat: dangXuat, anhNgay: anhNgay,
+    goi: goi, goiLop: goi, lopFB: function () { return false; }, sanSang: sanSang, dangXuat: dangXuat, anhNgay: anhNgay, taiTruocAnh: taiTruocAnh,
     coCauHinh: function () { return dsHoatDong(false).length > 0; }, soO: SO_O, duAnGoc: function () { return DU_AN_CU.projectId; },
     dsCauHinh: dsCauHinh, luuCauHinh: luuCauHinh, napCauHinhTuMayChu: napCauHinhTuMayChu,
     phanTich: phanTich, hopLe: hopLe, chonDuAn: chonDuAn, dsHoatDong: dsHoatDong,
@@ -4654,20 +4674,31 @@ var QUET = (function () {
     while (XEM.r.p2.length < T.p2.length) XEM.r.p2 += '-';
     XEM.r.p3 = (XEM.r.p3 || []).slice(); while (XEM.r.p3.length < T.p3.length) XEM.r.p3.push('');
     veXem();
-    [ds[vt + 1], ds[vt - 1]].forEach(taiTruocAnh);   // tải trước ảnh bài kế bên: bấm ‹ › là hiện ngay
+    taiTruocKe(ds, vt);                               // tải sẵn ảnh 3 bài kế tiếp theo hướng đang bấm: bấm ‹ › là hiện ngay
     if (!XEM.tc || !XEM.tc.nhung) $('#hop').classList.add('hien');
   }
   function khungXem() { return XEM.tc && XEM.tc.nhung ? XEM.tc.nhung : $('#hopND'); }
   // Ảnh sạch của bài (dấu đúng / sai vẽ lúc xem): bài quét từ bản 1.3 lưu ảnh sạch ở r.anh (r.sach);
   // bài quét từ 1.1.11 – 1.2.6 có thêm r.anhSach; bài cũ hơn chỉ có ảnh đã vẽ dấu sẵn.
   function anhSachCua(r) { return r.sach ? r.anh : r.anhSach || ''; }
-  var TRUOC = {};
+  var TRUOC = {}, HUONG_XEM = 1, SO_TAI_TRUOC = 3;
   function taiTruocAnh(r) {
     var a = r && (anhSachCua(r) || r.anh);
-    // Không tự tải trước ảnh lưu trên Firestore ('fs:') để tránh tốn thêm 2 lượt đọc khi người dùng chỉ mở xem 1 bài
     if (!a || TRUOC[a] || String(a).indexOf('data:') === 0 || String(a).indexOf('fs:') === 0) return;
     TRUOC[a] = 1;
     var u = anhUrl(a); if (u) (new Image()).src = u;
+  }
+  // Ảnh trên Firestore ('fs:'): tải sẵn lần lượt 3 bài kế tiếp theo hướng đang bấm (bài gần trước). Ảnh đã tải / đã lưu trên máy
+  // không đọc lại, nên bấm qua từng bài gần như không tốn thêm; thừa nhiều nhất 3 lượt đọc khi dừng xem.
+  function taiTruocKe(ds, vt) {
+    if (vt < 0 || !ds || ds.length < 2) return;
+    var fs = [], n = Math.min(SO_TAI_TRUOC, ds.length - 1);
+    for (var i = 1; i <= n; i++) {
+      var r = ds[((vt + HUONG_XEM * i) % ds.length + ds.length) % ds.length], a = r && (anhSachCua(r) || r.anh);
+      if (!a) continue;
+      if (String(a).indexOf('fs:') === 0) fs.push(a); else taiTruocAnh(r);
+    }
+    if (fs.length && window.FBK && FBK.taiTruocAnh) FBK.taiTruocAnh(fs, ky() && ky().id);
   }
   var xemGoc = false;                                // "Ảnh gốc": xem ảnh chụp thật, không vẽ dấu / không vẽ phần đã sửa
   function veXem() {
@@ -4851,12 +4882,13 @@ var QUET = (function () {
     for (var i = 0; i < ds.length; i++) if (ds[i].id === XEM.id) vt = i;
     if (vt < 0 || !ds.length) return;
     var tc = XEM.tc;
+    HUONG_XEM = buoc < 0 ? -1 : 1;
     moBai(ds[(vt + buoc + ds.length) % ds.length].id, dsR, tc);
     if (tc && tc.chuyen && XEM) tc.chuyen(XEM.vt);
   }
   function dongHop() {
     var nhung = XEM && XEM.tc && XEM.tc.nhung;
-    XEM = null;
+    XEM = null; HUONG_XEM = 1;
     if (!nhung) { $('#hop').classList.remove('hien'); $('#hopND').innerHTML = ''; }
   }
   $('#hop').onclick = function (e) { if (e.target === this || e.target.id === 'hopND') dongHop(); };
