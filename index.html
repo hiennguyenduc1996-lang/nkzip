@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.9.4';</script>
+<script>window.NK_BAN = '1.9.5';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -493,7 +493,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.4</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.5</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -506,7 +506,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.4 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.5 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -535,7 +535,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.9.4 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.9.5 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a><br>Thông tin &amp; tải NKZip: <a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1809,7 +1809,7 @@ var FBK = (function () {
     null,
     null
   ];
-  // 50 ô cấu hình (ô 8..50 để trống chờ thêm dự án). Ô trống không kết nối, không tốn gì; mỗi ô có cấu hình hợp lệ thì
+  // Ít nhất 50 ô cấu hình, tự thêm ô khi cần (không giới hạn). Ô trống không kết nối, không tốn gì; mỗi ô có cấu hình hợp lệ thì
   // mỗi lần mở app tốn ít nhất 1 lượt đọc trên dự án đó và máy phải kết nối thêm 1 dự án.
   var SO_O = 50, BAN_SDK = '10.12.2';
   var APPS = {}, KY_DU_AN = {}, ANH = {}, DANG_ANH = {};
@@ -1913,22 +1913,43 @@ var FBK = (function () {
   }
   function kiemMot(cfg) {
       var pid = cfg.projectId;
-      var ghi = function (soKy, soBai, soAnh, chuaDem) {
+      var ghi = function (soKy, soBai, soAnh, chuaDem, theoChu) {
         var tk = { ok: true, projectId: pid, soKy: soKy, soBai: soBai, soAnh: soAnh, mb: (soKy * 3 + soBai * 4 + soAnh * 105) / 1024, chuaDem: chuaDem || 0, luc: new Date().toLocaleTimeString('vi-VN') };
         THONG_KE_LUU[pid] = tk;
         DO_LUU[pid] = { pid: pid, mb: tk.mb, soKy: soKy, soBai: soBai, soAnh: soAnh, luc: Date.now() }; ls('nkzip_do_luu', DO_LUU);
+        if (theoChu) nhoTheoChu(theoChu);
         return tk;
       };
       return ketNoiDuAn(cfg).then(function (a) {
         // Đếm cả số bài thi, số bài làm, số ảnh bằng lệnh ĐẾM: khoảng 3 lượt đọc mỗi dự án (trước đây đọc từng bài thi: hàng trăm lượt)
         return Promise.all([demTrenMayChu(a, pid, 'kyThi'), demTrenMayChu(a, pid, 'kq'), demTrenMayChu(a, pid, 'anh')]).then(function (n) {
-          return ghi(n[0], n[1], n[2], 0);
+          return demTheoChu(a, n[0]).then(function (tc) { return ghi(n[0], n[1], n[2], 0, tc); });
         }, function () { return docDayDu(a); });
       }).catch(function (e) {
         var tk = { ok: false, projectId: pid, loi: String(e && (e.code || e.message) || e) };
         THONG_KE_LUU[pid] = tk;
         return tk;
       });
+      // Số bài thi theo tài khoản tạo: dự án gán riêng thì mọi bài là của chủ dự án (0 lượt đọc, vì lúc gán đã kiểm tra không có bài
+      // của người khác); dự án dùng chung thì đọc danh sách bài thi (1 lượt đọc / bài thi). Lỗi thì bỏ qua, không làm hỏng việc đo.
+      function demTheoChu(a, soKy) {
+        if (!soKy) return Promise.resolve({});
+        var chu = chuDuAn(pid);
+        if (chu) { var r = {}; r[chu] = soKy; return Promise.resolve(r); }
+        return a.db.collection('kyThi').get().then(function (s) {
+          demLuot(pid, 'doc', s.size || 1);
+          return tinhTheoChu(s);
+        }).catch(function () { return null; });
+      }
+      function nhoTheoChu(r) { THEO_CHU[pid] = { r: r, luc: Date.now() }; ls('nkzip_bai_theo_chu', THEO_CHU); }
+      function tinhTheoChu(s) {
+        var r = {};
+        s.docs.forEach(function (d) {
+          var du = d.data() || {}, c = String(du.chu || moDong(du).chu || '').toLowerCase();
+          r[c] = (r[c] || 0) + 1;
+        });
+        return r;
+      }
       // dự phòng khi không dùng được lệnh đếm: đọc danh sách bài thi như trước
       function docDayDu(a) {
         return a.db.collection('kyThi').get().then(function (sKy) {
@@ -1936,12 +1957,14 @@ var FBK = (function () {
           if (!sKy.size) {
             var tk0 = { ok: true, projectId: pid, soKy: 0, soBai: 0, soAnh: 0, mb: 0, luc: new Date().toLocaleTimeString('vi-VN') };
             THONG_KE_LUU[pid] = tk0;
+            nhoTheoChu({});
             return tk0;
           }
           sKy.docs.forEach(function (d) { nhoDuAnKy(d.id, pid); });
           var xong = function (soBai, soAnh, chuaDem) {
             var tk = { ok: true, projectId: pid, soKy: sKy.size, soBai: soBai, soAnh: soAnh, mb: (sKy.size * 3 + soBai * 4 + soAnh * 105) / 1024, chuaDem: chuaDem, luc: new Date().toLocaleTimeString('vi-VN') };
             THONG_KE_LUU[pid] = tk;
+            nhoTheoChu(tinhTheoChu(sKy));
             return tk;
           };
           // Đếm số bài / số ảnh bằng lệnh ĐẾM của Firestore: 1 lượt đọc cho mỗi 1.000 bài (trước đây đọc từng bài: hàng chục nghìn lượt)
@@ -1961,6 +1984,17 @@ var FBK = (function () {
       }
   }
   function layThongKeLuu() { return THONG_KE_LUU; }
+  // Số bài thi theo tài khoản tạo, cộng trên mọi dự án (nhớ trên máy từ lần bấm Kiểm tra gần nhất): { tong: {tk: n}, luc, soDuAn }
+  var THEO_CHU = ls('nkzip_bai_theo_chu') || {};
+  function baiTheoTaiKhoan() {
+    var tong = {}, luc = 0, so = 0;
+    Object.keys(THEO_CHU).forEach(function (p) {
+      var x = THEO_CHU[p]; if (!x || !x.r) return;
+      so++; luc = Math.max(luc, x.luc || 0);
+      Object.keys(x.r).forEach(function (c) { tong[c] = (tong[c] || 0) + x.r[c]; });
+    });
+    return { tong: tong, luc: luc, soDuAn: so };
+  }
   // ---- Đo dung lượng từng dự án bằng lệnh ĐẾM (3 lượt đọc / dự án, nhớ 6 giờ) – cảnh báo khi một dự án dùng từ 950 MB ----
   var NGUONG_MB = 950, NHO_DO = 6 * 3600 * 1000, DO_LUU = ls('nkzip_do_luu') || {};
   function doDungLuong(pid, ep) {
@@ -2043,10 +2077,16 @@ var FBK = (function () {
   function hopLe(c) {
     return !!(c && c.projectId && c.apiKey && c.apiKey.length >= 20 && !/[•*]/.test(c.apiKey));
   }
-  // Trả về mảng đúng SO_O ô cấu hình (kết hợp mặc định và bản đã lưu trong máy / máy chủ)
+  // Số ô hiện có: ít nhất SO_O (50), tự dài thêm theo số dự án đã lưu (không giới hạn)
+  function soO(luu) {
+    var n = Math.max(SO_O, MAC_DINH_DS.length);
+    if (Array.isArray(luu)) n = Math.max(n, luu.length);
+    return n;
+  }
+  // Trả về mảng các ô cấu hình (kết hợp mặc định và bản đã lưu trong máy / máy chủ)
   function dsCauHinh() {
-    var luu = ls('nkzip_fb_ds'), ra = [];
-    for (var i = 0; i < SO_O; i++) {
+    var luu = ls('nkzip_fb_ds'), ra = [], n = soO(luu);
+    for (var i = 0; i < n; i++) {
       var m = MAC_DINH_DS[i] ? chuanCfg(MAC_DINH_DS[i]) : null;
       var l = luu && luu[i] !== undefined ? (luu[i] ? chuanCfg(luu[i]) : null) : undefined;
       // nếu bản lưu trong máy vẫn là apiKey bị che (•••) mà bản mặc định đã có apiKey đầy đủ thì nâng cấp luôn sang bản mặc định
@@ -2058,7 +2098,8 @@ var FBK = (function () {
   function napCauHinhTuMayChu(ds) {
     if (!Array.isArray(ds) || !ds.length) return;
     var hien = dsCauHinh(), doi = false;
-    for (var i = 0; i < SO_O; i++) {
+    while (hien.length < ds.length) hien.push(null);
+    for (var i = 0; i < ds.length; i++) {
       var moi = ds[i] ? chuanCfg(ds[i]) : null;
       if (moi && (hopLe(moi) || !hien[i])) {
         if (JSON.stringify(hien[i]) !== JSON.stringify(moi)) { hien[i] = moi; doi = true; }
@@ -2070,8 +2111,8 @@ var FBK = (function () {
   }
   function luuRong(ds, i) { return ds[i] === null && !MAC_DINH_DS[i]; }
   function luuCauHinh(ds) {
-    var chuan = [];
-    for (var i = 0; i < SO_O; i++) chuan.push(ds && ds[i] ? chuanCfg(ds[i]) : null);
+    var chuan = [], n = Math.max(SO_O, ds ? ds.length : 0);
+    for (var i = 0; i < n; i++) chuan.push(ds && ds[i] ? chuanCfg(ds[i]) : null);
     ls('nkzip_fb_ds', chuan);
     // xoá kết nối của dự án đã sửa apiKey để kết nối lại bằng khoá mới
     Object.keys(APPS).forEach(function (pid) {
@@ -2831,10 +2872,10 @@ var FBK = (function () {
 
   return {
     goi: goi, goiLop: goi, lopFB: function () { return false; }, sanSang: sanSang, dangXuat: dangXuat, anhNgay: anhNgay, taiTruocAnh: taiTruocAnh,
-    coCauHinh: function () { return dsHoatDong(false).length > 0; }, soO: SO_O, duAnGoc: function () { return DU_AN_CU.projectId; },
+    coCauHinh: function () { return dsHoatDong(false).length > 0; }, soO: function () { return soO(ls('nkzip_fb_ds')); }, duAnGoc: function () { return DU_AN_CU.projectId; },
     dsCauHinh: dsCauHinh, luuCauHinh: luuCauHinh, napCauHinhTuMayChu: napCauHinhTuMayChu,
     phanTich: phanTich, hopLe: hopLe, chonDuAn: chonDuAn, dsHoatDong: dsHoatDong,
-    layDemNgay: layDemNgay, kiemTraDungLuong: kiemTraDungLuong, layThongKeLuu: layThongKeLuu,
+    layDemNgay: layDemNgay, kiemTraDungLuong: kiemTraDungLuong, layThongKeLuu: layThongKeLuu, baiTheoTaiKhoan: baiTheoTaiKhoan,
     nghe: nghe, ngheKy: ngheKy, thieuAnh: thieuAnh, gioLamMoi: gioLamMoi,
     datGan: datGan, layGan: function () { return GAN; }, kiemDuAnTruocGan: kiemDuAnTruocGan,
     layAnhB64: function (a, kyThi) { return layAnh(a, kyThi); }, kiemSapDay: kiemSapDay,
@@ -6955,13 +6996,17 @@ var QUET = (function () {
   var hienMk = {};
   function veTaiKhoan() {
     var cho = TK.filter(function (a) { return a.cho; });
+    // số bài thi mỗi tài khoản đã tạo (cộng trên mọi dự án, theo lần bấm Kiểm tra dung lượng gần nhất trong Cài đặt)
+    var BTK = window.FBK && FBK.baiTheoTaiKhoan ? FBK.baiTheoTaiKhoan() : { tong: {}, luc: 0, soDuAn: 0 };
     var h = '<h2>Tài khoản</h2><p class="mo">Mỗi tài khoản chỉ thấy bài thi và lớp của riêng mình. Tài khoản quản trị tạo được tài khoản khác, xem và đổi mật khẩu, và vào được mục Cài đặt.</p>' +
       (cho.length ? '<div class="the" style="border-color:var(--vang2)"><h3>Chờ duyệt (' + cho.length + ')</h3><table class="ke"><tr><th>Tài khoản</th><th>Họ tên</th><th>Ngày đăng kí</th><th style="width:200px"></th></tr>' +
         cho.map(function (a) { return '<tr><td><b>' + esc(a.tk) + '</b></td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleString('vi-VN') : '') + '</td><td><button class="vang nho" data-duyet="' + esc(a.tk) + '">Duyệt</button> <button class="nguy nho" data-tuchoi="' + esc(a.tk) + '">Từ chối</button></td></tr>'; }).join('') +
         '</table></div>' : '') +
       '<div class="the"><h3>Thêm tài khoản</h3><div class="hang" style="align-items:flex-end"><div class="o"><label>Tài khoản (email hoặc tên, viết thường)</label><input id="tTk" autocomplete="off" spellcheck="false" style="width:230px"></div><div class="o"><label>Tên hiển thị</label><input id="tTen" autocomplete="off"></div>' +
       '<div class="o"><label>Mật khẩu (từ 6 kí tự)</label><input id="tMk" autocomplete="new-password"></div><label class="hang" style="gap:6px;cursor:pointer"><input type="checkbox" id="tQt"> Quản trị</label><button class="vang" id="tLuu">Tạo tài khoản</button></div></div>' +
-      '<div class="the"><h3>Danh sách (' + (TK.length - cho.length) + ')</h3><div style="overflow:auto"><table class="ke"><tr><th>Tài khoản</th><th>Tên hiển thị</th><th>Ngày tạo</th><th>Mật khẩu</th><th>Quyền</th><th title="Bài thi mới của tài khoản này chỉ lưu vào dự án được gán; tài khoản khác không dùng dự án đó">Dự án riêng</th><th style="width:240px"></th></tr>' +
+      '<div class="the"><h3>Danh sách (' + (TK.length - cho.length) + ')</h3>' +
+      '<p class="mo" style="margin:-4px 0 8px;font-size:12.5px">Cột “Bài thi đã tạo”: ' + (BTK.luc ? 'đếm lúc ' + new Date(BTK.luc).toLocaleString('vi-VN') + ' trên ' + BTK.soDuAn + ' dự án' : 'chưa đếm') + ' – bấm “Kiểm tra dung lượng &amp; số bài” trong Cài đặt để đếm lại.</p><div style="overflow:auto"><table class="ke"><tr><th>Tài khoản</th><th>Tên hiển thị</th><th>Ngày tạo</th><th>Mật khẩu</th><th>Quyền</th><th title="Bài thi mới của tài khoản này chỉ lưu vào dự án được gán; tài khoản khác không dùng dự án đó">Dự án riêng</th>' +
+      '<th class="p" title="' + esc(BTK.luc ? 'Đếm trên ' + BTK.soDuAn + ' dự án lúc ' + new Date(BTK.luc).toLocaleString('vi-VN') + '. Bấm “Kiểm tra dung lượng” trong Cài đặt để đếm lại.' : 'Chưa đếm – bấm “Kiểm tra dung lượng” trong Cài đặt') + '">Bài thi đã tạo</th><th style="width:240px"></th></tr>' +
       TK.filter(function (a) { return !a.cho; }).map(function (a) {
         // dự án Firebase gán riêng: mỗi dự án chỉ của một tài khoản; dự án đã gán cho người khác thì không chọn được
         var gan = window.FBK && FBK.layGan ? FBK.layGan() : {}, cuaAi = {};
@@ -6969,13 +7014,14 @@ var QUET = (function () {
         var chonDA = !window.FBK ? '' : '<select data-gan-da="' + esc(a.tk) + '" style="max-width:170px"><option value="">(dùng chung)</option>' +
           FBK.dsHoatDong(true).map(function (c) {
             var p = c.projectId, khac = cuaAi[p] && cuaAi[p] !== a.tk;
-            return '<option value="' + esc(p) + '"' + (gan[a.tk] === p ? ' selected' : '') + (khac ? ' disabled' : '') + '>' + esc(p) + (khac ? ' – của ' + esc(cuaAi[p]) : '') + '</option>';
+            return '<option value="' + esc(p) + '"' + (gan[a.tk] === p ? ' selected' : '') + (khac ? ' disabled' : '') + '>' + (nhanDuAn(p, -1) ? esc(nhanDuAn(p, -1)) + ' · ' : '') + esc(p) + (khac ? ' – của ' + esc(cuaAi[p]) : '') + '</option>';
           }).join('') + '</select>';
         var mk = a.mk ? (hienMk[a.tk] ? esc(a.mk) : '••••••••') : '<span class="mo">(chưa lưu, hãy đặt lại)</span>';
         return '<tr><td><b>' + esc(a.tk) + '</b>' + (a.tk === API.toi() ? ' <span class="nhan">bạn</span>' : '') + '</td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleDateString('vi-VN') : '') + '</td>' +
           '<td style="font-family:Consolas,monospace">' + mk + (a.mk ? ' <button class="nho" data-hien="' + esc(a.tk) + '">' + (hienMk[a.tk] ? 'Ẩn' : 'Hiện') + '</button>' : '') + '</td>' +
           '<td>' + (a.qt ? '<span class="nhan">Quản trị</span>' : 'Thường') + '</td>' +
           '<td>' + chonDA + '</td>' +
+          '<td class="p">' + (BTK.luc ? '<b>' + soDep(BTK.tong[String(a.tk).toLowerCase()] || 0) + '</b>' : '<span class="mo">–</span>') + '</td>' +
           '<td><button class="nho" data-mk="' + esc(a.tk) + '">Đổi mật khẩu</button> <button class="nho" data-ten="' + esc(a.tk) + '">Đổi tên</button> ' +
           (a.tk === API.toi() ? '' : '<button class="nho" data-qt="' + esc(a.tk) + '">' + (a.qt ? 'Bỏ quản trị' : 'Cho quản trị') + '</button> <button class="nho nguy" data-xoa="' + esc(a.tk) + '">Xoá</button>') + '</td></tr>';
       }).join('') + '</table></div></div>';
@@ -7041,69 +7087,141 @@ var QUET = (function () {
   // ================= CÀI ĐẶT (chỉ quản trị) =================
   var oFbMo = -1, dangKiemFB = false;
   function soDep(n) { return Number(n || 0).toLocaleString('vi-VN'); }
+  // Bảng dự án gộp: mỗi dự án một dòng (nhãn ngắn, giáo viên được gán, hạn mức, dung lượng, nút Cấu hình), 30 dự án / trang
+  var FB_TRANG = 0, FB_TIM = '', FB_LOC = '', FB_MOI_TRANG = 30;
+  function nhanDuAn(pid, i, laGoc) {
+    if (laGoc) return 'Gốc';
+    var m = /(?:^|-)gv(\d+)(?:-|$)/i.exec(pid || '');
+    return m ? 'GV' + m[1] : i >= 0 ? 'Ô ' + (i + 1) : '';
+  }
   function veKhungFirebase() {
     if (!window.FBK) return '';
     var ds = FBK.dsCauHinh(), cacHoatDong = ds.filter(FBK.hopLe), soOk = cacHoatDong.length;
     var demNgay = FBK.layDemNgay ? FBK.layDemNgay() : {}, tkLuu = FBK.layThongKeLuu ? FBK.layThongKeLuu() : {};
-    // 50 ô: chỉ hiện các ô đã có cấu hình, ô đang mở và MỘT ô trống kế tiếp (bấm vào để dán dự án mới)
-    var oTrong = -1;
-    for (var t0 = 0; t0 < ds.length; t0++) if (!ds[t0]) { oTrong = t0; break; }
-    var nut = ds.map(function (cfg, i) {
-      if (!cfg && i !== oTrong && i !== oFbMo) return '';
-      var ok = FBK.hopLe(cfg), che = cfg && cfg.apiKey && /[•*]/.test(cfg.apiKey);
-      var cham = ok ? '<span style="color:var(--xanh)">●</span> ' : che ? '<span style="color:var(--cam)" title="apiKey đang bị che (•••), hãy dán apiKey đầy đủ">⚠</span> ' : '<span class="mo">○</span> ';
-      var phu = cfg && cfg.projectId ? ' <small class="mo">(' + esc(cfg.projectId) + ')</small>' : '';
-      return '<button type="button" class="nho' + (oFbMo === i ? ' chon' : '') + '" data-fbo="' + i + '" style="' + (oFbMo === i ? 'border-color:var(--vang2);font-weight:800' : '') + '">' +
-        (cfg ? cham + 'Cấu hình Firebase API key ' + (i + 1) + phu : '+ Thêm dự án (ô ' + (i + 1) + ')') + '</button>';
-    }).join('');
-    var oDang = oFbMo >= 0 ? ds[oFbMo] : null;
+    var gan = FBK.layGan ? FBK.layGan() : {}, cuaAi = {};
+    Object.keys(gan).forEach(function (t) { cuaAi[gan[t]] = t; });
+    var tenTK = {};
+    (typeof TK !== 'undefined' && TK || []).forEach(function (a) { tenTK[a.tk] = a.ten; });
+    var oTrong = ds.indexOf(null); if (oTrong < 0) oTrong = ds.length;    // ô trống đầu tiên (không còn thì thêm ô mới)
+
+    // Khung dán cấu hình của ô đang mở (hiện ngay dưới dòng của dự án đó)
+    var oDang = oFbMo >= 0 ? ds[oFbMo] || null : null;
     var chuoi = oDang ? 'const firebaseConfig = ' + JSON.stringify(oDang, null, 2) + ';' : '';
     var bang = oFbMo < 0 ? '' :
-      '<div id="fbHop" style="margin-top:12px;padding:12px 14px;border:1.5px solid var(--vien);border-radius:12px">' +
-      '<div class="hang" style="margin-bottom:8px"><b>Cấu hình Firebase API key ' + (oFbMo + 1) + '</b>' +
+      '<div id="fbHop" style="padding:12px 14px;border:1.5px solid var(--vang2);border-radius:12px;background:var(--nen)">' +
+      '<div class="hang" style="margin-bottom:8px"><b>' + (oDang ? 'Cấu hình ' + esc(nhanDuAn(oDang.projectId, oFbMo)) + ' (ô ' + (oFbMo + 1) + ')' : 'Thêm dự án mới (ô ' + (oFbMo + 1) + ')') + '</b>' +
       (oDang && /[•*]/.test(oDang.apiKey || '') ? '<span class="nhan do">apiKey đang bị ẩn (•••) – hãy mở Firebase Console chép lại apiKey đầy đủ</span>' :
         FBK.hopLe(oDang) ? '<span class="nhan" style="color:var(--xanh)">✓ Sẵn sàng (' + esc(oDang.projectId) + ')</span>' : '<span class="mo">Chưa có cấu hình</span>') +
       '<button type="button" class="nho" id="fbAn" style="margin-left:auto">Ẩn khung ✕</button></div>' +
       '<textarea id="fbTxt" rows="8" spellcheck="false" placeholder="Dán đoạn const firebaseConfig = { apiKey: &quot;...&quot;, projectId: &quot;...&quot;, ... }; hoặc JSON vào đây…" style="width:100%;font:12.5px/1.45 Consolas,monospace">' + esc(chuoi) + '</textarea>' +
-      '<div class="hang" style="margin-top:8px"><button type="button" class="vang nho" id="fbLuu">Lưu cấu hình ' + (oFbMo + 1) + '</button>' +
+      '<div class="hang" style="margin-top:8px"><button type="button" class="vang nho" id="fbLuu">Lưu cấu hình ô ' + (oFbMo + 1) + '</button>' +
       (oDang ? '<button type="button" class="nguy nho" id="fbXoa">Xoá ô này</button>' : '') +
       '<span class="mo" style="font-size:12px">Dán nguyên khối <code>const firebaseConfig = { ... };</code> hoặc JSON đều được</span></div></div>';
 
-    // Bảng tổng hợp hạn mức & dung lượng lưu trữ
+    // Tổng hạn mức (tính trên mọi dự án, không phụ thuộc trang đang xem)
     var tongDoc = 0, tongGhi = 0, tongXoa = 0, tongKy = 0, tongBai = 0, tongMB = 0, coTK = false;
-    // các dự án trong 50 ô + một dòng cho dự án gốc (cài sẵn trong app, không nằm trong ô nào; chứa bài cũ và bài chuyển từ Sheet)
     var goc = FBK.duAnGoc ? FBK.duAnGoc() : '';
-    var dsBang = cacHoatDong.slice();
-    if (goc && !dsBang.some(function (c) { return c.projectId === goc; })) dsBang.unshift({ projectId: goc, laGoc: true });   // dự án gốc lên đầu bảng
-    var dongDuAn = dsBang.map(function (cfg, idx) {
-      var pid = cfg.projectId, dm = demNgay[pid] || { doc: 0, ghi: 0, xoa: 0 }, tk = tkLuu[pid];
+    var dsBang = [];
+    ds.forEach(function (c, i) { if (c) dsBang.push({ cfg: c, i: i }); });
+    if (goc && !dsBang.some(function (x) { return x.cfg.projectId === goc; })) dsBang.unshift({ cfg: { projectId: goc }, i: -1, laGoc: true });
+    dsBang.forEach(function (x) {
+      var pid = x.cfg.projectId, dm = demNgay[pid] || {}, tk = tkLuu[pid];
       tongDoc += dm.doc || 0; tongGhi += dm.ghi || 0; tongXoa += dm.xoa || 0;
       if (tk && tk.ok) { coTK = true; tongKy += tk.soKy; tongBai += tk.soBai; tongMB += tk.mb; }
+      x.ok = x.laGoc || FBK.hopLe(x.cfg); x.tk = tk; x.dm = dm;
+      x.nhan = nhanDuAn(pid, x.i, x.laGoc);
+      x.chu = x.laGoc ? '' : cuaAi[pid] || '';
+    });
+
+    // Tìm + lọc
+    var tim = FB_TIM.trim().toLowerCase();
+    var loc = dsBang.filter(function (x) {
+      if (tim) {
+        var chuoiTim = (x.nhan + ' ' + x.cfg.projectId + ' ' + x.chu + ' ' + (tenTK[x.chu] || '') + ' ô ' + (x.i + 1)).toLowerCase();
+        if (/^\d+$/.test(tim) ? !new RegExp('(gv|ô )' + tim + '(\\D|$)').test(chuoiTim) : chuoiTim.indexOf(tim) < 0) return false;
+      }
+      if (FB_LOC === 'loi') return !x.ok || (x.tk && !x.tk.ok);
+      if (FB_LOC === 'rieng') return !!x.chu;
+      if (FB_LOC === 'chung') return !x.chu && !x.laGoc;
+      if (FB_LOC === 'cobai') return !!(x.tk && x.tk.ok && x.tk.soKy);
+      if (FB_LOC === 'trong') return !!(x.tk && x.tk.ok && !x.tk.soKy);
+      return true;
+    });
+    // ô đang mở luôn nằm trên trang đang xem
+    if (oFbMo >= 0) {
+      var vt = -1;
+      loc.forEach(function (x, k) { if (x.i === oFbMo) vt = k; });
+      if (vt >= 0) FB_TRANG = Math.floor(vt / FB_MOI_TRANG);
+    }
+    var soTrang = Math.max(1, Math.ceil(loc.length / FB_MOI_TRANG));
+    if (FB_TRANG >= soTrang) FB_TRANG = soTrang - 1;
+    if (FB_TRANG < 0) FB_TRANG = 0;
+    var trangNay = loc.slice(FB_TRANG * FB_MOI_TRANG, (FB_TRANG + 1) * FB_MOI_TRANG);
+
+    var dong = trangNay.map(function (x) {
+      var pid = x.cfg.projectId, tk = x.tk, dm = x.dm;
+      var che = !x.laGoc && x.cfg.apiKey && /[•*]/.test(x.cfg.apiKey);
+      var cham = tk && !tk.ok ? '<span style="color:var(--do)" title="Lần kiểm tra gần nhất bị lỗi">●</span>' :
+        x.ok ? '<span style="color:var(--xanh)" title="Sẵn sàng">●</span>' :
+        che ? '<span style="color:var(--cam)" title="apiKey đang bị che (•••), hãy dán apiKey đầy đủ">⚠</span>' : '<span class="mo">○</span>';
       var urlUsage = 'https://console.firebase.google.com/project/' + encodeURIComponent(pid) + '/firestore/databases/-default-/usage';
-      var ttLuu = !tk ? '<span class="mo">Bấm “Kiểm tra dung lượng” để đo</span>' :
+      var ttLuu = !tk ? '<span class="mo">Bấm “Kiểm tra” để đo</span>' :
         !tk.ok ? '<span style="color:var(--do)">⚠ ' + esc(tk.loi) + '</span>' :
-        '<b>' + tk.soKy + '</b> kỳ thi · <b>' + soDep(tk.soBai) + '</b> bài (' + soDep(tk.soAnh) + ' ảnh) · ~<b>' + tk.mb.toFixed(1).replace('.', ',') + '</b> / 1.024 MB' +
-        (tk.chuaDem ? ' <span class="mo">(chưa đếm ' + tk.chuaDem + ' kỳ thi chưa mở trên máy này – không đọc để tiết kiệm lượt)</span>' : '');
-      return '<tr><td><b>' + (cfg.laGoc ? 'Dự án gốc' : 'Key ' + (ds.indexOf(cfg) + 1)) + '</b> · <code>' + esc(pid) + '</code></td>' +
-        '<td class="p"><b>' + soDep(dm.doc) + '</b> <span class="mo">/ 50.000</span></td>' +
-        '<td class="p"><b>' + soDep(dm.ghi) + '</b> <span class="mo">/ 20.000</span></td>' +
-        '<td class="p"><b>' + soDep(dm.xoa) + '</b> <span class="mo">/ 20.000</span></td>' +
-        '<td>' + ttLuu + '</td>' +
-        '<td><a href="' + urlUsage + '" target="_blank" rel="noopener" style="font-size:12.5px">Xem trên Firebase ↗</a></td></tr>';
+        '<b>' + tk.soKy + '</b> kỳ thi · <b>' + soDep(tk.soBai) + '</b> bài · ~<b>' + tk.mb.toFixed(1).replace('.', ',') + '</b> MB' +
+        (tk.chuaDem ? ' <span class="mo">(chưa đếm ' + tk.chuaDem + ' kỳ thi)</span>' : '');
+      var gv = x.laGoc ? '<span class="mo">bài cũ, dùng chung</span>' :
+        x.chu ? '<b>' + esc(tenTK[x.chu] || x.chu) + '</b>' + (tenTK[x.chu] && tenTK[x.chu] !== x.chu ? ' <small class="mo">' + esc(x.chu) + '</small>' : '') :
+        '<span class="mo">dùng chung</span>';
+      var mo = !x.laGoc && oFbMo === x.i;
+      return '<tr' + (mo ? ' style="background:var(--nen2,rgba(0,0,0,.04))"' : '') + '>' +
+        '<td style="white-space:nowrap">' + cham + ' <b title="' + esc(pid) + (x.laGoc ? '' : ' – ô ' + (x.i + 1)) + '">' + esc(x.nhan) + '</b> <small class="mo" style="font-family:Consolas,monospace">' + esc(pid) + '</small></td>' +
+        '<td>' + gv + '</td>' +
+        '<td class="p">' + soDep(dm.doc) + '</td>' +
+        '<td class="p">' + soDep(dm.ghi) + '</td>' +
+        '<td class="p">' + soDep(dm.xoa) + '</td>' +
+        '<td style="font-size:12.5px">' + ttLuu + '</td>' +
+        '<td style="white-space:nowrap">' + (x.laGoc ? '<span class="mo" style="font-size:12px">cài sẵn</span> ' :
+          '<button type="button" class="nho' + (mo ? ' chon' : '') + '" data-fbo="' + x.i + '"' + (mo ? ' style="border-color:var(--vang2);font-weight:800"' : '') + '>Cấu hình</button> ') +
+        '<a href="' + urlUsage + '" target="_blank" rel="noopener" style="font-size:12.5px" title="Biểu đồ Google">Firebase ↗</a></td></tr>' +
+        (mo ? '<tr><td colspan="7" style="padding:6px 0 12px">' + bang + '</td></tr>' : '');
     }).join('');
 
-    var bangHanMuc = '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--vien)">' +
-      '<div class="hang" style="margin-bottom:10px"><b style="font-size:14px">Hạn mức miễn phí &amp; Dung lượng đang dùng (' + soOk + ' dự án đang bật)</b>' +
+    // Thanh chuyển trang: ‹ 1 2 3 … ›
+    var phanTrang = '';
+    if (soTrang > 1) {
+      var nutT = function (k, chu, tat) {
+        return '<button type="button" class="nho' + (k === FB_TRANG && !tat ? ' chon' : '') + '" data-fbtrang="' + k + '"' + (tat ? ' disabled' : '') +
+          (k === FB_TRANG && !tat ? ' style="border-color:var(--vang2);font-weight:800"' : '') + '>' + chu + '</button>';
+      };
+      var cac = [];
+      for (var k = 0; k < soTrang; k++) {
+        if (k === 0 || k === soTrang - 1 || Math.abs(k - FB_TRANG) <= 2) cac.push(nutT(k, String(k + 1)));
+        else if (cac[cac.length - 1] !== '…') cac.push('…');
+      }
+      phanTrang = '<div class="hang" style="gap:4px;justify-content:center;margin-top:10px">' +
+        nutT(FB_TRANG - 1, '‹ Trước', FB_TRANG === 0) + cac.map(function (c) { return c === '…' ? '<span class="mo">…</span>' : c; }).join('') +
+        nutT(FB_TRANG + 1, 'Sau ›', FB_TRANG >= soTrang - 1) +
+        '<span class="mo" style="font-size:12.5px;margin-left:8px">Trang ' + (FB_TRANG + 1) + '/' + soTrang + ' · ' + loc.length + ' dự án</span></div>';
+    }
+    var loai = [['', 'Tất cả'], ['rieng', 'Đã gán giáo viên'], ['chung', 'Dùng chung'], ['cobai', 'Có bài thi'], ['trong', 'Chưa có bài'], ['loi', 'Lỗi / chưa sẵn sàng']];
+    var thanhCongCu = '<div class="hang" style="gap:8px;margin-bottom:8px;flex-wrap:wrap">' +
+      '<input id="fbTim" type="search" placeholder="Tìm: số GV, mã dự án, giáo viên…" value="' + esc(FB_TIM) + '" autocomplete="off" spellcheck="false" style="width:240px">' +
+      '<select id="fbLoc">' + loai.map(function (l) { return '<option value="' + l[0] + '"' + (FB_LOC === l[0] ? ' selected' : '') + '>' + l[1] + '</option>'; }).join('') + '</select>' +
+      '<button type="button" class="nho vang" id="fbThem" data-fbo="' + oTrong + '">+ Thêm dự án (ô ' + (oTrong + 1) + ')</button>' +
+      '<span class="mo" style="font-size:12.5px">Lượt đọc / ghi / xoá là của máy này hôm nay; mỗi dự án có 50.000 / 20.000 / 20.000 lượt mỗi ngày.</span></div>';
+    var bangThem = oFbMo >= 0 && !ds[oFbMo] ? '<div style="margin-bottom:10px">' + bang + '</div>' : '';
+
+    var bangHanMuc = '<div class="hang" style="margin-bottom:10px"><b style="font-size:14px">Hạn mức miễn phí &amp; Dung lượng đang dùng</b>' +
       '<button type="button" class="nho vang" id="fbKiemTra"' + (dangKiemFB ? ' disabled' : '') + ' style="margin-left:auto">' +
       (dangKiemFB ? '⏳ Đang kiểm tra các dự án…' : '⟳ Kiểm tra dung lượng &amp; số bài trên các dự án') + '</button></div>' +
-      '<div class="o2" style="margin-bottom:10px;gap:18px">' +
+      '<div class="o2" style="margin-bottom:12px;gap:18px">' +
       '<div class="so"><small>Tổng lượt ĐỌC / ngày</small><b class="v">' + soDep(soOk * 50000) + '</b><small class="mo">Máy này hôm nay: ' + soDep(tongDoc) + '</small></div>' +
       '<div class="so"><small>Tổng lượt GHI / ngày</small><b class="v">' + soDep(soOk * 20000) + '</b><small class="mo">Máy này hôm nay: ' + soDep(tongGhi) + ' (~' + soDep(soOk * 10000) + ' bài/ngày)</small></div>' +
       '<div class="so"><small>Tổng lượt XOÁ / ngày</small><b>' + soDep(soOk * 20000) + '</b><small class="mo">Máy này hôm nay: ' + soDep(tongXoa) + '</small></div>' +
       '<div class="so"><small>Tổng LƯU TRỮ miễn phí</small><b class="v">' + soOk + ' GB</b><small class="mo">' + (coTK ? 'Đang dùng ~' + tongMB.toFixed(1).replace('.', ',') + ' MB (' + tongKy + ' kỳ thi, ' + soDep(tongBai) + ' bài)' : 'Chứa được ~' + soDep(soOk * 9500) + ' bài kèm ảnh') + '</small></div>' +
-      '</div>' +
-      (dongDuAn ? '<div style="overflow:auto"><table class="ke" style="font-size:13px"><tr><th>Dự án</th><th class="p">Lượt đọc hôm nay (máy này)</th><th class="p">Lượt ghi hôm nay (máy này)</th><th class="p">Lượt xoá hôm nay</th><th>Đang lưu trên dự án</th><th>Biểu đồ Google</th></tr>' + dongDuAn + '</table></div>' : '') +
-      '</div>';
+      '</div>' + thanhCongCu + bangThem +
+      '<div style="overflow-x:auto"><table class="ke" style="font-size:13px"><tr><th>Dự án</th><th>Giáo viên được gán</th><th class="p">Đọc</th><th class="p">Ghi</th><th class="p">Xoá</th><th>Đang lưu</th><th></th></tr>' +
+      (dong || '<tr><td colspan="7" class="mo" style="text-align:center;padding:14px">Không có dự án nào khớp</td></tr>') + '</table></div>' + phanTrang;
 
     // Khoá bí mật của các dự án GV (thẻ ký tên): dán nội dung tệp .json tải từ Firebase Console → Apps Script cất vào Script Properties.
     // Khoá không lưu trên máy này và không hiện lại sau khi lưu.
@@ -7115,9 +7233,9 @@ var QUET = (function () {
       '<div class="hang" style="margin-top:8px"><button type="button" class="vang nho" id="fbLuuKhoa">Lưu khoá</button>' +
       '<button type="button" class="nho" id="fbXemKhoa">Dự án nào đã có khoá?</button><span class="mo" id="fbKhoaTT" style="font-size:12.5px"></span></div></div>';
 
-    return '<div class="the" id="theFB"><h3>Dự án Firebase chia tải (' + soOk + '/' + (FBK.soO || ds.length) + ' dự án sẵn sàng)</h3>' +
-      '<p class="mo" style="margin-top:0">Khi bấm tạo kỳ thi mới, NKZip tự động chọn ngẫu nhiên 1 dự án khả dụng để lưu đề và bài chấm. Bấm vào từng nút bên dưới để mở / ẩn bảng dán cấu hình.</p>' +
-      '<div class="hang" style="gap:6px">' + nut + '</div>' + bang + bangHanMuc + khungKhoa + '</div>';
+    return '<div class="the" id="theFB"><h3>Dự án Firebase chia tải (' + soOk + ' dự án sẵn sàng)</h3>' +
+      '<p class="mo" style="margin-top:0">Khi bấm tạo kỳ thi mới, NKZip tự động chọn 1 dự án khả dụng để lưu đề và bài chấm (giáo viên được gán dự án riêng thì luôn lưu vào dự án của mình). Bấm “Cấu hình” ở từng dòng để mở / ẩn khung dán cấu hình.</p>' +
+      bangHanMuc + khungKhoa + '</div>';
   }
   function ganSuKienFirebase() {
     var the = $('#theFB'); if (!the || !window.FBK) return;
@@ -7127,6 +7245,27 @@ var QUET = (function () {
         oFbMo = oFbMo === i ? -1 : i;
         the.outerHTML = veKhungFirebase();
         ganSuKienFirebase();
+      };
+    });
+    // tìm / lọc / chuyển trang: vẽ lại thẻ nhưng giữ chữ đang gõ trong các ô dán
+    var veGiu = function (tapTrung) {
+      var t2 = $('#theFB'); if (!t2) return;
+      var giu = {};
+      ['fbTxt', 'fbKhoa'].forEach(function (id) { var o = $('#' + id); if (o) giu[id] = o.value; });
+      t2.outerHTML = veKhungFirebase(); ganSuKienFirebase();
+      Object.keys(giu).forEach(function (id) { var o = $('#' + id); if (o) o.value = giu[id]; });
+      if (tapTrung && $('#' + tapTrung)) { var o = $('#' + tapTrung); o.focus(); try { var n = o.value.length; o.setSelectionRange(n, n); } catch (e) { /* select */ } }
+    };
+    var henTim = null;
+    if ($('#fbTim')) $('#fbTim').oninput = function () {
+      var v = this.value; clearTimeout(henTim);
+      henTim = setTimeout(function () { FB_TIM = v; FB_TRANG = 0; veGiu('fbTim'); }, 250);
+    };
+    if ($('#fbLoc')) $('#fbLoc').onchange = function () { FB_LOC = this.value; FB_TRANG = 0; veGiu(); };
+    $$('[data-fbtrang]', the).forEach(function (b) {
+      b.onclick = function () {
+        FB_TRANG = +b.getAttribute('data-fbtrang'); oFbMo = -1; veGiu();
+        if ($('#fbTim')) $('#fbTim').scrollIntoView({ block: 'center' });     // về đầu bảng của trang mới
       };
     });
     var baoKhoa = function (s) { if ($('#fbKhoaTT')) $('#fbKhoaTT').textContent = s; };
