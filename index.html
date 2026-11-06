@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.9.6';</script>
+<script>window.NK_BAN = '1.9.7';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -493,7 +493,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.6</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.7</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -506,7 +506,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.6 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.7 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -535,7 +535,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.9.6 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.9.7 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a><br>Thông tin &amp; tải NKZip: <a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -6996,18 +6996,29 @@ var QUET = (function () {
   setInterval(kiemDangKi, 60000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) kiemDangKi(); });
   var hienMk = {};
+  // Ô "Thời hạn": vĩnh viễn / dùng thử đến ngày… (còn n ngày) / đã hết hạn; dùng thử thì có nút gia hạn +7 ngày và chuyển vĩnh viễn
+  function oThoiHan(a) {
+    if (a.qt) return '<span class="mo">Vĩnh viễn</span>';
+    if (!a.han) return 'Vĩnh viễn';
+    var con = Math.ceil((a.han - Date.now()) / 86400000), ngay = new Date(a.han).toLocaleDateString('vi-VN');
+    var nut = '<br><button class="nho" data-han="' + esc(a.tk) + '" data-kieu="them" title="Còn hạn thì cộng tiếp từ ngày hết hạn; đã hết hạn thì tính từ hôm nay">+7 ngày</button> ' +
+      '<button class="nho vang" data-han="' + esc(a.tk) + '" data-kieu="vv">Vĩnh viễn</button>';
+    return (a.han > Date.now()
+      ? 'Dùng thử đến <b>' + ngay + '</b> <span class="mo">(còn ' + con + ' ngày)</span>'
+      : '<b style="color:var(--do)">Hết hạn ' + ngay + '</b>') + nut;
+  }
   function veTaiKhoan() {
     var cho = TK.filter(function (a) { return a.cho; });
     // số bài thi mỗi tài khoản đã tạo (cộng trên mọi dự án, theo lần bấm Kiểm tra dung lượng gần nhất trong Cài đặt)
     var BTK = window.FBK && FBK.baiTheoTaiKhoan ? FBK.baiTheoTaiKhoan() : { tong: {}, luc: 0, soDuAn: 0 };
     var h = '<h2>Tài khoản</h2><p class="mo">Mỗi tài khoản chỉ thấy bài thi và lớp của riêng mình. Tài khoản quản trị tạo được tài khoản khác, xem và đổi mật khẩu, và vào được mục Cài đặt.</p>' +
-      (cho.length ? '<div class="the" style="border-color:var(--vang2)"><h3>Chờ duyệt (' + cho.length + ')</h3><table class="ke"><tr><th>Tài khoản</th><th>Họ tên</th><th>Ngày đăng kí</th><th style="width:200px"></th></tr>' +
-        cho.map(function (a) { return '<tr><td><b>' + esc(a.tk) + '</b></td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleString('vi-VN') : '') + '</td><td><button class="vang nho" data-duyet="' + esc(a.tk) + '">Duyệt</button> <button class="nguy nho" data-tuchoi="' + esc(a.tk) + '">Từ chối</button></td></tr>'; }).join('') +
+      (cho.length ? '<div class="the" style="border-color:var(--vang2)"><h3>Chờ duyệt (' + cho.length + ')</h3><table class="ke"><tr><th>Tài khoản</th><th>Họ tên</th><th>Ngày đăng kí</th><th style="width:300px">Duyệt</th></tr>' +
+        cho.map(function (a) { return '<tr><td><b>' + esc(a.tk) + '</b></td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleString('vi-VN') : '') + '</td><td style="white-space:nowrap"><button class="vang nho" data-duyet="' + esc(a.tk) + '" data-kieu="thu" title="Dùng được đến hết 23:59 ngày thứ 7 kể từ hôm nay">Dùng thử 7 ngày</button> <button class="vang nho" data-duyet="' + esc(a.tk) + '" data-kieu="vv">Vĩnh viễn</button> <button class="nguy nho" data-tuchoi="' + esc(a.tk) + '">Từ chối</button></td></tr>'; }).join('') +
         '</table></div>' : '') +
       '<div class="the"><h3>Thêm tài khoản</h3><div class="hang" style="align-items:flex-end"><div class="o"><label>Tài khoản (email hoặc tên, viết thường)</label><input id="tTk" autocomplete="off" spellcheck="false" style="width:230px"></div><div class="o"><label>Tên hiển thị</label><input id="tTen" autocomplete="off"></div>' +
       '<div class="o"><label>Mật khẩu (từ 6 kí tự)</label><input id="tMk" autocomplete="new-password"></div><label class="hang" style="gap:6px;cursor:pointer"><input type="checkbox" id="tQt"> Quản trị</label><button class="vang" id="tLuu">Tạo tài khoản</button></div></div>' +
       '<div class="the"><h3>Danh sách (' + (TK.length - cho.length) + ')</h3>' +
-      '<p class="mo" style="margin:-4px 0 8px;font-size:12.5px">Cột “Bài thi đã tạo”: ' + (BTK.luc ? 'đếm lúc ' + new Date(BTK.luc).toLocaleString('vi-VN') + ' trên ' + BTK.soDuAn + ' dự án' : 'chưa đếm') + ' – bấm “Kiểm tra dung lượng &amp; số bài” trong Cài đặt để đếm lại.</p><div style="overflow:auto"><table class="ke"><tr><th>Tài khoản</th><th>Tên hiển thị</th><th>Ngày tạo</th><th>Mật khẩu</th><th>Quyền</th><th title="Bài thi mới của tài khoản này chỉ lưu vào dự án được gán; tài khoản khác không dùng dự án đó">Dự án riêng</th>' +
+      '<p class="mo" style="margin:-4px 0 8px;font-size:12.5px">Cột “Bài thi đã tạo”: ' + (BTK.luc ? 'đếm lúc ' + new Date(BTK.luc).toLocaleString('vi-VN') + ' trên ' + BTK.soDuAn + ' dự án' : 'chưa đếm') + ' – bấm “Kiểm tra dung lượng &amp; số bài” trong Cài đặt để đếm lại.</p><div style="overflow:auto"><table class="ke"><tr><th>Tài khoản</th><th>Tên hiển thị</th><th>Ngày tạo</th><th>Mật khẩu</th><th>Quyền</th><th title="Dùng thử: hết hạn lúc 23:59 ngày ghi bên dưới thì không đăng nhập được nữa. Tài khoản cũ và tài khoản quản trị là vĩnh viễn.">Thời hạn</th><th title="Bài thi mới của tài khoản này chỉ lưu vào dự án được gán; tài khoản khác không dùng dự án đó">Dự án riêng</th>' +
       '<th class="p" title="' + esc(BTK.luc ? 'Đếm trên ' + BTK.soDuAn + ' dự án lúc ' + new Date(BTK.luc).toLocaleString('vi-VN') + '. Bấm “Kiểm tra dung lượng” trong Cài đặt để đếm lại.' : 'Chưa đếm – bấm “Kiểm tra dung lượng” trong Cài đặt') + '">Bài thi đã tạo</th><th style="width:240px"></th></tr>' +
       TK.filter(function (a) { return !a.cho; }).map(function (a) {
         // dự án Firebase gán riêng: mỗi dự án chỉ của một tài khoản; dự án đã gán cho người khác thì không chọn được
@@ -7022,6 +7033,7 @@ var QUET = (function () {
         return '<tr><td><b>' + esc(a.tk) + '</b>' + (a.tk === API.toi() ? ' <span class="nhan">bạn</span>' : '') + '</td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleDateString('vi-VN') : '') + '</td>' +
           '<td style="font-family:Consolas,monospace">' + mk + (a.mk ? ' <button class="nho" data-hien="' + esc(a.tk) + '">' + (hienMk[a.tk] ? 'Ẩn' : 'Hiện') + '</button>' : '') + '</td>' +
           '<td>' + (a.qt ? '<span class="nhan">Quản trị</span>' : 'Thường') + '</td>' +
+          '<td style="white-space:nowrap">' + oThoiHan(a) + '</td>' +
           '<td>' + chonDA + '</td>' +
           '<td class="p">' + (BTK.luc ? '<b>' + soDep(BTK.tong[String(a.tk).toLowerCase()] || 0) + '</b>' : '<span class="mo">–</span>') + '</td>' +
           '<td><button class="nho" data-mk="' + esc(a.tk) + '">Đổi mật khẩu</button> <button class="nho" data-ten="' + esc(a.tk) + '">Đổi tên</button> ' +
@@ -7035,7 +7047,22 @@ var QUET = (function () {
       if (tim(y.tk)) return bao('Tài khoản ' + y.tk + ' đã có. Dùng nút “Đổi mật khẩu” trong danh sách.');
       luu(y, 'Đã tạo tài khoản ' + y.tk);
     };
-    $$('#chinh [data-duyet]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-duyet'); bao('Đang duyệt…', 20000); API.goi('duyetTaiKhoan', { tk: t, dongY: true }).then(function () { bao('Đã duyệt tài khoản ' + t); return taiTK(); }).then(function () { veKhung(); veBen(); veTaiKhoan(); }).catch(loi); }; });
+    $$('#chinh [data-duyet]').forEach(function (b) {
+      b.onclick = function () {
+        var t = b.getAttribute('data-duyet'), thu = b.getAttribute('data-kieu') === 'thu';
+        if (!confirm(thu ? 'Duyệt “' + t + '” dùng thử 7 ngày?\n\nHết 23:59 ngày thứ 7 tài khoản tự khoá (không đăng nhập được). Sau đó có thể gia hạn thêm hoặc chuyển vĩnh viễn trong danh sách.' : 'Duyệt “' + t + '” dùng VĨNH VIỄN?')) return;
+        bao('Đang duyệt…', 20000);
+        API.goi('duyetTaiKhoan', { tk: t, dongY: true, kieu: thu ? 'thu' : 'vv', ngay: 7 }).then(function () { bao(thu ? 'Đã duyệt ' + t + ' dùng thử 7 ngày' : 'Đã duyệt ' + t + ' vĩnh viễn'); return taiTK(); }).then(function () { veKhung(); veBen(); veTaiKhoan(); }).catch(loi);
+      };
+    });
+    $$('#chinh [data-han]').forEach(function (b) {
+      b.onclick = function () {
+        var t = b.getAttribute('data-han'), vv = b.getAttribute('data-kieu') === 'vv';
+        if (!confirm(vv ? 'Chuyển “' + t + '” sang dùng VĨNH VIỄN?' : 'Gia hạn dùng thử thêm 7 ngày cho “' + t + '”?')) return;
+        bao('Đang lưu…', 20000);
+        API.goi('hanTaiKhoan', { tk: t, kieu: vv ? 'vv' : 'them', ngay: 7 }).then(function () { bao(vv ? 'Đã chuyển ' + t + ' sang vĩnh viễn' : 'Đã gia hạn thêm 7 ngày cho ' + t); return taiTK(); }).then(veTaiKhoan).catch(loi);
+      };
+    });
     $$('#chinh [data-tuchoi]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-tuchoi'); if (!confirm('Từ chối và xoá yêu cầu đăng kí của “' + t + '”?')) return; API.goi('duyetTaiKhoan', { tk: t, dongY: false }).then(function () { bao('Đã từ chối ' + t); return taiTK(); }).then(function () { veKhung(); veBen(); veTaiKhoan(); }).catch(loi); }; });
     // duyệt / bỏ quyền chấm KTDK Zip của một tài khoản
     $$('#chinh [data-ktdk]').forEach(function (b) { b.onchange = function () { var t = b.getAttribute('data-ktdk'), co = b.checked; API.goiGas('duyetKTDK', { tk: t, dongY: co }).then(function () { bao(co ? 'Đã cho ' + t + ' chấm KTDK' : 'Đã bỏ quyền chấm KTDK của ' + t); return taiTK(); }).catch(function (e) { b.checked = !co; loi(e); }); }; });
