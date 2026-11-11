@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.9.7';</script>
+<script>window.NK_BAN = '1.9.8';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -493,7 +493,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.7</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.8</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -506,7 +506,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.7 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.8 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -535,7 +535,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.9.7 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v1.9.8 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a><br>Thông tin &amp; tải NKZip: <a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -663,7 +663,105 @@ var OMR = (function () {
 
   function ap(H, x, y) {
     var w = H[6] * x + H[7] * y + H[8];
-    return [(H[0] * x + H[1] * y + H[2]) / w, (H[3] * x + H[4] * y + H[5]) / w];
+    var u = (H[0] * x + H[1] * y + H[2]) / w, v = (H[3] * x + H[4] * y + H[5]) / w;
+    if (H.bu) { var b = buTai(H.bu, x, y); u += b[0]; v += b[1]; }      // bù giấy cong (nếu đã đo)
+    return [u, v];
+  }
+
+  // ---------- bù giấy cong theo vùng ----------
+  // Phép chiếu (homography) coi tờ phiếu là mặt phẳng; giấy võng / gấp / vểnh thì các vùng bên trong lệch khỏi mặt phẳng đó.
+  // Sau khi có H, ở mỗi điểm neo (lưới 1,5 cm) dò xem các VÒNG TRÒN IN SẴN quanh đó lệch bao nhiêu (tối đa 2,2 mm – nhỏ hơn nửa
+  // khoảng cách hai ô nên không nhảy sang ô bên cạnh), chỉ nhận khi khớp rõ ràng hơn hẳn vị trí cũ. Độ lệch được nội suy ra lưới
+  // 0,25 cm; ap() và nan() cộng thêm độ lệch đó. Phiếu phẳng: mọi điểm neo lệch 0 → kết quả y như trước.
+  function buTai(B, x, y) {
+    var fx = (x - B.x0) / B.buoc, fy = (y - B.y0) / B.buoc;
+    if (fx < 0) fx = 0; if (fy < 0) fy = 0; if (fx > B.nx - 1) fx = B.nx - 1; if (fy > B.ny - 1) fy = B.ny - 1;
+    var i = Math.min(B.nx - 2, fx | 0), j = Math.min(B.ny - 2, fy | 0), a = fx - i, c = fy - j, p = j * B.nx + i;
+    var g = B.g;
+    return [(g[2 * p] * (1 - a) + g[2 * (p + 1)] * a) * (1 - c) + (g[2 * (p + B.nx)] * (1 - a) + g[2 * (p + B.nx + 1)] * a) * c,
+      (g[2 * p + 1] * (1 - a) + g[2 * (p + 1) + 1] * a) * (1 - c) + (g[2 * (p + B.nx) + 1] * (1 - a) + g[2 * (p + B.nx + 1) + 1] * a) * c];
+  }
+  function tamCacO(tpl) {
+    if (tpl._tamCong) return tpl._tamCong;
+    var ra = [];
+    [tpl.p1, tpl.p2, tpl.sbd, tpl.made].forEach(function (g) { (g || []).forEach(function (os) { os.forEach(function (o) { ra.push(o); }); }); });
+    (tpl.p3 || []).forEach(function (c) { c.forEach(function (os) { os.forEach(function (o) { ra.push(o); }); }); });
+    return (tpl._tamCong = ra);
+  }
+  function doCong(G, H, tpl) {
+    var w = G.w, h = G.h, d = G.d, k = tpl.khung, o = tamCacO(tpl);
+    var H0 = H.slice(0, 9);                            // phép chiếu thuần (không bù)
+    var c0 = ap(H0, (k[0] + k[2]) / 2, (k[1] + k[3]) / 2), c1 = ap(H0, (k[0] + k[2]) / 2 + 1, (k[1] + k[3]) / 2);
+    var pxcm = Math.hypot(c1[0] - c0[0], c1[1] - c0[1]), r = tpl.r * pxcm;
+    if (pxcm < 18) return null;                         // ảnh quá nhỏ: không đủ chi tiết để dò
+    var S = Math.round(0.18 * pxcm), buoc = Math.max(1, Math.round(0.035 * pxcm));
+    var gocA = [], NA = 12; for (var t = 0; t < NA; t++) gocA.push([Math.cos(t * 2 * Math.PI / NA), Math.sin(t * 2 * Math.PI / NA)]);
+    // vị trí (chỉ số mảng) các điểm trên vòng tròn (bán kính r) và ngay ngoài vòng (1,55 r), tính sẵn một lần
+    var vTrong = [], vNgoai = [], le = Math.ceil(1.6 * r) + S + 2;
+    for (var t2 = 0; t2 < NA; t2++) {
+      vTrong.push(Math.round(gocA[t2][1] * r) * w + Math.round(gocA[t2][0] * r));
+      vNgoai.push(Math.round(gocA[t2][1] * 1.55 * r) * w + Math.round(gocA[t2][0] * 1.55 * r));
+    }
+    // điểm: độ sáng giấy ngoài vòng trừ độ sáng trên vòng (vòng in khớp đúng chỗ thì điểm cao nhất)
+    function diem(ds, dx, dy) {
+      var s = 0, n = 0;
+      for (var q = 0; q < ds.length; q++) {
+        var p = ds[q][2] + dy * w + dx;
+        if (p < 0) continue;
+        for (var t = 0; t < NA; t++) s += d[p + vNgoai[t]] - d[p + vTrong[t]];
+        n++;
+      }
+      return n ? s / (n * NA) : 0;
+    }
+    var neo = [];
+    for (var ny = k[1] + 0.5; ny < k[3]; ny += 1.5) for (var nx = k[0] + 0.5; nx < k[2]; nx += 1.5) {
+      var ds = [];
+      for (var q = 0; q < o.length; q++) if (Math.abs(o[q][0] - nx) < 1.0 && Math.abs(o[q][1] - ny) < 1.0) {
+        var pp = ap(H0, o[q][0], o[q][1]), ix = Math.round(pp[0]), iy = Math.round(pp[1]);
+        if (ix >= le && iy >= le && ix < w - le && iy < h - le) ds.push([pp[0], pp[1], iy * w + ix]);    // bỏ ô sát mép ảnh
+      }
+      if (ds.length < 4) continue;
+      if (ds.length > 16) { var bc = Math.ceil(ds.length / 16); ds = ds.filter(function (p, n) { return n % bc === 0; }); }   // tối đa ~16 ô: đủ chính xác, nhanh trên điện thoại
+      var s0 = diem(ds, 0, 0), tot = { s: s0, dx: 0, dy: 0 }, dx, dy, s, lan;
+      // dò thô cả hai chiều trong ô vuông ±S, rồi tinh chỉnh dần quanh chỗ tốt nhất
+      for (dy = -S; dy <= S; dy += buoc) for (dx = -S; dx <= S; dx += buoc) { s = diem(ds, dx, dy); if (s > tot.s) tot = { s: s, dx: dx, dy: dy }; }
+      void lan;
+      for (var bb = Math.max(1, buoc >> 1); bb >= 1; bb = bb > 1 ? Math.max(1, bb >> 1) : 0) {
+        var t0 = tot;
+        for (dy = -bb; dy <= bb; dy += bb) for (dx = -bb; dx <= bb; dx += bb) if (dx || dy) { s = diem(ds, t0.dx + dx, t0.dy + dy); if (s > tot.s) tot = { s: s, dx: t0.dx + dx, dy: t0.dy + dy }; }
+        if (bb === 1) break;
+      }
+      // chỉ nhận khi vòng tròn khớp rõ hơn hẳn chỗ cũ (phiếu phẳng / vùng không có vòng tròn: giữ 0)
+      var nhan = tot.s > 6 && tot.s - s0 > Math.max(2, 0.12 * Math.abs(s0));
+      neo.push([nx, ny, nhan ? tot.dx : 0, nhan ? tot.dy : 0]);
+    }
+    if (!neo.some(function (n) { return n[2] || n[3]; })) return null;
+    // điểm neo lệch hẳn so với các neo xung quanh (dò nhầm): thay bằng trung vị của chúng
+    neo = neo.map(function (n) {
+      var gan = neo.filter(function (m) { return m !== n && Math.hypot(m[0] - n[0], m[1] - n[1]) < 2.2; });
+      if (gan.length < 2) return n;
+      var mx = gan.map(function (m) { return m[2]; }).sort(function (a, b) { return a - b; })[gan.length >> 1];
+      var my = gan.map(function (m) { return m[3]; }).sort(function (a, b) { return a - b; })[gan.length >> 1];
+      return Math.hypot(n[2] - mx, n[3] - my) > 0.12 * pxcm ? [n[0], n[1], mx, my] : n;
+    });
+    // lưới 0,25 cm: nội suy nghịch đảo khoảng cách từ các điểm neo
+    var B = { x0: k[0], y0: k[1], buoc: 0.25 }, X, Y;
+    B.nx = Math.ceil((k[2] - k[0]) / 0.25) + 1; B.ny = Math.ceil((k[3] - k[1]) / 0.25) + 1; B.g = new Float32Array(B.nx * B.ny * 2);
+    for (var j = 0; j < B.ny; j++) for (var i = 0; i < B.nx; i++) {
+      X = k[0] + i * 0.25; Y = k[1] + j * 0.25;
+      var sw = 0, sx = 0, sy = 0;
+      for (q = 0; q < neo.length; q++) { var dd = (neo[q][0] - X) * (neo[q][0] - X) + (neo[q][1] - Y) * (neo[q][1] - Y), wt = 1 / (dd * dd + 0.05); sw += wt; sx += wt * neo[q][2]; sy += wt * neo[q][3]; }
+      B.g[2 * (j * B.nx + i)] = sx / sw; B.g[2 * (j * B.nx + i) + 1] = sy / sw;
+    }
+    B.neo = neo;
+    return B;
+  }
+  // gắn phần bù giấy cong vào H (một lần cho mỗi H)
+  function ganCong(G, H, tpl) {
+    if (!H || H.daDoCong || OMR.tatBuCong) return H;
+    H.daDoCong = true;
+    try { var B = doCong(G, H, tpl); if (B) H.bu = B; } catch (e) { /* không đo được: đọc như cũ */ }
+    return H;
   }
 
   function tiLe(H, k) { return [H[0] * k, H[1] * k, H[2] * k, H[3] * k, H[4] * k, H[5] * k, H[6], H[7], H[8]]; }
@@ -1092,6 +1190,7 @@ var OMR = (function () {
   function vung(loai) { return loai === 'SBD.' || loai === 'Mã đề.' ? 'ID' : loai; }
   // 1) đo độ đậm tất cả các ô + ngưỡng từng vùng (phần tốn thời gian; quyết định ô tô làm riêng ở quyetDinh)
   function doCacO(G, H, tpl, den) {
+    ganCong(G, H, tpl);
     var r = tpl.r, i, j;
     var ds = [], nh = [];                        // nh: [loại, nhãn, vị trí đầu, số ô]
     function them(os, loai, vt) { nh.push([loai, vt, ds.length, os.length]); for (var t = 0; t < os.length; t++) ds.push(os[t]); }
@@ -1201,12 +1300,15 @@ var OMR = (function () {
   function nan(G, H, tpl, pxcm) {
     var k = tpl.khung, W = Math.round((k[2] - k[0]) * pxcm), Hh = Math.round((k[3] - k[1]) * pxcm);
     var out = new ImageData(W, Hh), o = out.data, w = G.w, h = G.h, d = G.d;
+    ganCong(G, H, tpl);
+    var B = H.bu || null;                              // giấy cong: ảnh lưu cũng được nắn theo vùng (dấu đúng / sai vẽ khớp ô)
     for (var y = 0; y < Hh; y++) {
       var Y = k[1] + (y + 0.5) / pxcm;
       for (var x = 0; x < W; x++) {
         var X = k[0] + (x + 0.5) / pxcm;
         var ww = H[6] * X + H[7] * Y + H[8];
         var u = (H[0] * X + H[1] * Y + H[2]) / ww, v = (H[3] * X + H[4] * Y + H[5]) / ww, g = 128;
+        if (B) { var bb = buTai(B, X, Y); u += bb[0]; v += bb[1]; }
         if (u >= 0 && v >= 0 && u < w - 1 && v < h - 1) {
           var ui = u | 0, vi = v | 0, fu = u - ui, fv = v - vi, p = vi * w + ui;
           g = (d[p] * (1 - fu) + d[p + 1] * fu) * (1 - fv) + (d[p + w] * (1 - fu) + d[p + w + 1] * fu) * fv;
@@ -1572,7 +1674,8 @@ var VE = (function () {
     var a1 = CHAM.k1(de), a2 = CHAM.k2(de), a3 = CHAM.k3(de);
     var k0 = TPL.khung;
     // nhãn "sửa" ở bên phải câu giáo viên đã chỉnh tay
-    function sua(o) { var p = b.tam(o); b.nhan('sửa', p[0] + b.R * 1.5, p[1] - px * 0.3, CAM, Math.round(px * 0.34)); }
+    // (bỏ từ 1.9.8: người dùng thấy nhãn che mất phiếu – chỉ khoanh đúng / sai theo bài đã sửa)
+    function sua() { }
     // Câu giáo viên đã sửa: KHÔNG xoá / tô đè gì lên ảnh – ảnh giữ nguyên như học sinh tô; lựa chọn đã sửa được coi là
     // bài của học sinh và chấm (khoanh đúng / sai) ngay trên ảnh gốc, kèm nhãn "sửa".
     if (ch && !ch.loi) {
@@ -1616,7 +1719,7 @@ var VE = (function () {
           rong = b.nhan(a3[i].split('|')[0], x, y, dat.length ? XANH : CAM);
           c.font = 'bold ' + Math.round(px * 0.42) + 'px sans-serif'; c.fillStyle = DO; c.fillText('x', x - px * 0.42, y + px * 0.42);
         }
-        if (daSua) b.nhan('sửa', x + rong + (rong ? 6 : 0), y, CAM, Math.round(px * 0.34));
+        void daSua;                                   // không vẽ nhãn "sửa" nữa
       }
     }
     if (vt) {
@@ -1628,8 +1731,6 @@ var VE = (function () {
       }
       if (daDoi) {
         for (i = 0; i < TPL.made.length; i++) { v = nhanMa.indexOf(mdMoi[i]); if (v >= 0) b.vong(TPL.made[i][v], LAM); }
-        var pm = b.tam(TPL.made[TPL.made.length - 1][0]);
-        b.nhan('sửa', pm[0] + b.R * 1.5, pm[1] - px * 1.1, CAM, Math.round(px * 0.34));
       } else for (i = 0; i < TPL.made.length; i++) if (vt.made[i] >= 0) b.vong(TPL.made[i][vt.made[i]], LAM);
     }
   }
@@ -4499,12 +4600,19 @@ var QUET = (function () {
     var o = ' ' + khongDau(r.ten + ' ' + r.lop + ' ' + r.sbd).replace(/\s+/g, ' ');
     return khongDau(tu).split(/\s+/).every(function (x) { return !x || o.indexOf(' ' + x) >= 0; });
   }
-  var timBL = '', chiThieuAnh = false;
+  var timBL = '', chiThieuAnh = false, locBL = '';     // locBL: '' | 'kep' (có câu tô 2 ô) | 'trong' (có câu bỏ trống) | 'ca' (một trong hai)
+  function khopLocBL(r) {
+    if (!locBL) return true;
+    var k = ky(); if (!k) return true;
+    var kt = CHAM.kiemTra({ sbd: r.sbd, p1: r.p1, p2: r.p2, p3: r.p3 }, k, r.made);
+    var kep = kt.kep.length > 0, trong = kt.trong.length > 0;
+    return locBL === 'kep' ? kep : locBL === 'trong' ? trong : kep || trong;
+  }
   function thieuAnhBai(r) { return !r.chuaGui && !r.anh; }
   // số bài theo từng SBD (hai máy chấm cùng SBD, giáo viên "giữ cả hai"… thì có hơn 1 bài)
   function demSbd() { var d = {}; KQ.forEach(function (r) { if (/^\d+$/.test(r.sbd)) d[r.sbd] = (d[r.sbd] || 0) + 1; }); return d; }
   function dsLoc() {
-    var ds = KQ.filter(function (r) { return (!locLop || r.lop === locLop) && khopTim(r, timBL) && (!chiThieuAnh || thieuAnhBai(r)); });
+    var ds = KQ.filter(function (r) { return (!locLop || r.lop === locLop) && khopTim(r, timBL) && (!chiThieuAnh || thieuAnhBai(r)) && khopLocBL(r); });
     var c = sapXep.cot;
     ds.sort(function (a, b) {
       var x = a[c], y = b[c];
@@ -4553,6 +4661,10 @@ var QUET = (function () {
       '<option value="tatca">Tất cả lớp – mỗi lớp 1 tệp</option><option value="gop">Tất cả trong 1 tệp</option></select>' +
       (soThieuAnh ? '<button id="nutThieuAnh"' + (chiThieuAnh ? ' class="chon"' : '') + ' title="Bài đã có điểm nhưng chưa có ảnh trên máy chủ: mở lại app trên điện thoại đã chấm, hoặc quét lại phiếu (chỉ bổ sung ảnh, không đổi điểm)">' +
         (chiThieuAnh ? '✕ Bỏ lọc thiếu ảnh' : '⏳ Thiếu ảnh (' + soThieuAnh + ')') + '</button>' : '') +
+      '<select id="locBL" title="Lọc các bài có câu tô 2 ô hoặc câu bỏ trống"' + (locBL ? ' style="border-color:var(--vang2);font-weight:700"' : '') + '>' +
+      [['', 'Mọi bài'], ['kep', 'Bài có câu tô 2 ô'], ['trong', 'Bài có câu bỏ trống'], ['ca', 'Tô 2 ô hoặc bỏ trống']].map(function (o) {
+        return '<option value="' + o[0] + '"' + (locBL === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+      }).join('') + '</select>' +
       '<input id="timBL" type="search" placeholder="🔍 Lọc theo tên, lớp hoặc SBD…" value="' + esc(timBL) + '" autocomplete="off" style="flex:1;min-width:200px;max-width:340px">' +
       '<span class="mo anDT" style="margin-left:auto">' + ds.length + ' bài · bấm vào một dòng để xem bài làm</span></div>';
     var soSbd = demSbd();
@@ -4588,16 +4700,23 @@ var QUET = (function () {
         '</td><td>' + co2 + '</td></tr>';
     });
     h += '</table></div>' + (ds.length ? '' : '<p class="mo">' + (timBL && KQ.length ? 'Không có bài nào khớp “' + esc(timBL) + '”.' : 'Chưa có bài nào. Bấm “Chấm bài” để quét phiếu.') + '</p>') + '</div>';
-    if (locLop) {
-      var l = DL.lop.filter(function (x) { return x.ten === locLop; })[0];
-      if (l) {
-        var coBai = {}; KQ.forEach(function (r) { coBai[r.sbd] = 1; });
+    // Học sinh chưa có bài: lớp đang chọn, hoặc (Tất cả các lớp) mọi lớp đã có ít nhất một bài ở bài thi này – mỗi lớp một dòng
+    var coBai = {}; KQ.forEach(function (r) { coBai[r.sbd] = 1; });
+    var lopXet = DL.lop.filter(function (x) { return locLop ? x.ten === locLop : cacLop[x.ten]; })
+      .sort(function (a, b) { return String(a.ten).localeCompare(String(b.ten), 'vi', { numeric: true }); });
+    if (lopXet.length) {
+      var tongThieu = 0;
+      var dong = lopXet.map(function (l) {
         var thieu = (l.hs || []).filter(function (s) { return !coBai[s.sbd]; });
-        h += '<div class="the"><h3>Chưa có bài (' + thieu.length + ')</h3><div class="mo">' + (thieu.map(function (s) { return esc(s.sbd + ' ' + s.ten); }).join(' · ') || 'Đủ bài.') + '</div></div>';
-      }
+        tongThieu += thieu.length;
+        return '<div style="margin:6px 0"><b>' + esc(l.ten) + '</b> <span class="mo">(' + (thieu.length ? 'thiếu ' + thieu.length + '/' + (l.hs || []).length : 'đủ bài') + ')</span>' +
+          (thieu.length ? ': <span class="mo">' + thieu.map(function (s) { return esc(s.sbd + ' ' + s.ten); }).join(' · ') + '</span>' : '') + '</div>';
+      }).join('');
+      h += '<div class="the"><h3>Chưa có bài (' + tongThieu + ')' + (locLop ? '' : ' – ' + lopXet.length + ' lớp') + '</h3>' + dong + '</div>';
     }
     $('#noiDung').innerHTML = h;
     $('#locLop').onchange = function () { locLop = this.value; veChinh(); };
+    $('#locBL').onchange = function () { locBL = this.value; veChinh(); };
     if ($('#nutThieuAnh')) $('#nutThieuAnh').onclick = function () { chiThieuAnh = !chiThieuAnh; veChinh(); };
     $('#nutLamMoi').onclick = function () {
       if (!window.API_GIA && Date.now() - lucTaiLai < 3000) return bao('Đã tải mới nhất');
@@ -5672,7 +5791,15 @@ var QUET = (function () {
   }
   function duLieuBD(k) {
     var theoLop = {}, siSo = {};
-    KQ.forEach(function (r) { if (r.diem == null || r.chuaGui) return; var l = r.lop || 'Chưa rõ lớp'; (theoLop[l] = theoLop[l] || []).push(+r.diem); });
+    // Lớp tra lại theo SBD hiện tại trong danh sách lớp (sửa SBD / gán học sinh xong là đúng ngay, không chờ máy chủ ghi lại cột lớp);
+    // điểm chưa có (bài vừa sửa, đang gửi) thì chấm lại ngay trên máy theo đáp án. Bài đang gửi từ điện thoại vẫn được tính.
+    KQ.forEach(function (r) {
+      var d = r.diem;
+      if (d == null && k && k.de && k.de[r.made]) { try { var c = CHAM.cham(r, k, r.made); if (!c.loi) d = c.diem; } catch (e) { /* bỏ qua */ } }
+      if (d == null) return;
+      var hs = CHAM.timHS(DL.lop, r.sbd), l = String((hs && hs.lop) || r.lop || 'Chưa rõ lớp').trim();
+      (theoLop[l] = theoLop[l] || []).push(+d);
+    });
     (DL.lop || []).forEach(function (l) {             // sĩ số = số học sinh trong danh sách lớp (gộp các danh sách cùng tên lớp)
       var t = String(l.ten || '').trim(), s = siSo[t] = siSo[t] || {};
       (l.hs || []).forEach(function (h) { s[h.sbd || h.ten] = 1; });
@@ -6674,7 +6801,13 @@ var QUET = (function () {
     MON_MAC.forEach(them); (ls(khoaMon()) || []).forEach(them); DL.kyThi.forEach(function (k) { them(k.mon); });
     return r;
   }
-  function kyCuaMon(mon) { var c = chuanMon(mon); return DL.kyThi.filter(function (k) { return chuanMon(k.mon) === c; }); }
+  // Khối thi: gộp nhiều môn vào một bảng (mỗi môn một cột điểm TB, cột Tổng = cộng điểm TB các môn)
+  function monNgan(m) { return ({ 'Toán': 'Toán', 'Vật lí': 'Lý', 'Hóa học': 'Hóa', 'Tiếng Anh': 'Anh', 'Sinh học': 'Sinh' })[m] || m; }
+  var KHOI_TK = { 'Khối A': ['Toán', 'Vật lí', 'Hóa học'], 'Khối A1': ['Toán', 'Vật lí', 'Tiếng Anh'], 'Khối B': ['Toán', 'Hóa học', 'Sinh học'] };
+  function kyCuaMon(mon) {
+    if (KHOI_TK[mon]) { var cs = KHOI_TK[mon].map(chuanMon); return DL.kyThi.filter(function (k) { return cs.indexOf(chuanMon(k.mon)) >= 0; }); }
+    var c = chuanMon(mon); return DL.kyThi.filter(function (k) { return chuanMon(k.mon) === c; });
+  }
   function trongKhoang(k) {
     if (TKT.tg === 'tatca') return true;
     var d = new Date(ngayKT(k) + 'T00:00:00'), tu = new Date(); tu.setHours(0, 0, 0, 0);
@@ -6683,6 +6816,7 @@ var QUET = (function () {
   }
   function tron2(x) { return x == null ? null : Math.round(x * 100) / 100; }
   function duLieuTK() {
+    var khoi = KHOI_TK[TKT.mon] || null;
     var ds = kyCuaMon(TKT.mon || '').filter(trongKhoang).sort(function (a, b) { return ngayKT(a).localeCompare(ngayKT(b)) || String(a.tao || '').localeCompare(String(b.tao || '')); });
     var hs = {}, thieu = [], co = [];
     ds.forEach(function (k) {
@@ -6704,9 +6838,18 @@ var QUET = (function () {
       var v = co.map(function (k) { return x.diem[k.id]; }).filter(function (y) { return y != null; });
       x.so = v.length; x.tb = v.length ? tron2(v.reduce(function (a, b) { return a + b; }, 0) / v.length) : null;   // không tính bài vắng
       x.giam = v.slice().sort(function (a, b) { return b - a; });
+      if (khoi) {                                   // khối: TB từng môn (không tính bài vắng) và tổng các môn
+        x.tbMon = {}; var tong = 0, du = 0;
+        khoi.forEach(function (m) {
+          var cm = chuanMon(m), vm = co.filter(function (k) { return chuanMon(k.mon) === cm; }).map(function (k) { return x.diem[k.id]; }).filter(function (y) { return y != null; });
+          x.tbMon[m] = vm.length ? tron2(vm.reduce(function (a, b) { return a + b; }, 0) / vm.length) : null;
+          if (x.tbMon[m] != null) { tong += x.tbMon[m]; du++; }
+        });
+        x.duMon = du; x.tb = du ? tron2(tong) : null;      // cột Tổng (đủ môn thì so sánh được với nhau)
+      }
       return x;
     });
-    return { ky: co, thieu: thieu, hang: hang };
+    return { ky: co, thieu: thieu, hang: hang, khoi: khoi };
   }
   function xepHangLop(hang) {                       // hạng theo điểm TB trong từng lớp (bằng điểm cùng hạng)
     var theo = {};
@@ -6732,7 +6875,8 @@ var QUET = (function () {
     var mons = dsMonTK(), dem = {};
     mons.forEach(function (m) { dem[m] = kyCuaMon(m).length; });
     var khongMon = DL.kyThi.filter(function (k) { return !String(k.mon || '').trim(); }).length;
-    if (TKT.mon == null || (TKT.mon && !mons.some(function (m) { return m === TKT.mon; })) || (TKT.mon === '' && !khongMon)) {
+    Object.keys(KHOI_TK).forEach(function (kh) { dem[kh] = kyCuaMon(kh).length; });
+    if (TKT.mon == null || (TKT.mon && !KHOI_TK[TKT.mon] && !mons.some(function (m) { return m === TKT.mon; })) || (TKT.mon === '' && !khongMon)) {
       TKT.mon = mons.filter(function (m) { return dem[m]; })[0] || mons[0] || '';
     }
     var rieng = ls(khoaMon()) || [];
@@ -6740,7 +6884,12 @@ var QUET = (function () {
       var xoa = rieng.indexOf(m) >= 0 && !dem[m] ? ' <span class="xoaMon" data-xm="' + esc(m) + '" title="Bỏ môn này">✕</span>' : '';
       return '<button class="nho' + (m === TKT.mon ? ' chon' : '') + '" data-mon="' + esc(m) + '"><b>' + esc(m) + '</b> <small>' + dem[m] + ' bài</small>' + xoa + '</button>';
     }).join('') + (khongMon ? '<button class="nho' + (TKT.mon === '' ? ' chon' : '') + '" data-mon=""><b>Chưa ghi môn</b> <small>' + khongMon + ' bài</small></button>' : '') +
-      '<button class="nho" id="tkThemMon">+ Thêm môn</button>';
+      '<button class="nho" id="tkThemMon">+ Thêm môn</button>' +
+      '<span class="mo" style="align-self:center;margin:0 4px 0 10px">Theo khối:</span>' +
+      Object.keys(KHOI_TK).map(function (kh) {
+        return '<button class="nho' + (kh === TKT.mon ? ' chon' : '') + '" data-mon="' + esc(kh) + '" title="' + esc(KHOI_TK[kh].join(' + ')) + ': điểm TB từng môn và tổng"><b>' + esc(kh) + '</b> <small>' +
+          esc(KHOI_TK[kh].map(monNgan).join('–')) + ' · ' + dem[kh] + ' bài</small></button>';
+      }).join('');
     var sel = function (id, ds, v) { return '<select id="' + id + '">' + ds.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>'; };
     var D = duLieuTK(), cacLop = {};
     D.hang.forEach(function (x) { if (x.lop) cacLop[x.lop] = 1; });
@@ -6784,6 +6933,22 @@ var QUET = (function () {
     if ($('#tkTaiThieu')) $('#tkTaiThieu').onclick = function () { taiDiemTK(D.thieu, false); };
     if (!D.ky.length) { $('#tkBang').innerHTML = '<p class="mo">' + (D.thieu.length ? 'Bấm “Tải điểm các bài này” để xem.' : 'Chưa có bài thi nào của môn này trong khoảng thời gian đã chọn.') + '</p>'; return; }
     var h = '<div style="overflow:auto;margin-top:10px;max-height:calc(100vh - 320px)"><table class="ke tkt"><tr><th>STT</th><th>SBD</th><th>Họ và tên</th><th>Lớp</th>';
+    if (D.khoi && !ngang) {                         // khối: TB từng môn + tổng
+      D.khoi.forEach(function (m) { var n = D.ky.filter(function (k) { return chuanMon(k.mon) === chuanMon(m); }).length; h += '<th title="Điểm TB môn ' + esc(m) + ' (' + n + ' bài, không tính bài vắng)">TB ' + esc(monNgan(m)) + '<small>' + n + ' bài</small></th>'; });
+      h += '<th title="Cộng điểm TB các môn của khối">Tổng</th></tr>';
+      ds.forEach(function (x, n) {
+        h += '<tr><td>' + (n + 1) + '</td><td>' + esc(x.sbd) + '</td><td style="text-align:left">' + esc(x.ten) + '</td><td>' + esc(x.lop) + '</td>';
+        D.khoi.forEach(function (m) { var v = x.tbMon[m]; h += '<td>' + (v != null ? vn2(v) : '<span class="mo">–</span>') + '</td>'; });
+        h += '<td class="tb">' + (x.tb != null ? vn2(x.tb) + (x.duMon < D.khoi.length ? ' <small class="mo" title="Thiếu điểm ' + (D.khoi.length - x.duMon) + ' môn">*</small>' : '') : '') + '</td></tr>';
+      });
+      if (ds.length) {
+        h += '<tr class="tat"><td colspan="4" style="text-align:right"><b>ĐTB</b></td>';
+        D.khoi.forEach(function (m) { h += '<td class="tb">' + vn2(tb(ds, function (x) { return x.tbMon[m]; })) + '</td>'; });
+        h += '<td class="tb">' + vn2(tb(ds.filter(function (x) { return x.duMon === D.khoi.length; }), function (x) { return x.tb; })) + '</td></tr>';
+      }
+      $('#tkBang').innerHTML = h + '</table></div>' + (ds.length ? '<p class="mo" style="font-size:12.5px">* Thiếu điểm ít nhất một môn của khối: tổng chỉ cộng các môn đã có. ĐTB cột Tổng chỉ tính học sinh đủ môn.</p>' : '<p class="mo">Không có học sinh nào khớp.</p>');
+      return;
+    }
     if (ngang) for (var i = 0; i < soCot; i++) h += '<th>Điểm ' + (i + 1) + '</th>';
     else D.ky.forEach(function (k) { h += '<th title="' + esc(tenK(k) + ' – ' + ngayDu(ngayKT(k))) + '">' + esc(tenNgan(k)) + '<small>' + ngayNgan(ngayKT(k)) + '</small></th>'; });
     h += '<th>TB</th></tr>';
@@ -6832,6 +6997,11 @@ var QUET = (function () {
     var ds = locTK(D), ngang = TKT.sx === 'ngang', soCot = ngang ? Math.max.apply(null, [0].concat(ds.map(function (x) { return x.so; }))) : D.ky.length, i;
     if (!ds.length) return bao('Không có học sinh nào để xuất.');
     var dau = ['STT', 'SBD', 'Họ và tên', 'Lớp'];
+    if (D.khoi && !ngang) {
+      var dk = [dau.concat(D.khoi.map(function (m) { return 'TB ' + m; }), ['Tổng'])];
+      ds.forEach(function (x, n) { dk.push([n + 1, x.sbd, x.ten, x.lop].concat(D.khoi.map(function (m) { return x.tbMon[m] != null ? x.tbMon[m] : ''; }), [x.tb != null ? x.tb : ''])); });
+      return XLSX.taiVe('Tong ket - ' + TKT.mon + (TKT.lop ? ' - ' + TKT.lop : ''), dk, [6, 10, 28, 10].concat(D.khoi.map(function () { return 12; }), [10]));
+    }
     if (ngang) for (i = 0; i < soCot; i++) dau.push('Điểm ' + (i + 1));
     else D.ky.forEach(function (k) { var n = ngayDu(ngayKT(k)); dau.push(tenK(k) + (n ? ' (' + n + ')' : '')); });
     dau.push('TB');
@@ -6877,12 +7047,13 @@ var QUET = (function () {
       '</style></head><body>';
     var tep = cacLop.map(function (l) {
       var trang = nhom[l].map(function (x) {
-        var dong = D.ky.map(function (k, i) { var v = x.diem[k.id]; return '<tr><td class="so">' + (i + 1) + '</td><td>' + esc(tenK(k)) + '</td><td class="so">' + ngayDu(ngayKT(k)) + '</td><td class="so"><b>' + (v != null ? vn(v) : 'Vắng') + '</b></td></tr>'; }).join('');
+        var dong = D.ky.map(function (k, i) { var v = x.diem[k.id]; return '<tr><td class="so">' + (i + 1) + '</td><td>' + (D.khoi ? '<b>' + esc(k.mon || '') + '</b> – ' : '') + esc(tenK(k)) + '</td><td class="so">' + ngayDu(ngayKT(k)) + '</td><td class="so"><b>' + (v != null ? vn(v) : 'Vắng') + '</b></td></tr>'; }).join('');
         return '<div class="pd">' + (o.truong ? '<div class="pdTruong">' + esc(o.truong) + '</div>' : '') + '<div class="pdTd">' + esc(o.tieuDe) + '</div>' +
           '<div class="pdMon">Môn: <b>' + esc(TKT.mon || 'Chưa ghi môn') + '</b>' + (ngayTu ? ' · từ ' + ngayTu + ' đến ' + ngayDen : '') + '</div>' +
           '<table class="pdHs"><tr><td>Họ và tên: <b>' + esc(x.ten || '') + '</b></td><td>SBD: <b>' + esc(x.sbd) + '</b></td><td>Lớp: <b>' + esc(x.lop || '') + '</b></td></tr></table>' +
           '<table class="pdB"><tr><th style="width:36px">STT</th><th>Bài kiểm tra</th><th style="width:100px">Ngày</th><th style="width:80px">Điểm</th></tr>' + dong + '</table>' +
-          '<div class="pdTong">' + (o.tb ? 'Điểm trung bình: <b>' + (x.tb != null ? vn2(x.tb) : '—') + '</b> (' + x.so + '/' + D.ky.length + ' bài)' : '') +
+          '<div class="pdTong">' + (o.tb ? (D.khoi ? D.khoi.map(function (m) { return 'TB ' + esc(monNgan(m)) + ': <b>' + (x.tbMon[m] != null ? vn2(x.tbMon[m]) : '—') + '</b>'; }).join(' · ') + ' · Tổng ' + esc(TKT.mon) + ': <b>' + (x.tb != null ? vn2(x.tb) : '—') + '</b>'
+            : 'Điểm trung bình: <b>' + (x.tb != null ? vn2(x.tb) : '—') + '</b> (' + x.so + '/' + D.ky.length + ' bài)') : '') +
           (o.hang && x.hang ? (o.tb ? ' &nbsp;·&nbsp; ' : '') + 'Xếp hạng trong lớp: <b>' + x.hang + '/' + x.siSo + '</b>' : '') + '</div>' +
           (o.nx ? '<div class="pdNx"><b>Nhận xét của giáo viên:</b></div>' : '') +
           (o.ky ? '<div class="pdKy">Giáo viên bộ môn<br><br><br><br>&nbsp;</div>' : '') + '</div>';
