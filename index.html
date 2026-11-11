@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '1.9.8';</script>
+<script>window.NK_BAN = '2.0';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -493,7 +493,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v1.9.8</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v2.0</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -506,7 +506,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v1.9.8 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v2.0 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -535,7 +535,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v1.9.8 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v2.0 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a><br>Thông tin &amp; tải NKZip: <a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -5371,8 +5371,45 @@ var QUET = (function () {
     });
     h += '</tbody></table></div><div class="tuCanh">' + kiemTU(k).map(function (x) {
       return '<div class="' + x.loai + '">' + (x.loai === 'du' ? '✓ ' : x.loai === 'chua' ? '' : '⚠ ') + esc(x.s) + '</div>';
-    }).join('') + '</div><div class="hang" style="margin-top:8px"><button class="nho nguy" id="tuXoa">Xoá bảng tương ứng</button><span class="mo" style="font-size:12.5px">Tự động lưu sau mỗi lần dán / sửa.</span></div></div>';
+    }).join('') + '</div><div class="hang" style="margin-top:8px"><button class="nho vang" id="tuCopy" title="Chép cả bảng (tiêu đề, màu, viền) để dán vào Word hoặc Excel">📋 Copy bảng</button>' +
+      '<button class="nho nguy" id="tuXoa">Xoá bảng tương ứng</button><span class="mo" style="font-size:12.5px">Tự động lưu sau mỗi lần dán / sửa.</span></div></div>';
     return h;
+  }
+  // Bảng tương ứng để dán vào Word / Excel: HTML có màu, viền, chữ Times New Roman (giống trên màn hình) + bản chữ thuần (tab) cho nơi khác
+  function chepTU(k) {
+    var N = tongCau(k), goc = maGoc(k), mas = hangTU(k), mau = ['#ffff00', '#ff6fa1', '#a9d18e', '#00b0f0'], i;
+    var td = 'border:1px solid #000;padding:3px 6px;text-align:center;font-family:\'Times New Roman\',serif;font-size:12pt;font-weight:bold;';
+    var tieuDe = 'TÙY CHỈNH THÔNG TIN SỐ CÂU THEO TỪNG MÃ ĐỀ TƯƠNG ỨNG' + (k.mon ? ' MÔN ' + String(k.mon).toUpperCase() : '');
+    var html = '<table style="border-collapse:collapse;"><tr><td colspan="' + (N + 1) + '" style="' + td + 'background:#f2f2f2;font-size:13pt;">' + esc(tieuDe) + '</td></tr>';
+    var chu = [tieuDe];
+    mas.forEach(function (m, r) {
+      var hang = m === goc ? null : ((k.tuongUng || {})[m] || []), nen = mau[r % 4], o = ['MÃ ĐỀ ' + m];
+      html += '<tr><td style="' + td + 'background:' + nen + ';white-space:nowrap;">MÃ ĐỀ ' + esc(m) + '</td>';
+      for (i = 0; i < N; i++) {
+        var v = viTriCau(k, i), bg = m === goc && v && v.phan === 2 ? '#ffff99' : nen, x = m === goc ? i + 1 : (hang[i] || '');
+        html += '<td style="' + td + 'background:' + bg + ';">' + x + '</td>'; o.push(x);
+      }
+      html += '</tr>'; chu.push(o.join('\t'));
+    });
+    html += '</table>';
+    return { html: '<html><body>' + html + '</body></html>', chu: chu.join('\r\n') };
+  }
+  function chepVaoClipboard(html, chu) {
+    if (navigator.clipboard && window.ClipboardItem) {
+      return navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([chu], { type: 'text/plain' }) })])
+        .catch(function () { return chepCu(html); });
+    }
+    return chepCu(html);
+    function chepCu(h) {                              // trình duyệt cũ: chọn một vùng HTML ẩn rồi "copy"
+      return new Promise(function (ok, loi) {
+        var d = document.createElement('div'); d.contentEditable = 'true'; d.style.cssText = 'position:fixed;left:-9999px;top:0'; d.innerHTML = h;
+        document.body.appendChild(d);
+        var r = document.createRange(); r.selectNodeContents(d); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        var xong = false; try { xong = document.execCommand('copy'); } catch (e) { /* bỏ qua */ }
+        s.removeAllRanges(); d.remove();
+        if (xong) ok(); else loi(new Error('Không chép được'));
+      });
+    }
   }
   var henLuuTU = 0;
   function ganTU(k) {
@@ -5396,6 +5433,10 @@ var QUET = (function () {
         veChinh();
       };
     });
+    $('#tuCopy').onclick = function () {
+      var c = chepTU(k);
+      chepVaoClipboard(c.html, c.chu).then(function () { bao('Đã copy bảng. Mở Word hoặc Excel rồi bấm Ctrl+V để dán.', 5000); }, function () { bao('Không copy được – hãy thử lại.', 5000); });
+    };
     $('#tuXoa').onclick = function () { if (!confirm('Xoá toàn bộ bảng mã đề tương ứng?')) return; clearTimeout(henLuuTU); k.tuongUng = {}; luuKy(k); veChinh(); };
   }
 
