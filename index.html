@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '2.0.1';</script>
+<script>window.NK_BAN = '2.0.2';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -493,7 +493,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v2.0.1</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v2.0.2</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -506,7 +506,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v2.0.1 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v2.0.2 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -535,7 +535,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v2.0.1 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v2.0.2 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a><br>Thông tin &amp; tải NKZip: <a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -1829,8 +1829,7 @@ var API = (function () {
   function dangNhap(tk, mk) {
     return gui({ action: 'dangNhap', tk: tk, mk: mk }).then(function (r) {
       if (!r || !r.ok) throw new Error(r && r.loi || 'Không đăng nhập được');
-      ls('nkzip_phien', r.phien); ls('nkzip_ten', r.ten || r.tk); ls('nkzip_tk', r.tk); ls('nkzip_qt', r.quanTri ? '1' : null); ls('nkzip_thay', null);
-      return r;
+      ls('nkzip_phien', r.phien); ls('nkzip_ten', r.ten || r.tk); ls('nkzip_tk', r.tk); ls('nkzip_qt', r.quanTri ? '1' : null); ls('nkzip_thay', null);      return r;
     });
   }
   function dangKi(tk, mk, ten) {
@@ -1848,8 +1847,7 @@ var API = (function () {
     goi: goi, goiGas: goiGas, cheDo: cheDo, lopFB: lopFB, gui: gui, trongGas: trongGas, mayTinh: mayTinh, dangNhap: dangNhap, dangXuat: dangXuat, dangKi: dangKi, doiMatKhau: doiMatKhau,
     coPhien: function () { return !!ls('nkzip_phien'); }, phien: function () { return ls('nkzip_phien'); },
     ten: function () { return ls('nkzip_ten'); }, toi: function () { return ls('nkzip_tk'); },
-    quanTri: function (v) { if (v === undefined) return ls('nkzip_qt') === '1'; ls('nkzip_qt', v ? '1' : null); },
-    tk: function () { var t = ls('nkzip_thay'); return t === '*' ? 'tatca' : (t || ls('nkzip_tk')); },
+    quanTri: function (v) { if (v === undefined) return ls('nkzip_qt') === '1'; ls('nkzip_qt', v ? '1' : null); },    tk: function () { var t = ls('nkzip_thay'); return t === '*' ? 'tatca' : (t || ls('nkzip_tk')); },
     thay: function (t) { if (t === undefined) return ls('nkzip_thay'); ls('nkzip_thay', t || null); }
   };
 })();
@@ -4072,8 +4070,18 @@ var QUET = (function () {
     if (mk.length < 6) { l.textContent = 'Mật khẩu cần ít nhất 6 kí tự.'; return; }
     if (mk !== $('#dkMk2').value) { l.textContent = 'Hai lần nhập mật khẩu không giống nhau.'; return; }
     $('#dkNut').textContent = 'Đang gửi…';
-    API.dangKi(tk, mk, ten).then(function () {
+    API.dangKi(tk, mk, ten).then(function (r) {
       $('#dkNut').textContent = 'Gửi đăng kí';
+      // đợt tự duyệt: tài khoản dùng được ngay → đăng nhập luôn
+      if (r && r.cho === false) {
+        l.className = 'loiDN ok'; l.textContent = 'Đăng kí thành công! Dùng thử đến hết ngày ' + (r.hanNgay || '') + '. Đang đăng nhập…';
+        return API.dangNhap(tk, mk).then(function () {
+          ['#dkMk', '#dkMk2'].forEach(function (x) { $(x).value = ''; });
+          $('#dangNhap').classList.remove('hien'); anHetMk(); hienForm(false);
+          chon = { ky: null, lop: null }; KQ = []; KQC = {}; khoiDong();
+          bao('Chào mừng bạn đến với NKZip! Tài khoản dùng thử đến hết ngày ' + (r.hanNgay || '') + '.', 8000);
+        });
+      }
       ['#dkMk', '#dkMk2'].forEach(function (x) { $(x).value = ''; });
       l.className = 'loiDN ok'; l.textContent = 'Đã gửi đăng kí. Tài khoản sẽ dùng được sau khi quản trị viên duyệt.';
       $('#dnTk').value = tk;
@@ -7221,7 +7229,7 @@ var QUET = (function () {
     if (!QT || CUC_BO) { TK = []; veChonTk(); return Promise.resolve(); }
     return API.goi('dsTaiKhoan').then(function (r) {
       var choCu = TK.filter(function (a) { return a.cho; }).length;
-      TK = r.taiKhoan || []; veChonTk();
+      TK = r.taiKhoan || []; if (r.dangKi) DK = r.dangKi; veChonTk();
       var cho = TK.filter(function (a) { return a.cho; }).length;
       if (cho !== choCu) { veKhung(); veBen(); }
       if (cho && cho > choCu) bao('Có ' + cho + ' tài khoản đăng kí đang chờ duyệt – xem ở thẻ Tài khoản', 7000);
@@ -7237,12 +7245,13 @@ var QUET = (function () {
   setInterval(kiemDangKi, 60000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) kiemDangKi(); });
   var hienMk = {};
+  var DK = { tuDuyet: false, ngay: 7 };             // cấu hình đăng kí (máy chủ trả kèm danh sách tài khoản): tự duyệt + số ngày dùng thử
   // Ô "Thời hạn": vĩnh viễn / dùng thử đến ngày… (còn n ngày) / đã hết hạn; dùng thử thì có nút gia hạn +7 ngày và chuyển vĩnh viễn
   function oThoiHan(a) {
     if (a.qt) return '<span class="mo">Vĩnh viễn</span>';
     if (!a.han) return 'Vĩnh viễn';
     var con = Math.ceil((a.han - Date.now()) / 86400000), ngay = new Date(a.han).toLocaleDateString('vi-VN');
-    var nut = '<br><button class="nho" data-han="' + esc(a.tk) + '" data-kieu="them" title="Còn hạn thì cộng tiếp từ ngày hết hạn; đã hết hạn thì tính từ hôm nay">+7 ngày</button> ' +
+    var nut = '<br><button class="nho" data-han="' + esc(a.tk) + '" data-kieu="them" title="Còn hạn thì cộng tiếp từ ngày hết hạn; đã hết hạn thì tính từ hôm nay">+' + DK.ngay + ' ngày</button> ' +
       '<button class="nho vang" data-han="' + esc(a.tk) + '" data-kieu="vv">Vĩnh viễn</button>';
     return (a.han > Date.now()
       ? 'Dùng thử đến <b>' + ngay + '</b> <span class="mo">(còn ' + con + ' ngày)</span>'
@@ -7253,8 +7262,17 @@ var QUET = (function () {
     // số bài thi mỗi tài khoản đã tạo (cộng trên mọi dự án, theo lần bấm Kiểm tra dung lượng gần nhất trong Cài đặt)
     var BTK = window.FBK && FBK.baiTheoTaiKhoan ? FBK.baiTheoTaiKhoan() : { tong: {}, luc: 0, soDuAn: 0 };
     var h = '<h2>Tài khoản</h2><p class="mo">Mỗi tài khoản chỉ thấy bài thi và lớp của riêng mình. Tài khoản quản trị tạo được tài khoản khác, xem và đổi mật khẩu, và vào được mục Cài đặt.</p>' +
+      // đăng kí mới: tự duyệt (đợt khuyến mãi) hoặc quản trị duyệt tay; số ngày dùng thử dùng chung cho tự duyệt, nút duyệt dùng thử và nút gia hạn
+      '<div class="the" style="border-color:' + (DK.tuDuyet ? 'var(--xanh)' : 'var(--vien)') + '"><h3>Đăng kí tài khoản mới</h3><div class="hang" style="align-items:flex-end;gap:14px;flex-wrap:wrap">' +
+      '<div class="o"><label>Cách duyệt</label><select id="dkKieu"><option value="0"' + (DK.tuDuyet ? '' : ' selected') + '>Quản trị duyệt tay</option><option value="1"' + (DK.tuDuyet ? ' selected' : '') + '>Tự duyệt – đăng kí xong dùng luôn (khuyến mãi)</option></select></div>' +
+      '<div class="o"><label>Số ngày dùng thử</label><input id="dkNgay" type="number" min="1" max="365" step="1" value="' + DK.ngay + '" style="width:100px"></div>' +
+      '<div class="doan" id="dkNhanh">' + [7, 14, 30, 60, 90].map(function (n) { return '<button type="button" data-ngay="' + n + '"' + (n === DK.ngay ? ' class="chon"' : '') + '>' + (n === 30 ? '1 tháng' : n === 60 ? '2 tháng' : n === 90 ? '3 tháng' : n + ' ngày') + '</button>'; }).join('') + '</div>' +
+      '<button class="vang" id="dkLuu">Lưu</button></div>' +
+      '<p class="mo" style="margin:8px 0 0">' + (DK.tuDuyet
+        ? '<b style="color:var(--xanh)">Đang tự duyệt:</b> người đăng kí vào dùng ngay, dùng thử <b>' + DK.ngay + ' ngày</b> (đến 23:59 ngày cuối), dùng dự án gốc. Hết đợt khuyến mãi thì chuyển lại “Quản trị duyệt tay”.'
+        : 'Đang duyệt tay: tài khoản đăng kí nằm ở mục Chờ duyệt. Nút “Dùng thử” và “+ ngày” dùng số ngày ở trên (<b>' + DK.ngay + ' ngày</b>).') + '</p></div>' +
       (cho.length ? '<div class="the" style="border-color:var(--vang2)"><h3>Chờ duyệt (' + cho.length + ')</h3><table class="ke"><tr><th>Tài khoản</th><th>Họ tên</th><th>Ngày đăng kí</th><th style="width:300px">Duyệt</th></tr>' +
-        cho.map(function (a) { return '<tr><td><b>' + esc(a.tk) + '</b></td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleString('vi-VN') : '') + '</td><td style="white-space:nowrap"><button class="vang nho" data-duyet="' + esc(a.tk) + '" data-kieu="thu" title="Dùng được đến hết 23:59 ngày thứ 7 kể từ hôm nay">Dùng thử 7 ngày</button> <button class="vang nho" data-duyet="' + esc(a.tk) + '" data-kieu="vv">Vĩnh viễn</button> <button class="nguy nho" data-tuchoi="' + esc(a.tk) + '">Từ chối</button></td></tr>'; }).join('') +
+        cho.map(function (a) { return '<tr><td><b>' + esc(a.tk) + '</b></td><td>' + esc(a.ten) + '</td><td class="mo">' + esc(a.tao ? new Date(a.tao).toLocaleString('vi-VN') : '') + '</td><td style="white-space:nowrap"><button class="vang nho" data-duyet="' + esc(a.tk) + '" data-kieu="thu" title="Dùng được đến hết 23:59 ngày thứ ' + DK.ngay + ' kể từ hôm nay">Dùng thử ' + DK.ngay + ' ngày</button> <button class="vang nho" data-duyet="' + esc(a.tk) + '" data-kieu="vv">Vĩnh viễn</button> <button class="nguy nho" data-tuchoi="' + esc(a.tk) + '">Từ chối</button></td></tr>'; }).join('') +
         '</table></div>' : '') +
       '<div class="the"><h3>Thêm tài khoản</h3><div class="hang" style="align-items:flex-end"><div class="o"><label>Tài khoản (email hoặc tên, viết thường)</label><input id="tTk" autocomplete="off" spellcheck="false" style="width:230px"></div><div class="o"><label>Tên hiển thị</label><input id="tTen" autocomplete="off"></div>' +
       '<div class="o"><label>Mật khẩu (từ 6 kí tự)</label><input id="tMk" autocomplete="new-password"></div><label class="hang" style="gap:6px;cursor:pointer"><input type="checkbox" id="tQt"> Quản trị</label><button class="vang" id="tLuu">Tạo tài khoản</button></div></div>' +
@@ -7288,20 +7306,31 @@ var QUET = (function () {
       if (tim(y.tk)) return bao('Tài khoản ' + y.tk + ' đã có. Dùng nút “Đổi mật khẩu” trong danh sách.');
       luu(y, 'Đã tạo tài khoản ' + y.tk);
     };
+    $$('#dkNhanh [data-ngay]').forEach(function (b) { b.onclick = function () { $('#dkNgay').value = b.getAttribute('data-ngay'); $$('#dkNhanh button').forEach(function (x) { x.classList.toggle('chon', x === b); }); }; });
+    $('#dkLuu').onclick = function () {
+      var n = Math.round(Number($('#dkNgay').value)), tu = $('#dkKieu').value === '1';
+      if (!(n >= 1 && n <= 365)) return bao('Số ngày dùng thử từ 1 đến 365.');
+      if (tu && !DK.tuDuyet && !confirm('Bật TỰ DUYỆT?\n\nAi đăng kí cũng vào dùng được ngay ' + n + ' ngày (không cần bạn duyệt). Hết đợt khuyến mãi nhớ chuyển lại “Quản trị duyệt tay”.')) return;
+      bao('Đang lưu…', 20000);
+      API.goi('luuCauHinhDK', { tuDuyet: tu, ngay: n }).then(function (r) {
+        if (!r || !r.ok || !r.dangKi) throw new Error(r && r.loi || 'Máy chủ chưa hỗ trợ – cần cập nhật Apps Script');
+        DK = r.dangKi; bao(DK.tuDuyet ? 'Đã bật tự duyệt – dùng thử ' + DK.ngay + ' ngày' : 'Đã chuyển về duyệt tay – dùng thử ' + DK.ngay + ' ngày'); veTaiKhoan();
+      }).catch(loi);
+    };
     $$('#chinh [data-duyet]').forEach(function (b) {
       b.onclick = function () {
         var t = b.getAttribute('data-duyet'), thu = b.getAttribute('data-kieu') === 'thu';
-        if (!confirm(thu ? 'Duyệt “' + t + '” dùng thử 7 ngày?\n\nHết 23:59 ngày thứ 7 tài khoản tự khoá (không đăng nhập được). Sau đó có thể gia hạn thêm hoặc chuyển vĩnh viễn trong danh sách.' : 'Duyệt “' + t + '” dùng VĨNH VIỄN?')) return;
+        if (!confirm(thu ? 'Duyệt “' + t + '” dùng thử ' + DK.ngay + ' ngày?\n\nHết 23:59 ngày thứ ' + DK.ngay + ' tài khoản tự khoá (không đăng nhập được). Sau đó có thể gia hạn thêm hoặc chuyển vĩnh viễn trong danh sách.' : 'Duyệt “' + t + '” dùng VĨNH VIỄN?')) return;
         bao('Đang duyệt…', 20000);
-        API.goi('duyetTaiKhoan', { tk: t, dongY: true, kieu: thu ? 'thu' : 'vv', ngay: 7 }).then(function () { bao(thu ? 'Đã duyệt ' + t + ' dùng thử 7 ngày' : 'Đã duyệt ' + t + ' vĩnh viễn'); return taiTK(); }).then(function () { veKhung(); veBen(); veTaiKhoan(); }).catch(loi);
+        API.goi('duyetTaiKhoan', { tk: t, dongY: true, kieu: thu ? 'thu' : 'vv', ngay: DK.ngay }).then(function () { bao(thu ? 'Đã duyệt ' + t + ' dùng thử ' + DK.ngay + ' ngày' : 'Đã duyệt ' + t + ' vĩnh viễn'); return taiTK(); }).then(function () { veKhung(); veBen(); veTaiKhoan(); }).catch(loi);
       };
     });
     $$('#chinh [data-han]').forEach(function (b) {
       b.onclick = function () {
         var t = b.getAttribute('data-han'), vv = b.getAttribute('data-kieu') === 'vv';
-        if (!confirm(vv ? 'Chuyển “' + t + '” sang dùng VĨNH VIỄN?' : 'Gia hạn dùng thử thêm 7 ngày cho “' + t + '”?')) return;
+        if (!confirm(vv ? 'Chuyển “' + t + '” sang dùng VĨNH VIỄN?' : 'Gia hạn dùng thử thêm ' + DK.ngay + ' ngày cho “' + t + '”?')) return;
         bao('Đang lưu…', 20000);
-        API.goi('hanTaiKhoan', { tk: t, kieu: vv ? 'vv' : 'them', ngay: 7 }).then(function () { bao(vv ? 'Đã chuyển ' + t + ' sang vĩnh viễn' : 'Đã gia hạn thêm 7 ngày cho ' + t); return taiTK(); }).then(veTaiKhoan).catch(loi);
+        API.goi('hanTaiKhoan', { tk: t, kieu: vv ? 'vv' : 'them', ngay: DK.ngay }).then(function () { bao(vv ? 'Đã chuyển ' + t + ' sang vĩnh viễn' : 'Đã gia hạn thêm ' + DK.ngay + ' ngày cho ' + t); return taiTK(); }).then(veTaiKhoan).catch(loi);
       };
     });
     $$('#chinh [data-tuchoi]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-tuchoi'); if (!confirm('Từ chối và xoá yêu cầu đăng kí của “' + t + '”?')) return; API.goi('duyetTaiKhoan', { tk: t, dongY: false }).then(function () { bao('Đã từ chối ' + t); return taiTK(); }).then(function () { veKhung(); veBen(); veTaiKhoan(); }).catch(loi); }; });
