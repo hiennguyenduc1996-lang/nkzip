@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NKZip</title>
-<script>window.NK_BAN = '2.0.3';</script>
+<script>window.NK_BAN = '2.0.4';</script>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://drive.google.com">
@@ -493,7 +493,7 @@
 <body>
 <div id="khung">
   <header id="dau">
-    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v2.0.3</span></div>
+    <div class="logo"><i>NK</i><span class="tenApp">NK<b>Zip</b></span><span class="chip">v2.0.4</span></div>
     <button id="nutCheDo" class="cheDo" style="display:none"></button>
     <div class="giua"><div class="doan" id="tabBen"></div></div>
     <select id="chonTk" class="anDT" style="display:none" title="Tài khoản đang làm việc"></select>
@@ -506,7 +506,7 @@
     <aside id="ben">
       <h4 id="tdBen"></h4>
       <div id="dsBen"></div>
-      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v2.0.3 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
+      <div class="day"><button id="nutMoi" class="vang"></button><div class="banTT">NKZip v2.0.4 <span class="banMoi">· đang kiểm tra bản mới…</span></div></div>
     </aside>
     <main id="chinh"></main>
   </div>
@@ -535,7 +535,7 @@
     <button class="vang" type="submit" id="dkNut">Gửi đăng kí</button>
     <div class="chuyenDN">Đã có tài khoản? <a href="#" id="denDN">Đăng nhập</a></div>
   </form>
-  <div class="banTT" style="margin-top:10px">NKZip v2.0.3 <span class="banMoi"></span></div>
+  <div class="banTT" style="margin-top:10px">NKZip v2.0.4 <span class="banMoi"></span></div>
   <div class="tacGia">Tác giả: <b>Nguyễn Đức Hiền</b>, giáo viên Vật lý trường THCS và THPT Nguyễn Khuyến Bình Dương.<br>Facebook: <a href="https://www.facebook.com/nguyen.hien.828861/" target="_blank" rel="noopener">facebook.com/nguyen.hien.828861</a><br>Thông tin &amp; tải NKZip: <a href="https://nkzip.web.app/" target="_blank" rel="noopener">nkzip.web.app</a></div>
 </div></div>
 <div id="hopMk" class="qHop" style="position:fixed;z-index:25"><form class="the" id="fMk">
@@ -6369,7 +6369,22 @@ var QUET = (function () {
     return ds.sort(theoSbd);
   }
   // ----- Trùng SBD: mỗi trường hợp = một SBD có từ 2 bài; còn hiện khi còn bài chưa được xác nhận "đúng SBD này" -----
-  var vtTrung = 0;
+  var vtTrung = 0, trCham = true;                  // trCham: xem ảnh ĐÃ CHẤM (dấu đúng / sai + điểm) – mặc định; tắt = ảnh gốc
+  // vẽ dấu chấm lên ảnh của thẻ trùng SBD ngay trên máy (vẽ từ ảnh đang hiện: không tải thêm, không tốn lượt đọc)
+  function chamAnhTrung(img, k, r) {
+    if (!anhSachCua(r)) return;                      // ảnh bản cũ: dấu đã vẽ sẵn trong ảnh
+    var lam = function () {
+      if (img.getAttribute('data-da-ve') || !img.naturalWidth) return;
+      try {
+        var cv = document.createElement('canvas'); cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+        var c = cv.getContext('2d'), T = MAU[k.mau], m = sao(r);
+        c.drawImage(img, 0, 0); m.loiMade = !k.de[m.made];
+        VE.danhDau(c, T, k, m, cv.width / (T.khung[2] - T.khung[0]));
+        img.setAttribute('data-da-ve', '1'); img.src = cv.toDataURL('image/jpeg', 0.85);
+      } catch (e) { /* ảnh khác nguồn (Drive): giữ ảnh gốc */ }
+    };
+    if (img.complete && img.naturalWidth) lam(); else img.addEventListener('load', lam);
+  }
   function nhomTrung() {
     var g = {};
     KQ.forEach(function (r) { if (!r.chuaGui && /^\d+$/.test(r.sbd)) (g[r.sbd] = g[r.sbd] || []).push(r); });
@@ -6404,11 +6419,13 @@ var QUET = (function () {
     var h = '<div class="the trBoc"><div class="trDs">' + ds.map(function (x, i) {
       return '<button data-tr="' + i + '"' + (i === vtTrung ? ' class="chon"' : '') + '>Trường hợp ' + (i + 1) + ' <small>SBD ' + esc(x.sbd) + ' · ' + x.ds.length + ' bài</small></button>';
     }).join('') + '</div>' +
-      '<div class="trTD">Trường hợp ' + (vtTrung + 1) + '/' + ds.length + ': <b>' + g.ds.length + ' bài</b> cùng SBD <b>' + esc(g.sbd) + '</b> – so họ tên viết tay trên từng phiếu, gán lại bài của học sinh tô nhầm, xoá bài bị chấm 2 lần.</div>' +
+      '<div class="trTD" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:260px">Trường hợp ' + (vtTrung + 1) + '/' + ds.length + ': <b>' + g.ds.length + ' bài</b> cùng SBD <b>' + esc(g.sbd) + '</b> – so họ tên viết tay trên từng phiếu, gán lại bài của học sinh tô nhầm, xoá bài bị chấm 2 lần.</span>' +
+      '<div class="doan" id="trKieuAnh"><button data-trcham="1"' + (trCham ? ' class="chon"' : '') + ' title="Ảnh có dấu đúng / sai và điểm của từng bài">Ảnh đã chấm</button><button data-trcham="0"' + (trCham ? '' : ' class="chon"') + ' title="Ảnh gốc học sinh nộp, chưa vẽ dấu">Ảnh gốc</button></div></div>' +
       '<div class="trLuoi">' + g.ds.map(function (r) {
         var anh = anhUrl(anhSachCua(r) || r.anh), xn = daBoQua(r, 'trung');
-        return '<div class="trThe' + (xn ? ' xn' : '') + '"><div class="trDau"><b>' + esc(r.ten || 'Chưa rõ học sinh') + '</b><span>SBD ' + esc(r.sbd) + (r.lop ? ' · Lớp ' + esc(r.lop) : '') + ' · Mã đề ' + esc(r.made || '?') + '</span></div>' +
-          '<div class="trAnh" data-xem="' + esc(r.id) + '" title="Bấm để mở bài">' + (anh ? '<img src="' + esc(anh) + '" alt="Phiếu">' : '<span class="mo">Chưa có ảnh</span>') + '</div>' +
+        var diem = trCham && r.diem != null ? ' · <b style="color:var(--xanh)">' + esc(String(Math.round(r.diem * 100) / 100).replace('.', ',')) + ' điểm</b>' : '';
+        return '<div class="trThe' + (xn ? ' xn' : '') + '"><div class="trDau"><b>' + esc(r.ten || 'Chưa rõ học sinh') + '</b><span>SBD ' + esc(r.sbd) + (r.lop ? ' · Lớp ' + esc(r.lop) : '') + ' · Mã đề ' + esc(r.made || '?') + diem + '</span></div>' +
+          '<div class="trAnh" data-xem="' + esc(r.id) + '" title="Bấm để mở bài">' + (anh ? '<img src="' + esc(anh) + '" alt="Phiếu" data-tr-id="' + esc(r.id) + '">' : '<span class="mo">Chưa có ảnh</span>') + '</div>' +
           '<div class="trNut"><button data-gan="' + esc(r.id) + '">Gán học sinh</button><button class="nguy" data-xoa="' + esc(r.id) + '">Xoá bài</button>' +
           (xn ? '<span class="trXN">✓ Đúng SBD này</span>' : '<button class="vang" data-bq="' + esc(r.id) + '" title="Bài này đúng là của học sinh SBD ' + esc(r.sbd) + '">✓ Đúng SBD này</button>') + '</div></div>';
       }).join('') + '</div></div>';
@@ -6417,6 +6434,8 @@ var QUET = (function () {
   function ganTrung(k) {
     var tim = function (id) { return KQ.filter(function (x) { return x.id === id; })[0]; };
     $$('#noiDung [data-tr]').forEach(function (b) { b.onclick = function () { vtTrung = +b.getAttribute('data-tr'); veChinh(); }; });
+    $$('#noiDung [data-trcham]').forEach(function (b) { b.onclick = function () { trCham = b.getAttribute('data-trcham') === '1'; veChinh(); }; });
+    if (trCham) $$('#noiDung img[data-tr-id]').forEach(function (im) { var r = tim(im.getAttribute('data-tr-id')); if (r) chamAnhTrung(im, k, r); });
     $$('#noiDung [data-xem]').forEach(function (b) { b.onclick = function () { var r = tim(b.getAttribute('data-xem')); if (r) moBai(r.id, nhomTrung()[vtTrung].ds.map(function (x) { return x.id; })); }; });
     $$('#noiDung [data-gan]').forEach(function (b) {
       b.onclick = function () { var r = tim(b.getAttribute('data-gan')); if (r) chonHocSinh(function (hs) { ganLaiBai(k, r, hs); }, hsChuaCoBai(r)); };
